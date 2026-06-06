@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Falcioni KPIs</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0A0A0A">
+  <style>
+    :root {
+      --bg:     #0A0A0A;
+      --card:   #141414;
+      --card2:  #1C1C1C;
+      --border: #2A2A2A;
+      --gold:   #C9A84C;
+      --gold-l: #E8C96B;
+      --text:   #FFFFFF;
+      --muted:  #888888;
+      --bronze: #CD7F32;
+      --prata:  #A8A9AD;
+      --ouro:   #FFD700;
+      --fora:   #444444;
+      --success:#43A047;
+      --danger: #E53935;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--text); font-family:'Segoe UI',Arial,sans-serif; min-height:100vh; }
+
+    /* ── SPLASH ── */
+    #splash {
+      position:fixed; inset:0; z-index:9999; background:#0A0A0A;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      transition:opacity .6s;
+    }
+    #splash img { width:120px; margin-bottom:24px; opacity:.9; }
+    #splash h1 { font-size:1.6rem; color:var(--gold); letter-spacing:3px; text-transform:uppercase; }
+    #splash p  { color:var(--muted); font-size:.8rem; margin-top:6px; letter-spacing:1px; }
+    #splash-bar-wrap { width:180px; height:3px; background:#222; border-radius:2px; margin-top:32px; }
+    #splash-bar { height:100%; width:0; background:var(--gold); border-radius:2px; transition:width 2s ease; }
+
+    /* ── LOGIN ── */
+    #screen-login {
+      min-height:100vh; display:none; flex-direction:column;
+      align-items:center; justify-content:center; padding:24px;
+      background:radial-gradient(ellipse at top, #1a1400 0%, #0A0A0A 70%);
+    }
+    #screen-login .logo { width:140px; margin-bottom:20px; }
+    #screen-login h1 { font-size:1.3rem; color:var(--gold); letter-spacing:2px; text-transform:uppercase; }
+    #screen-login .sub { color:var(--muted); font-size:.8rem; margin:4px 0 28px; }
+
+    .setor-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; max-width:360px; margin-bottom:20px; }
+    .setor-btn {
+      padding:14px 8px; border-radius:10px; border:2px solid var(--border);
+      background:var(--card); color:var(--muted); font-size:.8rem; font-weight:700;
+      cursor:pointer; text-align:center; transition:all .2s;
+    }
+    .setor-btn .icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+    .setor-btn.active { border-color:var(--gold); color:var(--gold); background:#1e1600; }
+    .setor-btn.disabled { opacity:.35; cursor:default; }
+
+    .login-box { width:100%; max-width:360px; display:flex; flex-direction:column; gap:12px; }
+    .login-box input {
+      padding:14px 16px; border-radius:10px; border:1.5px solid var(--border);
+      background:var(--card2); color:var(--text); font-size:1rem; outline:none;
+    }
+    .login-box input:focus { border-color:var(--gold); }
+    .btn-gold {
+      padding:14px; border-radius:10px; border:none;
+      background:linear-gradient(135deg,var(--gold),#a07830); color:#000;
+      font-size:1rem; font-weight:700; cursor:pointer; transition:opacity .2s;
+    }
+    .btn-gold:hover { opacity:.85; }
+    .login-err { color:var(--danger); font-size:.82rem; text-align:center; min-height:18px; }
+    .falcioni-footer { text-align:center; margin-top:32px; opacity:.25; }
+    .falcioni-footer img { height:22px; }
+
+    /* ── TELA PRINCIPAL ── */
+    #screen-app { display:none; flex-direction:column; min-height:100vh; }
+
+    .app-header {
+      position:sticky; top:0; z-index:100;
+      background:var(--card); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:10px; padding:10px 16px;
+    }
+    .app-header img.logo-h { height:32px; }
+    .app-header .info { flex:1; }
+    .app-header .info h2 { font-size:.9rem; color:var(--gold); font-weight:700; }
+    .app-header .info span { font-size:.7rem; color:var(--muted); }
+    .mes-sel { display:flex; align-items:center; gap:6px; }
+    .mes-sel select, .mes-sel input {
+      padding:6px 8px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--card2); color:var(--text); font-size:.8rem; outline:none;
+    }
+    .mes-sel select:focus, .mes-sel input:focus { border-color:var(--gold); }
+    .btn-logout {
+      background:none; border:1px solid var(--border); color:var(--muted);
+      border-radius:8px; padding:6px 10px; cursor:pointer; font-size:.75rem;
+    }
+    .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
+
+    /* ── TABS ── */
+    .tabs { display:flex; background:var(--card); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab-btn {
+      flex:0 0 auto; padding:12px 16px; border:none; background:none;
+      color:var(--muted); font-size:.8rem; font-weight:600; cursor:pointer;
+      border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s;
+    }
+    .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+    .tab-content { display:none; padding:16px; }
+    .tab-content.active { display:block; }
+
+    /* ── BADGES ── */
+    .badge {
+      display:inline-block; padding:3px 9px; border-radius:20px;
+      font-size:.72rem; font-weight:700;
+    }
+    .badge.Ouro   { background:#2a2000; color:var(--ouro); border:1px solid var(--ouro); }
+    .badge.Prata  { background:#1a1a1a; color:var(--prata); border:1px solid var(--prata); }
+    .badge.Bronze { background:#1a0f00; color:var(--bronze); border:1px solid var(--bronze); }
+    .badge.Fora   { background:#1a1a1a; color:var(--fora); border:1px solid var(--fora); }
+    .badge.sem-dado { background:#1a1a1a; color:#555; border:1px solid #333; }
+
+    /* ── PAINEL ── */
+    .section-title { font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:10px; padding-left:2px; }
+
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+    .kpi-card {
+      background:var(--card); border:1px solid var(--border); border-radius:12px;
+      padding:14px; display:flex; flex-direction:column; gap:4px;
+    }
+    .kpi-card .kpi-label { font-size:.7rem; color:var(--muted); }
+    .kpi-card .kpi-val   { font-size:1.6rem; font-weight:800; color:var(--text); line-height:1; }
+    .kpi-card .kpi-sub   { font-size:.7rem; color:var(--muted); }
+
+    .equipe-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+    .equipe-item {
+      flex:1; min-width:120px; background:var(--card); border:1px solid var(--border);
+      border-radius:10px; padding:10px 12px;
+    }
+    .equipe-item .eq-label { font-size:.68rem; color:var(--muted); margin-bottom:4px; }
+    .equipe-item .eq-val   { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+    .equipe-item .eq-badge { }
+
+    /* ── GRID CONSULTORAS ── */
+    .consult-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(min-width:600px) { .consult-grid { grid-template-columns:repeat(3,1fr); } }
+    .consult-card {
+      background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px;
+    }
+    .consult-card .c-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .c-avatar {
+      width:32px; height:32px; border-radius:50%; background:var(--card2);
+      border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center;
+      font-size:.7rem; font-weight:700; color:var(--gold); flex-shrink:0;
+    }
+    .c-nome { font-size:.85rem; font-weight:700; color:var(--text); }
+    .c-ind-row { display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); }
+    .c-ind-row:last-child { border-bottom:none; }
+    .c-ind-label { font-size:.7rem; color:var(--muted); }
+    .c-ind-val   { font-size:.75rem; font-weight:700; }
+
+    /* ── LANÇAMENTO ── */
+    .lanc-section { background:var(--card); border:1px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+    .lanc-section-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; cursor:pointer; user-select:none;
+    }
+    .lanc-section-header .lsh-title { font-size:.9rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .lanc-section-header .lsh-chev  { color:var(--muted); transition:transform .2s; font-size:.8rem; }
+    .lanc-section.open .lsh-chev { transform:rotate(180deg); }
+    .lanc-section-body { display:none; padding:0 16px 16px; }
+    .lanc-section.open .lanc-section-body { display:block; }
+
+    .form-group { margin-bottom:12px; }
+    .form-group label { display:block; font-size:.75rem; color:var(--muted); margin-bottom:5px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--card2); color:var(--text); font-size:.9rem; outline:none; font-family:inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--gold); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+    .btn-lancar {
+      display:block; width:100%; padding:16px; border:none; border-radius:12px;
+      background:linear-gradient(135deg,var(--gold),#a07830); color:#000;
+      font-size:1rem; font-weight:800; cursor:pointer; text-align:center;
+      margin-top:8px; letter-spacing:.5px;
+    }
+    .btn-lancar:hover { opacity:.88; }
+
+    /* ── HISTÓRICO ── */
+    .hist-toggle { display:flex; gap:8px; margin-bottom:14px; }
+    .htog-btn {
+      flex:1; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--card); color:var(--muted); font-size:.82rem; font-weight:600;
+      cursor:pointer; transition:all .2s;
+    }
+    .htog-btn.active { border-color:var(--gold); color:var(--gold); background:#1e1600; }
+
+    .hist-table-wrap { overflow-x:auto; }
+    .hist-table { width:100%; border-collapse:collapse; font-size:.75rem; min-width:500px; }
+    .hist-table th { background:var(--card2); color:var(--muted); padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .hist-table td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .hist-table tr:hover td { background:var(--card2); }
+
+    .hist-diario-sel { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+    .hist-diario-sel select, .hist-diario-sel input {
+      padding:8px 10px; border-radius:8px; border:1.5px solid var(--border);
+      background:var(--card2); color:var(--text); font-size:.85rem; outline:none;
+    }
+
+    /* ── CONFIG ── */
+    .config-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+    .config-section h4 { color:var(--gold); font-size:.85rem; margin-bottom:12px; }
+
+    /* ── MODAL ── */
+    .modal-bg {
+      position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:500;
+      display:none; align-items:flex-end; justify-content:center;
+    }
+    .modal-bg.open { display:flex; }
+    .modal {
+      background:var(--card); border-radius:20px 20px 0 0; padding:24px 20px;
+      width:100%; max-width:500px; max-height:90vh; overflow-y:auto;
+    }
+    .modal h3 { font-size:1.1rem; color:var(--gold); margin-bottom:16px; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .btn-cancel {
+      flex:1; padding:12px; border-radius:8px; border:1px solid var(--border);
+      background:none; color:var(--muted); cursor:pointer; font-size:.9rem;
+    }
+
+    /* ── LOADING / SPINNER ── */
+    .loading { text-align:center; padding:32px; color:var(--muted); font-size:.85rem; }
+    .spinner {
+      width:28px; height:28px; border:3px solid var(--border);
+      border-top-color:var(--gold); border-radius:50%;
+      animation:spin .8s linear infinite; margin:0 auto 10px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--card2); border:1px solid var(--border); color:var(--text);
+      padding:10px 20px; border-radius:20px; font-size:.85rem; z-index:9000;
+      opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap;
+    }
+    #toast.show { opacity:1; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align:center; padding:40px 16px; color:var(--muted); font-size:.85rem; }
+    .empty .e-icon { font-size:2rem; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+
+<!-- ── SPLASH ── -->
+<div id="splash">
+  <img src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
+  <h1>Falcioni KPIs</h1>
+  <p>Sistema de Indicadores</p>
+  <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
+</div>
+
+<!-- ── LOGIN ── -->
+<div id="screen-login">
+  <img class="logo" src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
+  <h1>Falcioni KPIs</h1>
+  <p class="sub">Sistema de Indicadores</p>
+
+  <div class="setor-grid">
+    <button class="setor-btn active" onclick="selSetor('consultoria',this)">
+      <span class="icon">📊</span>Consultoria
+    </button>
+    <button class="setor-btn disabled" title="Em breve">
+      <span class="icon">💼</span>Comercial
+    </button>
+    <button class="setor-btn disabled" title="Em breve">
+      <span class="icon">📣</span>Marketing
+    </button>
+  </div>
+
+  <div class="login-box">
+    <input type="password" id="inp-senha" placeholder="Senha de acesso"
+      onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-gold" onclick="login()">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+
+  <div class="falcioni-footer">
+    <img src="Falcioni.jpg" alt="Falcioni">
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="screen-app">
+  <div class="app-header">
+    <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
+    <div class="info">
+      <h2>Falcioni KPIs</h2>
+      <span id="app-setor-label">Consultoria</span>
+    </div>
+    <div class="mes-sel">
+      <select id="sel-mes" onchange="carregarDados()">
+        <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+        <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+        <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+        <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+      </select>
+      <input type="number" id="sel-ano" value="2026" min="2024" max="2030" onchange="carregarDados()" style="width:64px">
+    </div>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('painel',this)">📊 Painel</button>
+    <button class="tab-btn" onclick="showTab('lancar',this)">📋 Lançar</button>
+    <button class="tab-btn" onclick="showTab('historico',this)">📅 Histórico</button>
+    <button class="tab-btn" onclick="showTab('config',this)">⚙️ Config</button>
+  </div>
+
+  <!-- ── TAB: PAINEL ── -->
+  <div id="tab-painel" class="tab-content active">
+    <div id="painel-loading" class="loading"><div class="spinner"></div>Carregando...</div>
+    <div id="painel-body" style="display:none">
+
+      <p class="section-title">Indicadores da Equipe</p>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Controle de Horas</div>
+          <div class="kpi-val" id="kpi-horas">—</div>
+          <div id="kpi-horas-badge"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Clientes Novos</div>
+          <div class="kpi-val" id="kpi-clientes">—</div>
+          <div class="kpi-sub">no mês</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Vendas</div>
+          <div class="kpi-val" id="kpi-vendas-eq">—</div>
+          <div id="kpi-vendas-eq-badge"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Satisfação Média</div>
+          <div class="kpi-val" id="kpi-satisfacao">—</div>
+          <div id="kpi-satisfacao-badge"></div>
+        </div>
+      </div>
+
+      <p class="section-title">Metas Coletivas</p>
+      <div class="equipe-row" id="equipe-row"></div>
+
+      <p class="section-title" style="margin-top:16px">Por Consultora</p>
+      <div class="consult-grid" id="consult-grid"></div>
+
+    </div>
+    <div id="painel-empty" class="empty" style="display:none">
+      <div class="e-icon">📋</div>
+      <p>Sem lançamento para este mês.<br>Vá em <strong>Lançar</strong> para registrar os dados.</p>
+    </div>
+  </div>
+
+  <!-- ── TAB: LANÇAR ── -->
+  <div id="tab-lancar" class="tab-content">
+
+    <!-- Dados gerais -->
+    <div class="lanc-section open">
+      <div class="lanc-section-header" onclick="toggleSection(this)">
+        <span class="lsh-title">🗓️ Dados Gerais</span>
+        <span class="lsh-chev">▼</span>
+      </div>
+      <div class="lanc-section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mês</label>
+            <select id="l-mes">
+              <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+              <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+              <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+              <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ano</label>
+            <input type="number" id="l-ano" value="2026" min="2024" max="2030">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Lançado por</label>
+          <select id="l-lancadopor">
+            <option value="">Selecione...</option>
+            <option>Déborah</option><option>Lívia</option><option>Paloma</option>
+            <option>Izabela</option><option>Marília</option><option>Alan</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Controle de Horas (%)</label>
+            <input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Clientes Novos</label>
+            <input type="number" id="l-clientes" placeholder="Ex: 2" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Uma seção por consultora -->
+    <div id="consult-sections"></div>
+
+    <button class="btn-lancar" onclick="salvarLancamento()">💾 Salvar Lançamento</button>
+  </div>
+
+  <!-- ── TAB: HISTÓRICO ── -->
+  <div id="tab-historico" class="tab-content">
+    <div class="hist-toggle">
+      <button class="htog-btn active" onclick="switchHist('mensal',this)">📅 Mensal</button>
+      <button class="htog-btn" onclick="switchHist('diario',this)">📋 Lançamentos</button>
+    </div>
+
+    <!-- Mensal -->
+    <div id="hist-mensal">
+      <div class="hist-table-wrap">
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Horas %</th>
+              <th>Cli. Novos</th>
+              <th>Vendas Eq.</th>
+              <th>Post. Eq.</th>
+              <th>Conh. Eq.</th>
+              <th>Satisf. Méd.</th>
+              <th>Lançado por</th>
+            </tr>
+          </thead>
+          <tbody id="hist-mensal-body">
+            <tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lançamentos -->
+    <div id="hist-diario" style="display:none">
+      <div class="hist-diario-sel">
+        <select id="h-mes">
+          <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+          <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+          <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+          <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <input type="number" id="h-ano" value="2026" min="2024" max="2030" style="width:72px" onchange="renderLancamentos()">
+        <select id="h-mes" onchange="renderLancamentos()" style="display:none"></select>
+      </div>
+      <div id="lanc-lista"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB: CONFIG ── -->
+  <div id="tab-config" class="tab-content">
+    <div class="config-section">
+      <h4>🔑 Senhas por Setor</h4>
+      <div class="form-group">
+        <label>Nova senha — Consultoria</label>
+        <input type="password" id="nova-senha-consultoria" placeholder="••••••">
+      </div>
+      <div class="form-group">
+        <label>Nova senha — Comercial (futuro)</label>
+        <input type="password" id="nova-senha-comercial" placeholder="••••••" disabled style="opacity:.4">
+      </div>
+      <div class="form-group">
+        <label>Nova senha — Marketing (futuro)</label>
+        <input type="password" id="nova-senha-marketing" placeholder="••••••" disabled style="opacity:.4">
+      </div>
+      <button class="btn-gold" onclick="salvarSenhas()" style="padding:10px 20px;font-size:.85rem">Salvar Senhas</button>
+    </div>
+
+    <div class="config-section">
+      <h4>🎯 Metas — Individual</h4>
+      <div id="config-metas-ind"></div>
+      <button class="btn-gold" onclick="salvarMetas()" style="padding:10px 20px;font-size:.85rem;margin-top:10px">Salvar Metas</button>
+    </div>
+
+    <div class="config-section">
+      <h4>🎯 Metas — Equipe</h4>
+      <div id="config-metas-eq"></div>
+    </div>
+
+    <div class="config-section">
+      <h4>🔗 API Power BI</h4>
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px">URL para Web Connector no Power BI:</p>
+      <div style="font-size:.7rem;color:var(--gold);margin-bottom:4px">Lançamentos Consultoria:</div>
+      <div id="api-url" style="background:var(--card2);padding:8px 10px;border-radius:8px;font-size:.65rem;color:var(--muted);word-break:break-all;border:1px solid var(--border)"></div>
+      <button onclick="copiarApi()" style="margin-top:6px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.75rem">📋 Copiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL LANÇAMENTO ── -->
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal">
+    <h3>⚠️ Confirmar Lançamento</h3>
+    <p id="modal-confirm-txt" style="color:var(--muted);font-size:.85rem;line-height:1.5"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-gold" style="flex:1" onclick="confirmarSalvar()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ── SCRIPTS ── -->
+<script type="module">
+import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, query, where, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU",
+  authDomain: "falcioni-kpis.firebaseapp.com",
+  projectId: "falcioni-kpis",
+  storageBucket: "falcioni-kpis.firebasestorage.app",
+  messagingSenderId: "254696088647",
+  appId: "1:254696088647:web:0a553808bce1b4faf4bd62"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── CONSTANTES ────────────────────────────────────────────────
+const CONSULTORAS = [
+  { key:'deborah',  nome:'Déborah',  ini:'DB' },
+  { key:'livia',    nome:'Lívia',    ini:'LV' },
+  { key:'paloma',   nome:'Paloma',   ini:'PM' },
+  { key:'izabela',  nome:'Izabela',  ini:'IZ' },
+  { key:'marilia',  nome:'Marília',  ini:'ML' },
+  { key:'alan',     nome:'Alan',     ini:'AL' },
+];
+
+const METAS_IND_PADRAO = {
+  vendas:        { label:'Vendas',              tipo:'maior', bronze:1,  prata:2,  ouro:3,  unit:''  },
+  postagens:     { label:'Postagens',           tipo:'maior', bronze:8,  prata:10, ouro:12, unit:''  },
+  conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1,  prata:2,  ouro:3,  unit:''  },
+  satisfacao:    { label:'Satisfação',          tipo:'maior', bronze:8,  prata:9,  ouro:10, unit:''  },
+};
+const METAS_EQ_PADRAO = {
+  controle_horas:{ label:'Controle de Horas', tipo:'maior', bronze:90, prata:95, ouro:100, unit:'%' },
+  vendas_eq:     { label:'Vendas Equipe',      tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+  postagens_eq:  { label:'Postagens Equipe',   tipo:'maior', bronze:24, prata:30, ouro:36,  unit:''  },
+  conhec_eq:     { label:'Conh. Equipe',       tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+};
+
+let METAS_IND = {...METAS_IND_PADRAO};
+let METAS_EQ  = {...METAS_EQ_PADRAO};
+let setorAtual = 'consultoria';
+let pendingPayload = null;
+
+// ── UTILS ─────────────────────────────────────────────────────
+function avaliar(val, meta) {
+  if (val === null || val === undefined || val === '') return 'sem-dado';
+  const v = Number(val);
+  if (isNaN(v)) return 'sem-dado';
+  if (meta.tipo === 'maior') {
+    if (meta.ouro   !== null && v >= meta.ouro)   return 'Ouro';
+    if (meta.prata  !== null && v >= meta.prata)  return 'Prata';
+    if (meta.bronze !== null && v >= meta.bronze) return 'Bronze';
+    return 'Fora';
+  }
+  if (meta.ouro   !== null && v <= meta.ouro)   return 'Ouro';
+  if (meta.prata  !== null && v <= meta.prata)  return 'Prata';
+  if (meta.bronze !== null && v <= meta.bronze) return 'Bronze';
+  return 'Fora';
+}
+
+function badge(nivel) {
+  const icons = { Ouro:'🥇', Prata:'🥈', Bronze:'🥉', Fora:'⚠️', 'sem-dado':'—' };
+  const labels = { Ouro:'Ouro', Prata:'Prata', Bronze:'Bronze', Fora:'Fora', 'sem-dado':'—' };
+  return `<span class="badge ${nivel}">${icons[nivel]||''} ${labels[nivel]||nivel}</span>`;
+}
+
+function fmt(val, unit) {
+  if (val === null || val === undefined || val === '') return '—';
+  const n = Number(val);
+  if (isNaN(n)) return '—';
+  return unit === '%' ? `${n.toFixed(1)}%` : `${n.toLocaleString('pt-BR', {maximumFractionDigits:1})}${unit?' '+unit:''}`;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function show(id) {
+  ['screen-login','screen-app'].forEach(s => {
+    document.getElementById(s).style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'flex';
+}
+
+window.fecharModal = () => {
+  document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('open'));
+};
+
+// ── AUTH ──────────────────────────────────────────────────────
+window.selSetor = (setor, btn) => {
+  if (btn.classList.contains('disabled')) return;
+  document.querySelectorAll('.setor-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setorAtual = setor;
+};
+
+window.login = async () => {
+  const senha = document.getElementById('inp-senha').value;
+  const err   = document.getElementById('login-err');
+  if (!senha) { err.textContent = 'Digite a senha'; return; }
+  try {
+    const snap = await getDoc(doc(db,'config','senhas'));
+    const senhas = snap.exists() ? snap.data() : {};
+    const esperada = senhas[setorAtual] || 'falcioni2026';
+    if (senha === esperada) {
+      err.textContent = '';
+      await entrarApp();
+    } else {
+      err.textContent = 'Senha incorreta';
+    }
+  } catch(e) {
+    err.textContent = 'Erro de conexão';
+  }
+};
+
+window.logout = () => {
+  document.getElementById('inp-senha').value = '';
+  document.getElementById('login-err').textContent = '';
+  show('screen-login');
+};
+
+async function entrarApp() {
+  show('screen-app');
+  document.getElementById('app-setor-label').textContent =
+    setorAtual === 'consultoria' ? 'Consultoria' :
+    setorAtual === 'comercial'   ? 'Comercial' : 'Marketing';
+  const hoje = new Date();
+  document.getElementById('sel-mes').value = hoje.getMonth() + 1;
+  document.getElementById('sel-ano').value = hoje.getFullYear();
+  document.getElementById('l-mes').value   = hoje.getMonth() + 1;
+  document.getElementById('l-ano').value   = hoje.getFullYear();
+  await carregarMetas();
+  buildConsultSections();
+  renderConfigMetas();
+  atualizarApiUrl();
+  await carregarDados();
+}
+
+// ── METAS ─────────────────────────────────────────────────────
+async function carregarMetas() {
+  try {
+    const si = await getDoc(doc(db,'config','metas_ind'));
+    if (si.exists()) METAS_IND = {...METAS_IND_PADRAO, ...si.data()};
+    const se = await getDoc(doc(db,'config','metas_eq'));
+    if (se.exists()) METAS_EQ  = {...METAS_EQ_PADRAO,  ...se.data()};
+  } catch(e) {}
+}
+
+window.salvarMetas = async () => {
+  const keys = Object.keys(METAS_IND_PADRAO);
+  keys.forEach(k => {
+    const b = document.getElementById(`mi-${k}-b`);
+    const p = document.getElementById(`mi-${k}-p`);
+    const o = document.getElementById(`mi-${k}-o`);
+    if (b) METAS_IND[k] = {...METAS_IND[k], bronze:Number(b.value), prata:Number(p.value), ouro:Number(o.value)};
+  });
+  await setDoc(doc(db,'config','metas_ind'), METAS_IND);
+  toast('✅ Metas salvas!');
+};
+
+function renderConfigMetas() {
+  const el = document.getElementById('config-metas-ind');
+  el.innerHTML = Object.keys(METAS_IND_PADRAO).map(k => {
+    const m = METAS_IND[k];
+    return `<div style="margin-bottom:12px">
+      <div style="font-size:.78rem;color:var(--gold);margin-bottom:6px">${m.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><div style="font-size:.68rem;color:var(--muted)">Bronze</div>
+          <input id="mi-${k}-b" type="number" value="${m.bronze}" step="0.1"
+            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
+        <div><div style="font-size:.68rem;color:var(--muted)">Prata</div>
+          <input id="mi-${k}-p" type="number" value="${m.prata}" step="0.1"
+            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
+        <div><div style="font-size:.68rem;color:var(--muted)">Ouro</div>
+          <input id="mi-${k}-o" type="number" value="${m.ouro}" step="0.1"
+            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('config-metas-eq').innerHTML = Object.keys(METAS_EQ_PADRAO).map(k => {
+    const m = METAS_EQ[k];
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.8rem">
+      <span style="color:var(--muted)">${m.label}</span>
+      <span>B≥${m.bronze}${m.unit} · P≥${m.prata}${m.unit} · O≥${m.ouro}${m.unit}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── BUILD FORM CONSULTORAS ────────────────────────────────────
+function buildConsultSections() {
+  const el = document.getElementById('consult-sections');
+  el.innerHTML = CONSULTORAS.map(c => `
+    <div class="lanc-section" id="ls-${c.key}">
+      <div class="lanc-section-header" onclick="toggleSection(this)">
+        <span class="lsh-title">
+          <span style="width:28px;height:28px;border-radius:50%;background:var(--card2);border:1.5px solid var(--gold);
+            display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--gold)">${c.ini}</span>
+          ${c.nome}
+        </span>
+        <span class="lsh-chev">▼</span>
+      </div>
+      <div class="lanc-section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vendas (qtd.)</label>
+            <input type="number" id="l-${c.key}-vendas" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Produto / serviço</label>
+            <input type="text" id="l-${c.key}-vendas-desc" placeholder="Descreva">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Postagens (qtd.)</label>
+          <input type="number" id="l-${c.key}-postagens" placeholder="0" min="0">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Novos Conhecimentos (qtd.)</label>
+            <input type="number" id="l-${c.key}-conhecimentos" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <input type="text" id="l-${c.key}-conhec-desc" placeholder="Ex: Power BI">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Satisfação (0–10)</label>
+          <input type="number" id="l-${c.key}-satisfacao" placeholder="Ex: 10" min="0" max="10" step="0.1">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.toggleSection = (header) => {
+  header.closest('.lanc-section').classList.toggle('open');
+};
+
+// ── CARREGAR DADOS ────────────────────────────────────────────
+window.carregarDados = async () => {
+  const mes = parseInt(document.getElementById('sel-mes').value);
+  const ano = parseInt(document.getElementById('sel-ano').value);
+
+  document.getElementById('painel-loading').style.display = 'block';
+  document.getElementById('painel-body').style.display    = 'none';
+  document.getElementById('painel-empty').style.display   = 'none';
+
+  const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
+  const snap = await getDocs(q);
+  const docs = snap.docs.map(d => d.data());
+
+  document.getElementById('painel-loading').style.display = 'none';
+
+  if (!docs.length) {
+    document.getElementById('painel-empty').style.display = 'block';
+    return;
+  }
+
+  const d = docs[0]; // Um lançamento por mês
+  document.getElementById('painel-body').style.display = 'block';
+  renderKPIs(d);
+  renderEquipeRow(d);
+  renderConsultGrid(d);
+};
+
+function renderKPIs(d) {
+  const horas = d.controle_horas_pct;
+  const nHoras = avaliar(horas, METAS_EQ.controle_horas);
+  document.getElementById('kpi-horas').textContent       = horas !== undefined ? `${Number(horas).toFixed(1)}%` : '—';
+  document.getElementById('kpi-horas-badge').innerHTML   = badge(nHoras);
+  document.getElementById('kpi-clientes').textContent    = d.clientes_novos ?? '—';
+
+  const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
+  const nvEq = avaliar(totalVendas, METAS_EQ.vendas_eq);
+  document.getElementById('kpi-vendas-eq').textContent      = totalVendas;
+  document.getElementById('kpi-vendas-eq-badge').innerHTML  = badge(nvEq);
+
+  const satisfs = CONSULTORAS.map(c => Number(d[c.key]?.satisfacao)).filter(v => !isNaN(v) && v > 0);
+  const mediaSat = satisfs.length ? (satisfs.reduce((a,b)=>a+b,0)/satisfs.length) : null;
+  const nSat = avaliar(mediaSat, METAS_IND.satisfacao);
+  document.getElementById('kpi-satisfacao').textContent      = mediaSat !== null ? mediaSat.toFixed(1) : '—';
+  document.getElementById('kpi-satisfacao-badge').innerHTML  = badge(nSat);
+}
+
+function renderEquipeRow(d) {
+  const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
+  const totalPost   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.postagens)||0), 0);
+  const totalConh   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.conhecimentos)||0), 0);
+
+  const items = [
+    { label:'Vendas Equipe',    val:totalVendas, meta:METAS_EQ.vendas_eq },
+    { label:'Postagens Equipe', val:totalPost,   meta:METAS_EQ.postagens_eq },
+    { label:'Conh. Equipe',     val:totalConh,   meta:METAS_EQ.conhec_eq },
+  ];
+
+  document.getElementById('equipe-row').innerHTML = items.map(item => {
+    const n = avaliar(item.val, item.meta);
+    return `<div class="equipe-item">
+      <div class="eq-label">${item.label}</div>
+      <div class="eq-val">${item.val}</div>
+      <div class="eq-badge">${badge(n)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderConsultGrid(d) {
+  document.getElementById('consult-grid').innerHTML = CONSULTORAS.map(c => {
+    const cd = d[c.key] || {};
+    const inds = [
+      { label:'Vendas',        val:cd.vendas,        meta:METAS_IND.vendas },
+      { label:'Postagens',     val:cd.postagens,     meta:METAS_IND.postagens },
+      { label:'Conhecimentos', val:cd.conhecimentos, meta:METAS_IND.conhecimentos },
+      { label:'Satisfação',    val:cd.satisfacao,    meta:METAS_IND.satisfacao },
+    ];
+    return `<div class="consult-card">
+      <div class="c-header">
+        <div class="c-avatar">${c.ini}</div>
+        <div class="c-nome">${c.nome}</div>
+      </div>
+      ${inds.map(i => {
+        const n = avaliar(i.val, i.meta);
+        return `<div class="c-ind-row">
+          <div class="c-ind-label">${i.label}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="c-ind-val">${i.val ?? '—'}</span>
+            ${badge(n)}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ── SALVAR LANÇAMENTO ─────────────────────────────────────────
+window.salvarLancamento = () => {
+  const mes        = parseInt(document.getElementById('l-mes').value);
+  const ano        = parseInt(document.getElementById('l-ano').value);
+  const lancadoPor = document.getElementById('l-lancadopor').value;
+  const horas      = document.getElementById('l-horas').value;
+  const clientes   = document.getElementById('l-clientes').value;
+
+  const payload = {
+    mes, ano, lancadoPor,
+    data: new Date().toISOString().slice(0,10),
+    controle_horas_pct: horas !== '' ? Number(horas) : null,
+    clientes_novos:     clientes !== '' ? Number(clientes) : null,
+    criadoEm: new Date().toISOString(),
+  };
+
+  CONSULTORAS.forEach(c => {
+    payload[c.key] = {
+      vendas:           numOuNull(`l-${c.key}-vendas`),
+      vendas_desc:      document.getElementById(`l-${c.key}-vendas-desc`)?.value || '',
+      postagens:        numOuNull(`l-${c.key}-postagens`),
+      conhecimentos:    numOuNull(`l-${c.key}-conhecimentos`),
+      conhec_desc:      document.getElementById(`l-${c.key}-conhec-desc`)?.value || '',
+      satisfacao:       numOuNull(`l-${c.key}-satisfacao`),
+    };
+  });
+
+  const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('modal-confirm-txt').textContent =
+    `Salvar lançamento de ${nomesMes[mes-1]}/${ano}${lancadoPor ? ` (por ${lancadoPor})` : ''}?\nEste lançamento substituirá qualquer dado existente para este mês.`;
+  pendingPayload = payload;
+  document.getElementById('modal-confirm').classList.add('open');
+};
+
+window.confirmarSalvar = async () => {
+  if (!pendingPayload) return;
+  fecharModal();
+  try {
+    const mes = pendingPayload.mes;
+    const ano = pendingPayload.ano;
+    // Deletar lançamento existente para o mês se houver
+    const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      await setDoc(doc(db,'lancamentos_consultoria',d.id), pendingPayload);
+      pendingPayload = null;
+      toast('✅ Lançamento salvo!');
+      // Sync seletores
+      document.getElementById('sel-mes').value = mes;
+      document.getElementById('sel-ano').value = ano;
+      showTab('painel', document.querySelector('.tab-btn'));
+      await carregarDados();
+      return;
+    }
+    // Novo documento
+    await addDoc(collection(db,'lancamentos_consultoria'), pendingPayload);
+    pendingPayload = null;
+    toast('✅ Lançamento salvo!');
+    document.getElementById('sel-mes').value = mes;
+    document.getElementById('sel-ano').value = ano;
+    showTab('painel', document.querySelector('.tab-btn'));
+    await carregarDados();
+  } catch(e) {
+    toast('❌ Erro ao salvar: ' + e.message);
+  }
+};
+
+function numOuNull(id) {
+  const el = document.getElementById(id);
+  if (!el || el.value === '') return null;
+  return Number(el.value);
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────────
+window.switchHist = (mode, btn) => {
+  document.querySelectorAll('.htog-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('hist-mensal').style.display = mode === 'mensal'  ? '' : 'none';
+  document.getElementById('hist-diario').style.display = mode === 'diario' ? '' : 'none';
+  if (mode === 'diario') renderLancamentos();
+};
+
+async function carregarHistorico(ano) {
+  const q    = query(collection(db,'lancamentos_consultoria'), where('ano','==',ano));
+  const snap = await getDocs(q);
+  const todos = {};
+  snap.docs.forEach(d => { const data = d.data(); todos[data.mes] = data; });
+
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const tbody = document.getElementById('hist-mensal-body');
+  tbody.innerHTML = meses.map((nm,i) => {
+    const d   = todos[i+1];
+    const vazio = `<td colspan="7" style="color:var(--muted);font-style:italic">sem dados</td>`;
+    if (!d) return `<tr><td>${nm}/${ano}</td>${vazio}</tr>`;
+
+    const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
+    const totalPost   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.postagens)||0), 0);
+    const totalConh   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.conhecimentos)||0), 0);
+    const satisfs     = CONSULTORAS.map(c => Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
+    const mediaSat    = satisfs.length ? (satisfs.reduce((a,b)=>a+b,0)/satisfs.length).toFixed(1) : '—';
+    const nh = avaliar(d.controle_horas_pct, METAS_EQ.controle_horas);
+
+    return `<tr>
+      <td>${nm}/${ano}</td>
+      <td>${d.controle_horas_pct !== null ? Number(d.controle_horas_pct).toFixed(1)+'%' : '—'} ${badge(nh)}</td>
+      <td>${d.clientes_novos ?? '—'}</td>
+      <td>${totalVendas} ${badge(avaliar(totalVendas, METAS_EQ.vendas_eq))}</td>
+      <td>${totalPost} ${badge(avaliar(totalPost, METAS_EQ.postagens_eq))}</td>
+      <td>${totalConh} ${badge(avaliar(totalConh, METAS_EQ.conhec_eq))}</td>
+      <td>${mediaSat}</td>
+      <td style="color:var(--muted);font-size:.72rem">${d.lancadoPor||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+window.renderLancamentos = async () => {
+  const mes = parseInt(document.getElementById('h-mes')?.value || document.getElementById('sel-mes').value);
+  const ano = parseInt(document.getElementById('h-ano').value);
+  const lista = document.getElementById('lanc-lista');
+  lista.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+  const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
+  const snap = await getDocs(q);
+  if (!snap.docs.length) {
+    lista.innerHTML = '<div class="empty"><div class="e-icon">📋</div><p>Sem lançamentos neste mês</p></div>';
+    return;
+  }
+
+  lista.innerHTML = snap.docs.map(d => {
+    const r = d.data();
+    const dataBR = r.data ? r.data.split('-').reverse().join('/') : '—';
+    const rows = CONSULTORAS.map(c => {
+      const cd = r[c.key] || {};
+      return `<tr>
+        <td style="color:var(--gold);font-weight:700">${c.nome}</td>
+        <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
+        <td>${cd.postagens??'—'}</td>
+        <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
+        <td>${cd.satisfacao??'—'}</td>
+      </tr>`;
+    }).join('');
+    return `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;padding:14px">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
+          Lançado em ${dataBR}${r.lancadoPor ? ' por <strong style="color:var(--text)">'+r.lancadoPor+'</strong>' : ''}
+          · Horas: <strong>${r.controle_horas_pct!==null?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong>
+          · Clientes Novos: <strong>${r.clientes_novos??'—'}</strong>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:400px">
+            <thead>
+              <tr style="color:var(--muted)">
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Consultora</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Vendas</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Postagens</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Conhecimentos</th>
+                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Satisfação</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+};
+
+// ── TABS ──────────────────────────────────────────────────────
+window.showTab = (tab, btn) => {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else document.querySelector('.tab-btn').classList.add('active');
+  if (tab === 'historico') {
+    const ano = parseInt(document.getElementById('sel-ano').value);
+    carregarHistorico(ano);
+  }
+};
+
+// ── CONFIG ────────────────────────────────────────────────────
+window.salvarSenhas = async () => {
+  const c = document.getElementById('nova-senha-consultoria').value;
+  const snap = await getDoc(doc(db,'config','senhas'));
+  const atual = snap.exists() ? snap.data() : { consultoria:'falcioni2026' };
+  if (c) atual.consultoria = c;
+  await setDoc(doc(db,'config','senhas'), atual);
+  document.getElementById('nova-senha-consultoria').value = '';
+  toast('✅ Senha atualizada!');
+};
+
+function atualizarApiUrl() {
+  const url = `https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/lancamentos_consultoria?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
+  document.getElementById('api-url').textContent = url;
+}
+
+window.copiarApi = () => {
+  const url = document.getElementById('api-url').textContent;
+  navigator.clipboard.writeText(url).then(() => toast('📋 URL copiada!'));
+};
+
+// ── INIT ──────────────────────────────────────────────────────
+window.selRole = () => {};
+
+// Histórico: sincroniza seletor de mês no painel diário
+document.getElementById('h-mes') && (() => {
+  const hm = document.getElementById('h-mes');
+  hm.onchange = renderLancamentos;
+  hm.value = new Date().getMonth() + 1;
+})();
+
+</script>
+
+<!-- ── PWA ── -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// Splash
+setTimeout(() => document.getElementById('splash-bar').style.width = '100%', 100);
+setTimeout(() => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  setTimeout(() => {
+    s.style.display = 'none';
+    document.getElementById('screen-login').style.display = 'flex';
+  }, 600);
+}, 2500);
+</script>
+</body>
+</html>
