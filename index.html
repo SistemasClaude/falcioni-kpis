@@ -487,6 +487,28 @@
       <div id="api-url" style="background:var(--card2);padding:10px;border-radius:8px;font-size:.68rem;color:var(--muted);word-break:break-all;border:1px solid var(--border)"></div>
       <button onclick="copiarApi()" style="margin-top:8px;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem">📋 Copiar</button>
     </div>
+    <div class="config-section">
+      <h4>🔒 Área Gerencial</h4>
+      <div id="admin-locked">
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Acesso restrito — editar indicadores e colaboradoras.</p>
+        <div class="form-group"><input type="password" id="inp-senha-admin" placeholder="Senha gerencial" onkeydown="if(event.key==='Enter')desbloquearAdmin()"></div>
+        <button class="btn-primary" onclick="desbloquearAdmin()" style="padding:10px 20px">Desbloquear</button>
+        <div class="login-err" id="admin-err"></div>
+      </div>
+      <div id="admin-unlocked" style="display:none">
+        <div class="form-group"><label>Nova senha gerencial</label><input type="password" id="nova-senha-admin" placeholder="Nova senha"></div>
+        <button class="btn-primary" onclick="salvarSenhaAdmin()" style="padding:10px 20px;margin-bottom:20px">Salvar Senha Gerencial</button>
+
+        <h4>🧩 Editor de Indicadores</h4>
+        <div id="admin-indicadores-lista"></div>
+        <button class="btn-primary" onclick="salvarIndicadoresAdmin()" style="padding:10px 20px;margin:12px 0 24px">Salvar Indicadores</button>
+
+        <h4>👥 Colaboradoras</h4>
+        <div id="admin-colab-lista"></div>
+        <button class="btn-gold" onclick="adicionarColabRow()" style="margin-top:8px">+ Adicionar Colaboradora</button>
+        <button class="btn-primary" onclick="salvarColaboradores()" style="padding:10px 20px;margin-top:12px;display:block">Salvar Colaboradores</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -611,6 +633,7 @@ const INDICADORES = [
   { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
   { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
 ];
+INDICADORES.forEach(ind=>{ind.labelPadrao=ind.label; ind.ativo=true;});
 function canonIndicador(raw) {
   if(!raw) return null;
   const low=raw.trim().toLowerCase();
@@ -671,6 +694,7 @@ async function entrarApp() {
   ['sel-mes','l-mes','p-mes','h-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getMonth()+1;});
   ['sel-ano','l-ano','h-ano'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getFullYear();});
   await carregarMetas();
+  await carregarAdminConfig();
   buildConsultSections();
   buildDestaquesForm();
   renderConfigMetas();
@@ -684,6 +708,32 @@ async function carregarMetas() {
     const si=await getDoc(doc(db,'config','metas_ind')); if(si.exists()) METAS_IND={...METAS_IND_PAD,...si.data()};
     const se=await getDoc(doc(db,'config','metas_eq'));  if(se.exists()) METAS_EQ={...METAS_EQ_PAD,...se.data()};
   }catch(e){}
+}
+
+// ── ÁREA GERENCIAL (senha admin, indicadores, colaboradores) ──
+let adminUnlocked=false;
+function slugify(nome) {
+  return (nome||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim();
+}
+async function carregarAdminConfig() {
+  try {
+    const sc=await getDoc(doc(db,'config','colaboradores'));
+    if(sc.exists() && Array.isArray(sc.data().lista) && sc.data().lista.length) {
+      CONSULTORAS.length=0;
+      sc.data().lista.forEach(c=>CONSULTORAS.push(c));
+    } else {
+      await setDoc(doc(db,'config','colaboradores'),{lista:CONSULTORAS});
+    }
+  } catch(e){}
+  try {
+    const si=await getDoc(doc(db,'config','indicadores_admin'));
+    const overrides=si.exists()?si.data():{};
+    INDICADORES.forEach(ind=>{
+      const ov=overrides[ind.key];
+      ind.label=(ov&&ov.label)?ov.label:ind.labelPadrao;
+      ind.ativo=ov?(ov.ativo!==false):true;
+    });
+  } catch(e){}
 }
 window.salvarMetas=async()=>{
   Object.keys(METAS_IND_PAD).forEach(k=>{
@@ -818,7 +868,7 @@ function renderIndicadoresList(d) {
   const mes=parseInt(document.getElementById('sel-mes').value);
   const ano=parseInt(document.getElementById('sel-ano').value);
 
-  document.getElementById('indicadores-lista').innerHTML=INDICADORES.map(ind=>{
+  document.getElementById('indicadores-lista').innerHTML=INDICADORES.filter(ind=>ind.ativo!==false).map(ind=>{
     const val=ind.getValor(d);
     const meta=METAS_EQ[ind.key];
     const nota=avaliar(val,meta);
@@ -1274,6 +1324,106 @@ window.salvarSenhas=async()=>{
   if(c) atual.consultoria=c;
   await setDoc(doc(db,'config','senhas'),atual);
   document.getElementById('nova-senha-consultoria').value=''; toast('✅ Senha atualizada!');
+};
+
+// ── ÁREA GERENCIAL: UI ──────────────────────────────────────────
+window.desbloquearAdmin=async()=>{
+  const senha=document.getElementById('inp-senha-admin').value;
+  const err=document.getElementById('admin-err');
+  if(!senha){err.textContent='Digite a senha';return;}
+  try {
+    const snap=await getDoc(doc(db,'config','senhas'));
+    const senhas=snap.exists()?snap.data():{};
+    if(senha===(senhas.admin||'falcioniadmin2026')){
+      err.textContent='';
+      adminUnlocked=true;
+      document.getElementById('admin-locked').style.display='none';
+      document.getElementById('admin-unlocked').style.display='block';
+      renderIndicadoresAdmin();
+      renderColabAdmin();
+    } else err.textContent='Senha incorreta';
+  } catch(e){ err.textContent='Erro de conexão'; }
+};
+
+window.salvarSenhaAdmin=async()=>{
+  const c=document.getElementById('nova-senha-admin').value;
+  if(!c) return;
+  const snap=await getDoc(doc(db,'config','senhas')); const atual=snap.exists()?snap.data():{consultoria:'falcioni2026'};
+  atual.admin=c;
+  await setDoc(doc(db,'config','senhas'),atual);
+  document.getElementById('nova-senha-admin').value=''; toast('✅ Senha gerencial atualizada!');
+};
+
+// ── EDITOR DE INDICADORES ───────────────────────────────────────
+function renderIndicadoresAdmin() {
+  document.getElementById('admin-indicadores-lista').innerHTML=INDICADORES.map(ind=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="text" id="ai-${ind.key}-label" value="${ind.label}" style="flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none">
+      <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted);white-space:nowrap">
+        <input type="checkbox" id="ai-${ind.key}-ativo" ${ind.ativo!==false?'checked':''}> Ativo
+      </label>
+    </div>`).join('');
+}
+window.salvarIndicadoresAdmin=async()=>{
+  const overrides={};
+  INDICADORES.forEach(ind=>{
+    const labelInput=document.getElementById(`ai-${ind.key}-label`);
+    const ativoInput=document.getElementById(`ai-${ind.key}-ativo`);
+    const label=(labelInput.value||'').trim()||ind.labelPadrao;
+    const ativo=ativoInput.checked;
+    overrides[ind.key]={label,ativo};
+    ind.label=label; ind.ativo=ativo;
+  });
+  await setDoc(doc(db,'config','indicadores_admin'),overrides);
+  toast('✅ Indicadores salvos!');
+  refreshPlanosView();
+};
+
+// ── EDITOR DE COLABORADORAS ─────────────────────────────────────
+let colabDraft=[];
+function renderColabAdmin() {
+  colabDraft=CONSULTORAS.map(c=>({...c}));
+  renderColabRows();
+}
+function renderColabRows() {
+  document.getElementById('admin-colab-lista').innerHTML=colabDraft.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="text" value="${c.nome}" placeholder="Nome" oninput="atualizarColabDraft(${i},'nome',this.value)" style="flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none">
+      <input type="text" value="${c.ini}" placeholder="Iniciais" maxlength="3" oninput="atualizarColabDraft(${i},'ini',this.value.toUpperCase())" style="width:64px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none;text-align:center">
+      <button onclick="removerColabRow(${i})" style="background:none;border:1px solid #FCA5A5;color:var(--danger);border-radius:6px;padding:6px 9px;cursor:pointer">🗑️</button>
+    </div>`).join('');
+}
+window.atualizarColabDraft=(i,campo,val)=>{
+  if(colabDraft[i]) colabDraft[i][campo]=val;
+};
+window.adicionarColabRow=()=>{
+  colabDraft.push({key:null,nome:'',ini:''});
+  renderColabRows();
+};
+window.removerColabRow=(i)=>{
+  colabDraft.splice(i,1);
+  renderColabRows();
+};
+window.salvarColaboradores=async()=>{
+  const usados=new Set();
+  const lista=colabDraft.filter(c=>c.nome.trim()).map(c=>{
+    let key=c.key||slugify(c.nome)||'colab';
+    let base=key,n=2;
+    while(usados.has(key)){key=`${base}${n++}`;}
+    usados.add(key);
+    return {key, nome:c.nome.trim(), ini:(c.ini||c.nome.trim().substring(0,2)).toUpperCase()};
+  });
+  if(!lista.length){toast('❌ Adicione pelo menos uma colaboradora');return;}
+  await setDoc(doc(db,'config','colaboradores'),{lista});
+  CONSULTORAS.length=0; lista.forEach(c=>CONSULTORAS.push(c));
+  buildConsultSections();
+  buildDestaquesForm();
+  if(ultimoLancamento){
+    renderIndicadoresList(ultimoLancamento);
+    renderConsultGrid(ultimoLancamento);
+    renderDestaques(ultimoLancamento);
+  }
+  toast('✅ Colaboradoras salvas!');
 };
 window.copiarApi=()=>navigator.clipboard.writeText(document.getElementById('api-url').textContent).then(()=>toast('📋 URL copiada!'));
 
