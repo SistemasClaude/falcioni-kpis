@@ -377,9 +377,11 @@
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">📋 Dados Gerais</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
           <div class="form-row" style="margin-top:12px">
-            <div class="form-group"><label>Controle de Horas (%)</label><input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1"></div>
-            <div class="form-group"><label>Clientes que Iniciaram</label><input type="number" id="l-iniciaram" placeholder="Ex: 22" min="0"></div>
+            <div class="form-group"><label>Horas Previstas</label><input type="text" id="l-horas-prev" placeholder="Ex: 292h23m" oninput="atualizarControleHoras()"></div>
+            <div class="form-group"><label>Horas Executadas</label><input type="text" id="l-horas-exec" placeholder="Ex: 286h05m" oninput="atualizarControleHoras()"></div>
           </div>
+          <div class="sat-media-live" id="controle-horas-live" style="margin-bottom:12px">Preencha previstas e executadas pra calcular o Controle de Horas</div>
+          <div class="form-group"><label>Clientes que Iniciaram</label><input type="number" id="l-iniciaram" placeholder="Ex: 22" min="0"></div>
           <div class="form-row-3">
             <div class="form-group"><label>Clientes Novos</label><input type="number" id="l-clientes" placeholder="Ex: 2" min="0"></div>
             <div class="form-group"><label>Horas Excedentes (qtd)</label><input type="number" id="l-excederam" placeholder="Ex: 9" min="0"></div>
@@ -390,10 +392,6 @@
             <div class="form-group"><label>Total de Clientes Ativos</label><input type="number" id="l-total-cli" placeholder="Ex: 11" min="0"></div>
           </div>
           <div class="form-group"><label>Clientes que Bateram Meta (nomes)</label><input type="text" id="l-meta-nomes" placeholder="Ex: Barbalha, Colorado, Betinho..."></div>
-          <div class="form-row">
-            <div class="form-group"><label>Horas Previstas</label><input type="text" id="l-horas-prev" placeholder="Ex: 292h23m"></div>
-            <div class="form-group"><label>Horas Executadas</label><input type="text" id="l-horas-exec" placeholder="Ex: 286h05m"></div>
-          </div>
           <div class="form-row">
             <div class="form-group"><label>Novos — Nomes dos Clientes</label><input type="text" id="l-novos-nomes" placeholder="Ex: Padaria, OFEBAS..."></div>
             <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
@@ -916,6 +914,25 @@ window.removerSat=(id)=>{
   satNotas=satNotas.filter(s=>s.id!==id);
   document.getElementById(`sat-row-${id}`)?.remove(); calcSatMedia();
 };
+function parseHoras(str) {
+  if(!str) return null;
+  const s=str.trim().toLowerCase().replace(',','.');
+  const m=s.match(/^(\d+(?:\.\d+)?)\s*h\s*(\d+)?\s*m?$/);
+  if(m){ const h=parseFloat(m[1]); const min=m[2]?parseInt(m[2]):0; return h+min/60; }
+  const n=parseFloat(s);
+  return isNaN(n)?null:n;
+}
+window.atualizarControleHoras=()=>{
+  const prev=parseHoras(document.getElementById('l-horas-prev').value);
+  const exec=parseHoras(document.getElementById('l-horas-exec').value);
+  const el=document.getElementById('controle-horas-live');
+  if(!prev||exec===null){el.innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';return null;}
+  const pct=Number((exec/prev*100).toFixed(1));
+  const n=avaliar(pct,METAS_EQ.controle_horas);
+  el.innerHTML=`Controle de Horas: <strong>${pct.toFixed(1)}%</strong> &nbsp;${badge(n)}`;
+  return pct;
+};
+
 function calcSatMedia() {
   const vals=satNotas.map(s=>s.nota).filter(v=>v!==null&&!isNaN(v));
   const el=document.getElementById('sat-media-live');
@@ -1101,11 +1118,17 @@ window.salvarLancamento=()=>{
     const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim()})).filter(d=>d.texto);
     const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
 
+    const horasPrevStr=strOuNull('l-horas-prev');
+    const horasExecStr=strOuNull('l-horas-exec');
+    const horasPrevNum=parseHoras(horasPrevStr);
+    const horasExecNum=parseHoras(horasExecStr);
+    const controleHorasPct=(horasPrevNum&&horasExecNum!==null)?Number((horasExecNum/horasPrevNum*100).toFixed(1)):null;
+
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
-      controle_horas_pct:numOuNull('l-horas'),
-      horas_previstas:   strOuNull('l-horas-prev'),
-      horas_executadas:  strOuNull('l-horas-exec'),
+      controle_horas_pct:controleHorasPct,
+      horas_previstas:   horasPrevStr,
+      horas_executadas:  horasExecStr,
       clientes_iniciaram:numOuNull('l-iniciaram'),
       clientes_novos:    numOuNull('l-clientes'),
       clientes_novos_nomes:     strOuNull('l-novos-nomes'),
