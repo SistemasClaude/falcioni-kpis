@@ -1,6 +1,6 @@
 {
-  "name": "IndiFal",
-  "short_name": "IndiFal",
+  "name": "falcikpi",
+  "short_name": "falcikpi",
   "description": "Sistema de Indicadores — Falcioni Consultoria",
   "start_url": "/",
   "display": "standalone",
