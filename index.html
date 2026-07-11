@@ -244,7 +244,7 @@
   <p class="sub">Sistema de Indicadores de Desempenho</p>
   <div class="setor-grid">
     <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
-    <button class="setor-btn disabled"><span class="icon">💼</span>Comercial</button>
+    <button class="setor-btn" onclick="selSetor('comercial',this)"><span class="icon">💼</span>Comercial</button>
     <button class="setor-btn disabled"><span class="icon">📣</span>Marketing</button>
   </div>
   <div class="login-box">
@@ -284,7 +284,7 @@
   <div id="tab-painel" class="tab-content active">
     <div id="painel-loading" class="loading"><div class="spinner"></div>Carregando...</div>
     <div id="painel-body" style="display:none">
-      <p class="section-title">Indicadores da Consultoria</p>
+      <p class="section-title" id="indicadores-titulo">Indicadores</p>
       <div id="indicadores-lista"></div>
 
       <div id="outros-planos-section" style="display:none">
@@ -292,14 +292,16 @@
         <div id="outros-planos-lista"></div>
       </div>
 
-      <p class="section-title" style="margin-top:16px">Indicadores por Consultora</p>
-      <div class="consult-grid" id="consult-grid"></div>
+      <div id="consultora-destaques-wrap">
+        <p class="section-title" style="margin-top:16px">Indicadores por Consultora</p>
+        <div class="consult-grid" id="consult-grid"></div>
 
-      <div id="destaques-section" style="display:none">
-        <p class="section-title" style="margin-top:16px">⭐ Destaques do Mês</p>
-        <div class="destaques-card">
-          <div class="dt-title">🏆 Destaques</div>
-          <div id="destaques-lista"></div>
+        <div id="destaques-section" style="display:none">
+          <p class="section-title" style="margin-top:16px">⭐ Destaques do Mês</p>
+          <div class="destaques-card">
+            <div class="dt-title">🏆 Destaques</div>
+            <div id="destaques-lista"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -351,9 +353,9 @@
 
   <!-- LANÇAR -->
   <div id="tab-lancar" class="tab-content">
-    <!-- Dados Gerais -->
+    <!-- Período (comum a todos os setores) -->
     <div class="lanc-section open">
-      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🗓️ Dados Gerais</span><span class="lsh-chev">▼</span></div>
+      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🗓️ Período</span><span class="lsh-chev">▼</span></div>
       <div class="lanc-section-body">
         <div class="form-row" style="margin-top:12px">
           <div class="form-group"><label>Mês</label>
@@ -366,39 +368,84 @@
           </div>
           <div class="form-group"><label>Ano</label><input type="number" id="l-ano" value="2026" min="2024" max="2030"></div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label>Controle de Horas (%)</label><input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1"></div>
-          <div class="form-group"><label>Clientes que Iniciaram</label><input type="number" id="l-iniciaram" placeholder="Ex: 22" min="0"></div>
+      </div>
+    </div>
+
+    <!-- Dados Gerais — Consultoria -->
+    <div id="lancar-consultoria-fields">
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">📋 Dados Gerais</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group"><label>Controle de Horas (%)</label><input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1"></div>
+            <div class="form-group"><label>Clientes que Iniciaram</label><input type="number" id="l-iniciaram" placeholder="Ex: 22" min="0"></div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group"><label>Clientes Novos</label><input type="number" id="l-clientes" placeholder="Ex: 2" min="0"></div>
+            <div class="form-group"><label>Horas Excedentes (qtd)</label><input type="number" id="l-excederam" placeholder="Ex: 9" min="0"></div>
+            <div class="form-group"><label>Horas Pendentes (qtd)</label><input type="number" id="l-pendentes" placeholder="Ex: 10" min="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Meta Clientes Atingida (qtd)</label><input type="number" id="l-meta-qtd" placeholder="Ex: 7" min="0"></div>
+            <div class="form-group"><label>Total de Clientes Ativos</label><input type="number" id="l-total-cli" placeholder="Ex: 11" min="0"></div>
+          </div>
+          <div class="form-group"><label>Clientes que Bateram Meta (nomes)</label><input type="text" id="l-meta-nomes" placeholder="Ex: Barbalha, Colorado, Betinho..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>Horas Previstas</label><input type="text" id="l-horas-prev" placeholder="Ex: 292h23m"></div>
+            <div class="form-group"><label>Horas Executadas</label><input type="text" id="l-horas-exec" placeholder="Ex: 286h05m"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Novos — Nomes dos Clientes</label><input type="text" id="l-novos-nomes" placeholder="Ex: Padaria, OFEBAS..."></div>
+            <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
+          </div>
+          <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
+          <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
+          <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>Em Negociação (qtd)</label><input type="number" id="l-negociacao" placeholder="0" min="0"></div>
+            <div class="form-group"><label>Em Negociação — Nomes</label><input type="text" id="l-negociacao-nomes" placeholder="Ex: Leão Sampaio..."></div>
+          </div>
         </div>
-        <div class="form-row-3">
-          <div class="form-group"><label>Clientes Novos</label><input type="number" id="l-clientes" placeholder="Ex: 2" min="0"></div>
-          <div class="form-group"><label>Horas Excedentes (qtd)</label><input type="number" id="l-excederam" placeholder="Ex: 9" min="0"></div>
-          <div class="form-group"><label>Horas Pendentes (qtd)</label><input type="number" id="l-pendentes" placeholder="Ex: 10" min="0"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Meta Clientes Atingida (qtd)</label><input type="number" id="l-meta-qtd" placeholder="Ex: 7" min="0"></div>
-          <div class="form-group"><label>Total de Clientes Ativos</label><input type="number" id="l-total-cli" placeholder="Ex: 11" min="0"></div>
-        </div>
-        <div class="form-group"><label>Clientes que Bateram Meta (nomes)</label><input type="text" id="l-meta-nomes" placeholder="Ex: Barbalha, Colorado, Betinho..."></div>
-        <div class="form-row">
-          <div class="form-group"><label>Horas Previstas</label><input type="text" id="l-horas-prev" placeholder="Ex: 292h23m"></div>
-          <div class="form-group"><label>Horas Executadas</label><input type="text" id="l-horas-exec" placeholder="Ex: 286h05m"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Novos — Nomes dos Clientes</label><input type="text" id="l-novos-nomes" placeholder="Ex: Padaria, OFEBAS..."></div>
-          <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
-        </div>
-        <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
-        <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
-        <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
-        <div class="form-row">
-          <div class="form-group"><label>Em Negociação (qtd)</label><input type="number" id="l-negociacao" placeholder="0" min="0"></div>
-          <div class="form-group"><label>Em Negociação — Nomes</label><input type="text" id="l-negociacao-nomes" placeholder="Ex: Leão Sampaio..."></div>
+      </div>
+
+      <!-- Por consultora -->
+      <div id="consult-sections"></div>
+
+      <!-- Destaques -->
+      <div class="lanc-section">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Destaques do Mês</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-group" style="margin-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
+            <label style="color:var(--gold);font-weight:700">🏢 Consultoria (geral)</label>
+            <input type="text" id="dt-consultoria" placeholder="Destaque geral da consultoria no mês">
+          </div>
+          <div id="destaques-form"></div>
         </div>
       </div>
     </div>
 
-    <!-- Satisfação -->
+    <!-- Dados Gerais — Comercial -->
+    <div id="lancar-comercial-fields" style="display:none">
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">📋 Dados Gerais</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group"><label>Venda Consultoria (R$)</label><input type="number" id="l-com-venda-consultoria" placeholder="Ex: 5500" min="0" step="0.01"></div>
+            <div class="form-group"><label>Venda Palestras (R$)</label><input type="number" id="l-com-venda-palestras" placeholder="Ex: 7500" min="0" step="0.01"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Venda Cursos — Inscritos (qtd)</label><input type="number" id="l-com-cursos-inscritos" placeholder="Ex: 15" min="0"></div>
+            <div class="form-group"><label>Venda Cursos (R$)</label><input type="number" id="l-com-cursos-valor" placeholder="Ex: 3500" min="0" step="0.01"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="l-com-cafes" placeholder="Ex: 4" min="0"></div>
+            <div class="form-group"><label>Ocorrências (qtd)</label><input type="number" id="l-com-ocorrencias" placeholder="Ex: 0" min="0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Satisfação (comum a todos os setores) -->
     <div class="lanc-section open">
       <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Satisfação do Cliente</span><span class="lsh-chev">▼</span></div>
       <div class="lanc-section-body">
@@ -409,21 +456,6 @@
         <div id="sat-lista"></div>
         <button class="btn-add-nota" onclick="addNotaSat()">+ Adicionar avaliação</button>
         <div class="sat-media-live" id="sat-media-live">Adicione notas para ver a média</div>
-      </div>
-    </div>
-
-    <!-- Por consultora -->
-    <div id="consult-sections"></div>
-
-    <!-- Destaques -->
-    <div class="lanc-section">
-      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Destaques do Mês</span><span class="lsh-chev">▼</span></div>
-      <div class="lanc-section-body">
-        <div class="form-group" style="margin-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
-          <label style="color:var(--gold);font-weight:700">🏢 Consultoria (geral)</label>
-          <input type="text" id="dt-consultoria" placeholder="Destaque geral da consultoria no mês">
-        </div>
-        <div id="destaques-form"></div>
       </div>
     </div>
 
@@ -567,20 +599,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ── CONSTANTES ────────────────────────────────────────────────
-const CONSULTORAS = [
+// ── CONSTANTES POR SETOR ─────────────────────────────────────
+const EQUIPE_CONSULTORIA = [
   { key:'livia',   nome:'Lívia',   ini:'LV' },
   { key:'paloma',  nome:'Paloma',  ini:'PM' },
   { key:'alan',    nome:'Alan',    ini:'AL' },
   { key:'eduarda', nome:'Eduarda', ini:'ED' },
 ];
+const EQUIPE_COMERCIAL = [
+  { key:'raqueliny', nome:'Raqueliny', ini:'RQ' },
+  { key:'eduarda',   nome:'Eduarda',   ini:'ED' },
+];
 
-const METAS_IND_PAD = {
+const METAS_IND_PAD_CONSULTORIA = {
   vendas:        { label:'Vendas',              tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
   postagens:     { label:'Postagens',           tipo:'maior', bronze:8, prata:10,ouro:12, unit:'' },
   conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
 };
-const METAS_EQ_PAD = {
+const METAS_IND_PAD_COMERCIAL = {}; // sem metas individuais nesta etapa
+
+const METAS_EQ_PAD_CONSULTORIA = {
   controle_horas: { label:'Controle de Horas', tipo:'maior', bronze:90, prata:95, ouro:100, unit:'%' },
   satisfacao:     { label:'Satisfação',        tipo:'maior', bronze:8,  prata:9,  ouro:10,  unit:''  },
   meta_clientes:  { label:'Meta Clientes',     tipo:'maior', bronze:55, prata:65, ouro:75,  unit:'%' },
@@ -595,6 +633,24 @@ const METAS_EQ_PAD = {
   clientes_iniciaram:   { label:'Clientes Iniciaram',   tipo:'maior', bronze:2, prata:4, ouro:6, unit:'' },
   clientes_negociacao:  { label:'Em Negociação',        tipo:'maior', bronze:1, prata:3, ouro:5, unit:'' },
 };
+const METAS_EQ_PAD_COMERCIAL = {
+  // Bronze de venda_consultoria/venda_palestras/cafes e Ouro de ocorrencias/satisfacao vêm da planilha "Base Metas" (dado real);
+  // demais degraus são provisórios — ajustar em Config → Metas Equipe
+  venda_consultoria: { label:'Venda Consultoria',        tipo:'maior', bronze:5000, prata:7500,  ouro:10000, unit:'' },
+  venda_cursos:      { label:'Venda Cursos',             tipo:'maior', bronze:10,   prata:20,    ouro:30,    unit:'' },
+  venda_palestras:   { label:'Venda Palestras',          tipo:'maior', bronze:7500, prata:10000, ouro:15000, unit:'' },
+  cafes:             { label:'Acompanhamento de Cafés',  tipo:'maior', bronze:4,    prata:8,     ouro:12,    unit:'' },
+  satisfacao:        { label:'Pesquisa de Satisfação',   tipo:'maior', bronze:8,    prata:9,     ouro:10,    unit:'' },
+  ocorrencias:       { label:'Ocorrências',              tipo:'menor', bronze:3,    prata:1,     ouro:0,     unit:'' },
+};
+
+const SETOR_LABEL = { consultoria:'Consultoria', comercial:'Comercial' };
+const SETOR_SENHA_PADRAO = { consultoria:'falcioni2026', comercial:'comercial2026' };
+
+// Bindings "ao vivo" do setor atualmente logado — repovoados por aplicarSetor() no login.
+let CONSULTORAS = [];
+let METAS_IND_PAD = {};
+let METAS_EQ_PAD = {};
 const MESES_NOME = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const MESES_ABREV = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -616,7 +672,7 @@ const ALIAS_INDICADOR = {
   'novos conhecimentos':   'Conh. Equipe',
   'satisfação do cliente': 'Satisfação',
 };
-const INDICADORES = [
+const INDICADORES_CONSULTORIA = [
   { key:'controle_horas',       label:'Controle de Horas',    getValor:d=>d.controle_horas_pct, getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%`,
     getSub:d=>(d.horas_previstas||d.horas_executadas)?`Previstas: ${d.horas_previstas||'—'} · Executadas: ${d.horas_executadas||'—'}`:null },
   { key:'satisfacao',           label:'Satisfação',           getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
@@ -632,7 +688,35 @@ const INDICADORES = [
   { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
   { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
 ];
-INDICADORES.forEach(ind=>{ind.labelPadrao=ind.label; ind.ativo=true;});
+const INDICADORES_COMERCIAL = [
+  { key:'venda_consultoria', label:'Venda Consultoria',       getValor:d=>d.com_venda_consultoria, getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
+  { key:'venda_cursos',      label:'Venda Cursos',            getValor:d=>d.com_cursos_inscritos, getNomes:null,
+    getSub:d=>d.com_cursos_valor?`R$ ${Number(d.com_cursos_valor).toLocaleString('pt-BR')} em vendas`:null },
+  { key:'venda_palestras',   label:'Venda Palestras',         getValor:d=>d.com_venda_palestras, getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
+  { key:'cafes',             label:'Acompanhamento de Cafés', getValor:d=>d.com_cafes, getNomes:null },
+  { key:'satisfacao',        label:'Pesquisa de Satisfação',  getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
+  { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
+];
+[INDICADORES_CONSULTORIA, INDICADORES_COMERCIAL].forEach(arr=>arr.forEach(ind=>{ind.labelPadrao=ind.label; ind.ativo=true;}));
+let INDICADORES = [];
+
+function aplicarSetor(setor) {
+  const eqBase   = setor==='comercial' ? EQUIPE_COMERCIAL       : EQUIPE_CONSULTORIA;
+  const indBase  = setor==='comercial' ? INDICADORES_COMERCIAL  : INDICADORES_CONSULTORIA;
+  const metaEq   = setor==='comercial' ? METAS_EQ_PAD_COMERCIAL : METAS_EQ_PAD_CONSULTORIA;
+  const metaInd  = setor==='comercial' ? METAS_IND_PAD_COMERCIAL: METAS_IND_PAD_CONSULTORIA;
+  CONSULTORAS.length=0; eqBase.forEach(c=>CONSULTORAS.push({...c}));
+  INDICADORES.length=0; indBase.forEach(i=>{i.label=i.labelPadrao; i.ativo=true; INDICADORES.push(i);});
+  METAS_EQ_PAD=metaEq; METAS_IND_PAD=metaInd;
+  METAS_EQ={...METAS_EQ_PAD}; METAS_IND={...METAS_IND_PAD};
+}
+
+// ── NOMES DE COLEÇÃO/DOC POR SETOR ─────────────────────────────
+// Consultoria mantém os nomes originais (dado real em produção); demais setores levam sufixo _setor.
+function colLancamentos(){ return `lancamentos_${setorAtual}`; }
+function colPlanos(){ return setorAtual==='consultoria' ? 'planos_acao' : `planos_acao_${setorAtual}`; }
+function docConfig(base){ return setorAtual==='consultoria' ? base : `${base}_${setorAtual}`; }
+
 function canonIndicador(raw) {
   if(!raw) return null;
   const low=raw.trim().toLowerCase();
@@ -681,7 +765,7 @@ window.login=async()=>{
   try {
     const snap=await getDoc(doc(db,'config','senhas'));
     const senhas=snap.exists()?snap.data():{};
-    if(senha===(senhas[setorAtual]||'falcioni2026')){err.textContent='';await entrarApp();}
+    if(senha===(senhas[setorAtual]||SETOR_SENHA_PADRAO[setorAtual])){err.textContent='';await entrarApp();}
     else err.textContent='Senha incorreta';
   } catch(e){err.textContent='Erro de conexão';}
 };
@@ -689,23 +773,29 @@ window.logout=()=>{document.getElementById('inp-senha').value='';document.getEle
 
 async function entrarApp() {
   show('screen-app');
+  aplicarSetor(setorAtual);
+  document.getElementById('app-setor-label').textContent = SETOR_LABEL[setorAtual];
+  document.getElementById('indicadores-titulo').textContent = `Indicadores da ${SETOR_LABEL[setorAtual]}`;
+  const ehConsultoria = setorAtual==='consultoria';
+  document.getElementById('consultora-destaques-wrap').style.display = ehConsultoria?'':'none';
+  document.getElementById('lancar-consultoria-fields').style.display = ehConsultoria?'':'none';
+  document.getElementById('lancar-comercial-fields').style.display = ehConsultoria?'none':'';
   const hoje=new Date();
   ['sel-mes','l-mes','p-mes','h-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getMonth()+1;});
   ['sel-ano','l-ano','h-ano'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getFullYear();});
   await carregarMetas();
   await carregarAdminConfig();
-  buildConsultSections();
-  buildDestaquesForm();
+  if(ehConsultoria){ buildConsultSections(); buildDestaquesForm(); }
   renderConfigMetas();
-  document.getElementById('api-url').textContent='https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/lancamentos_consultoria?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU';
+  document.getElementById('api-url').textContent=`https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/${colLancamentos()}?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
   await Promise.all([carregarDados(), carregarTodosPlanos()]);
 }
 
 // ── METAS ─────────────────────────────────────────────────────
 async function carregarMetas() {
   try {
-    const si=await getDoc(doc(db,'config','metas_ind')); if(si.exists()) METAS_IND={...METAS_IND_PAD,...si.data()};
-    const se=await getDoc(doc(db,'config','metas_eq'));  if(se.exists()) METAS_EQ={...METAS_EQ_PAD,...se.data()};
+    const si=await getDoc(doc(db,'config',docConfig('metas_ind'))); if(si.exists()) METAS_IND={...METAS_IND_PAD,...si.data()};
+    const se=await getDoc(doc(db,'config',docConfig('metas_eq')));  if(se.exists()) METAS_EQ={...METAS_EQ_PAD,...se.data()};
   }catch(e){}
 }
 
@@ -716,16 +806,16 @@ function slugify(nome) {
 }
 async function carregarAdminConfig() {
   try {
-    const sc=await getDoc(doc(db,'config','colaboradores'));
+    const sc=await getDoc(doc(db,'config',docConfig('colaboradores')));
     if(sc.exists() && Array.isArray(sc.data().lista) && sc.data().lista.length) {
       CONSULTORAS.length=0;
       sc.data().lista.forEach(c=>CONSULTORAS.push(c));
     } else {
-      await setDoc(doc(db,'config','colaboradores'),{lista:CONSULTORAS});
+      await setDoc(doc(db,'config',docConfig('colaboradores')),{lista:CONSULTORAS});
     }
   } catch(e){}
   try {
-    const si=await getDoc(doc(db,'config','indicadores_admin'));
+    const si=await getDoc(doc(db,'config',docConfig('indicadores_admin')));
     const overrides=si.exists()?si.data():{};
     INDICADORES.forEach(ind=>{
       const ov=overrides[ind.key];
@@ -739,7 +829,7 @@ window.salvarMetas=async()=>{
     const b=document.getElementById(`mi-${k}-b`),p=document.getElementById(`mi-${k}-p`),o=document.getElementById(`mi-${k}-o`);
     if(b) METAS_IND[k]={...METAS_IND[k],bronze:Number(b.value),prata:Number(p.value),ouro:Number(o.value)};
   });
-  await setDoc(doc(db,'config','metas_ind'),METAS_IND);
+  await setDoc(doc(db,'config',docConfig('metas_ind')),METAS_IND);
   toast('✅ Metas salvas!');
 };
 window.salvarMetasEq=async()=>{
@@ -747,7 +837,7 @@ window.salvarMetasEq=async()=>{
     const b=document.getElementById(`me-${k}-b`),p=document.getElementById(`me-${k}-p`),o=document.getElementById(`me-${k}-o`);
     if(b) METAS_EQ[k]={...METAS_EQ[k],bronze:Number(b.value),prata:Number(p.value),ouro:Number(o.value)};
   });
-  await setDoc(doc(db,'config','metas_eq'),METAS_EQ);
+  await setDoc(doc(db,'config',docConfig('metas_eq')),METAS_EQ);
   refreshPlanosView();
   toast('✅ Metas de equipe salvas!');
 };
@@ -844,7 +934,7 @@ window.carregarDados=async()=>{
   document.getElementById('painel-body').style.display='none';
   document.getElementById('painel-empty').style.display='none';
 
-  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
+  const snap=await getDocs(query(collection(db,colLancamentos()),where('mes','==',mes),where('ano','==',ano)));
   const docs=snap.docs.map(d=>d.data());
   document.getElementById('painel-loading').style.display='none';
 
@@ -852,7 +942,8 @@ window.carregarDados=async()=>{
 
   const d=docs[0];
   document.getElementById('painel-body').style.display='block';
-  renderIndicadoresList(d); renderConsultGrid(d); renderDestaques(d);
+  renderIndicadoresList(d);
+  if(setorAtual==='consultoria'){ renderConsultGrid(d); renderDestaques(d); }
 };
 let ultimoLancamento=null;
 
@@ -986,51 +1077,68 @@ window.salvarLancamento=()=>{
   const ano=parseInt(document.getElementById('l-ano').value);
   const vals=satNotas.map(s=>s.nota).filter(v=>v!==null&&!isNaN(v));
   const satMedia=vals.length?Number((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(4)):null;
-  const metaQtd=numOuNull('l-meta-qtd');
-  const totalCli=numOuNull('l-total-cli');
-  const metaPct=metaQtd&&totalCli?Math.round(metaQtd/totalCli*100):null;
-
-  const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim()})).filter(d=>d.texto);
-  const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
-
   const strOuNull=id=>{const el=document.getElementById(id);return el&&el.value.trim()?el.value.trim():null;};
 
-  const payload={
-    mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
-    controle_horas_pct:numOuNull('l-horas'),
-    horas_previstas:   strOuNull('l-horas-prev'),
-    horas_executadas:  strOuNull('l-horas-exec'),
-    clientes_iniciaram:numOuNull('l-iniciaram'),
-    clientes_novos:    numOuNull('l-clientes'),
-    clientes_novos_nomes:     strOuNull('l-novos-nomes'),
-    clientes_finalizados:     numOuNull('l-finalizados'),
-    clientes_finalizados_nomes:strOuNull('l-finalizados-nomes'),
-    clientes_excederam:       numOuNull('l-excederam'),
-    clientes_excederam_nomes: strOuNull('l-excederam-nomes'),
-    clientes_pendentes:       numOuNull('l-pendentes'),
-    clientes_pendentes_nomes: strOuNull('l-pendentes-nomes'),
-    clientes_negociacao:      numOuNull('l-negociacao'),
-    clientes_negociacao_nomes:strOuNull('l-negociacao-nomes'),
-    meta_clientes_qtd: metaQtd,
-    total_clientes:    totalCli,
-    meta_clientes_pct: metaPct,
-    meta_clientes_nomes: strOuNull('l-meta-nomes'),
-    satisfacao_notas:  vals,
-    satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
-    satisfacao_media:  satMedia,
-    destaques,
-    destaque_consultoria: destaque_consultoria||null,
-  };
-  CONSULTORAS.forEach(c=>{
-    payload[c.key]={
-      vendas:numOuNull(`l-${c.key}-vendas`),vendas_desc:document.getElementById(`l-${c.key}-vendas-desc`)?.value||'',
-      postagens:numOuNull(`l-${c.key}-postagens`),
-      conhecimentos:numOuNull(`l-${c.key}-conhecimentos`),conhec_desc:document.getElementById(`l-${c.key}-conhec-desc`)?.value||'',
+  let payload, resumoExtra='';
+
+  if(setorAtual==='comercial') {
+    payload={
+      mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
+      com_venda_consultoria: numOuNull('l-com-venda-consultoria'),
+      com_venda_palestras:   numOuNull('l-com-venda-palestras'),
+      com_cursos_inscritos:  numOuNull('l-com-cursos-inscritos'),
+      com_cursos_valor:      numOuNull('l-com-cursos-valor'),
+      com_cafes:             numOuNull('l-com-cafes'),
+      com_ocorrencias:       numOuNull('l-com-ocorrencias'),
+      satisfacao_notas:  vals,
+      satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
+      satisfacao_media:  satMedia,
     };
-  });
+  } else {
+    const metaQtd=numOuNull('l-meta-qtd');
+    const totalCli=numOuNull('l-total-cli');
+    const metaPct=metaQtd&&totalCli?Math.round(metaQtd/totalCli*100):null;
+    const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim()})).filter(d=>d.texto);
+    const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
+
+    payload={
+      mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
+      controle_horas_pct:numOuNull('l-horas'),
+      horas_previstas:   strOuNull('l-horas-prev'),
+      horas_executadas:  strOuNull('l-horas-exec'),
+      clientes_iniciaram:numOuNull('l-iniciaram'),
+      clientes_novos:    numOuNull('l-clientes'),
+      clientes_novos_nomes:     strOuNull('l-novos-nomes'),
+      clientes_finalizados:     numOuNull('l-finalizados'),
+      clientes_finalizados_nomes:strOuNull('l-finalizados-nomes'),
+      clientes_excederam:       numOuNull('l-excederam'),
+      clientes_excederam_nomes: strOuNull('l-excederam-nomes'),
+      clientes_pendentes:       numOuNull('l-pendentes'),
+      clientes_pendentes_nomes: strOuNull('l-pendentes-nomes'),
+      clientes_negociacao:      numOuNull('l-negociacao'),
+      clientes_negociacao_nomes:strOuNull('l-negociacao-nomes'),
+      meta_clientes_qtd: metaQtd,
+      total_clientes:    totalCli,
+      meta_clientes_pct: metaPct,
+      meta_clientes_nomes: strOuNull('l-meta-nomes'),
+      satisfacao_notas:  vals,
+      satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
+      satisfacao_media:  satMedia,
+      destaques,
+      destaque_consultoria: destaque_consultoria||null,
+    };
+    CONSULTORAS.forEach(c=>{
+      payload[c.key]={
+        vendas:numOuNull(`l-${c.key}-vendas`),vendas_desc:document.getElementById(`l-${c.key}-vendas-desc`)?.value||'',
+        postagens:numOuNull(`l-${c.key}-postagens`),
+        conhecimentos:numOuNull(`l-${c.key}-conhecimentos`),conhec_desc:document.getElementById(`l-${c.key}-conhec-desc`)?.value||'',
+      };
+    });
+    resumoExtra=`\nDestaques: ${destaques.length}`;
+  }
 
   document.getElementById('modal-confirm-txt').textContent=
-    `Salvar lançamento de ${MESES_NOME[mes]}/${ano}?\nSatisfação: ${satMedia!==null?satMedia.toFixed(2)+' ('+vals.length+' aval.)':'—'}\nDestaques: ${destaques.length}\nEste lançamento substituirá dados existentes para este mês.`;
+    `Salvar lançamento de ${MESES_NOME[mes]}/${ano}?\nSatisfação: ${satMedia!==null?satMedia.toFixed(2)+' ('+vals.length+' aval.)':'—'}${resumoExtra}\nEste lançamento substituirá dados existentes para este mês.`;
   pendingPayload=payload;
   document.getElementById('modal-confirm').classList.add('open');
 };
@@ -1040,9 +1148,9 @@ window.confirmarSalvar=async()=>{
   fecharModal();
   try {
     const {mes,ano}=pendingPayload;
-    const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
-    if(!snap.empty) await setDoc(doc(db,'lancamentos_consultoria',snap.docs[0].id),pendingPayload);
-    else await addDoc(collection(db,'lancamentos_consultoria'),pendingPayload);
+    const snap=await getDocs(query(collection(db,colLancamentos()),where('mes','==',mes),where('ano','==',ano)));
+    if(!snap.empty) await setDoc(doc(db,colLancamentos(),snap.docs[0].id),pendingPayload);
+    else await addDoc(collection(db,colLancamentos()),pendingPayload);
     pendingPayload=null;
     toast('✅ Lançamento salvo!');
     document.getElementById('sel-mes').value=mes;
@@ -1064,7 +1172,7 @@ async function carregarDashboard() {
   document.getElementById('dash-body').style.display='none';
   document.getElementById('dash-empty').style.display='none';
 
-  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('ano','==',ano)));
+  const snap=await getDocs(query(collection(db,colLancamentos()),where('ano','==',ano)));
   const todos={};
   snap.docs.forEach(d=>{const dt=d.data();todos[dt.mes]=dt;});
   if(!Object.keys(todos).length){document.getElementById('dash-loading').style.display='none';document.getElementById('dash-empty').style.display='block';return;}
@@ -1159,7 +1267,7 @@ function renderDashRanking(todos) {
 
 // ── PLANOS ────────────────────────────────────────────────────
 async function carregarTodosPlanos() {
-  const snap=await getDocs(collection(db,'planos_acao'));
+  const snap=await getDocs(collection(db,colPlanos()));
   todosPlanos=snap.docs.map(d=>({id:d.id,...d.data()}));
   refreshPlanosView();
 }
@@ -1201,14 +1309,14 @@ window.salvarPlano=async()=>{
   };
   if(editandoPlanoId) {
     // Editar existente
-    await setDoc(doc(db,'planos_acao',editandoPlanoId),{...plano,atualizadoEm:new Date().toISOString()},{merge:true});
+    await setDoc(doc(db,colPlanos(),editandoPlanoId),{...plano,atualizadoEm:new Date().toISOString()},{merge:true});
     const idx=todosPlanos.findIndex(p=>p.id===editandoPlanoId);
     if(idx>=0) todosPlanos[idx]={...todosPlanos[idx],...plano};
     toast('✅ Plano atualizado!');
   } else {
     // Novo
     plano.criadoEm=new Date().toISOString();
-    const ref=await addDoc(collection(db,'planos_acao'),plano);
+    const ref=await addDoc(collection(db,colPlanos()),plano);
     todosPlanos.unshift({id:ref.id,...plano});
     toast('✅ Plano salvo!');
   }
@@ -1217,7 +1325,7 @@ window.salvarPlano=async()=>{
 };
 window.deletarPlano=async(id)=>{
   if(!confirm('Remover este plano?')) return;
-  await deleteDoc(doc(db,'planos_acao',id));
+  await deleteDoc(doc(db,colPlanos(),id));
   todosPlanos=todosPlanos.filter(p=>p.id!==id);
   refreshPlanosView(); toast('🗑️ Plano removido');
 };
@@ -1231,7 +1339,7 @@ window.switchHist=(mode,btn)=>{
 };
 
 async function carregarHistorico(ano) {
-  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('ano','==',ano)));
+  const snap=await getDocs(query(collection(db,colLancamentos()),where('ano','==',ano)));
   const todos={};
   snap.docs.forEach(d=>{const dt=d.data();todos[dt.mes]=dt;});
   const tbody=document.getElementById('hist-mensal-body');
@@ -1266,7 +1374,7 @@ window.renderLancamentos=async()=>{
   const ano=parseInt(document.getElementById('h-ano').value);
   const lista=document.getElementById('lanc-lista');
   lista.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>';
-  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
+  const snap=await getDocs(query(collection(db,colLancamentos()),where('mes','==',mes),where('ano','==',ano)));
   if(!snap.docs.length){lista.innerHTML='<div class="empty"><div class="e-icon">📋</div><p>Sem lançamentos neste mês</p></div>';return;}
   lista.innerHTML=snap.docs.map(d=>{
     const r=d.data(); const sat=getSatMedia(r);
@@ -1369,7 +1477,7 @@ window.salvarIndicadoresAdmin=async()=>{
     overrides[ind.key]={label,ativo};
     ind.label=label; ind.ativo=ativo;
   });
-  await setDoc(doc(db,'config','indicadores_admin'),overrides);
+  await setDoc(doc(db,'config',docConfig('indicadores_admin')),overrides);
   toast('✅ Indicadores salvos!');
   refreshPlanosView();
 };
@@ -1409,14 +1517,12 @@ window.salvarColaboradores=async()=>{
     return {key, nome:c.nome.trim(), ini:(c.ini||c.nome.trim().substring(0,2)).toUpperCase()};
   });
   if(!lista.length){toast('❌ Adicione pelo menos uma colaboradora');return;}
-  await setDoc(doc(db,'config','colaboradores'),{lista});
+  await setDoc(doc(db,'config',docConfig('colaboradores')),{lista});
   CONSULTORAS.length=0; lista.forEach(c=>CONSULTORAS.push(c));
-  buildConsultSections();
-  buildDestaquesForm();
+  if(setorAtual==='consultoria'){ buildConsultSections(); buildDestaquesForm(); }
   if(ultimoLancamento){
     renderIndicadoresList(ultimoLancamento);
-    renderConsultGrid(ultimoLancamento);
-    renderDestaques(ultimoLancamento);
+    if(setorAtual==='consultoria'){ renderConsultGrid(ultimoLancamento); renderDestaques(ultimoLancamento); }
   }
   toast('✅ Colaboradoras salvas!');
 };
