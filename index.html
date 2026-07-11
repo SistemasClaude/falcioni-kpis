@@ -5,258 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Falcioni KPIs</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0A0A0A">
+  <meta name="theme-color" content="#1A2F4A">
   <style>
     :root {
-      --bg:     #0A0A0A;
-      --card:   #141414;
-      --card2:  #1C1C1C;
-      --border: #2A2A2A;
-      --gold:   #C9A84C;
-      --gold-l: #E8C96B;
-      --text:   #FFFFFF;
-      --muted:  #888888;
-      --bronze: #CD7F32;
-      --prata:  #A8A9AD;
-      --ouro:   #FFD700;
-      --fora:   #444444;
-      --success:#43A047;
-      --danger: #E53935;
+      --bg:      #F0F4F8;
+      --card:    #FFFFFF;
+      --card2:   #F8FAFC;
+      --border:  #E2E8F0;
+      --primary: #1A2F4A;
+      --gold:    #C9A84C;
+      --text:    #1E293B;
+      --muted:   #64748B;
+      --bronze:  #B45309;
+      --prata:   #6B7280;
+      --ouro:    #CA8A04;
+      --fora:    #94A3B8;
+      --success: #16A34A;
+      --danger:  #DC2626;
+      --green:   #16A34A;
     }
     * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-    body { background:var(--bg); color:var(--text); font-family:'Segoe UI',Arial,sans-serif; min-height:100vh; }
+    body { background:var(--bg); color:var(--text); font-family:'Segoe UI',Arial,sans-serif; min-height:100vh; font-size:15px; }
 
-    /* ── SPLASH ── */
-    #splash {
-      position:fixed; inset:0; z-index:9999; background:#0A0A0A;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      transition:opacity .6s;
-    }
-    #splash img { width:120px; margin-bottom:24px; opacity:.9; }
-    #splash h1 { font-size:1.6rem; color:var(--gold); letter-spacing:3px; text-transform:uppercase; }
-    #splash p  { color:var(--muted); font-size:.8rem; margin-top:6px; letter-spacing:1px; }
-    #splash-bar-wrap { width:180px; height:3px; background:#222; border-radius:2px; margin-top:32px; }
+    /* SPLASH */
+    #splash { position:fixed; inset:0; z-index:9999; background:var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .6s; }
+    #splash img { width:120px; margin-bottom:20px; border-radius:8px; background:#fff; padding:6px 12px; }
+    #splash h1 { font-size:1.7rem; color:var(--gold); letter-spacing:3px; text-transform:uppercase; }
+    #splash p  { color:rgba(255,255,255,.6); font-size:.9rem; margin-top:6px; }
+    #splash-bar-wrap { width:180px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; margin-top:28px; }
     #splash-bar { height:100%; width:0; background:var(--gold); border-radius:2px; transition:width 2s ease; }
 
-    /* ── LOGIN ── */
-    #screen-login {
-      min-height:100vh; display:none; flex-direction:column;
-      align-items:center; justify-content:center; padding:24px;
-      background:radial-gradient(ellipse at top, #1a1400 0%, #0A0A0A 70%);
-    }
-    #screen-login .logo { width:140px; margin-bottom:20px; }
-    #screen-login h1 { font-size:1.3rem; color:var(--gold); letter-spacing:2px; text-transform:uppercase; }
-    #screen-login .sub { color:var(--muted); font-size:.8rem; margin:4px 0 28px; }
-
-    .setor-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; max-width:360px; margin-bottom:20px; }
-    .setor-btn {
-      padding:14px 8px; border-radius:10px; border:2px solid var(--border);
-      background:var(--card); color:var(--muted); font-size:.8rem; font-weight:700;
-      cursor:pointer; text-align:center; transition:all .2s;
-    }
-    .setor-btn .icon { font-size:1.4rem; display:block; margin-bottom:4px; }
-    .setor-btn.active { border-color:var(--gold); color:var(--gold); background:#1e1600; }
+    /* LOGIN */
+    #screen-login { min-height:100vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; background:linear-gradient(160deg,#f0f4f8,#dde6f0); }
+    #screen-login img.logo-login { width:140px; border-radius:10px; background:#fff; padding:10px 14px; box-shadow:0 4px 20px rgba(26,47,74,.15); margin-bottom:20px; }
+    #screen-login h1 { font-size:1.5rem; color:var(--primary); letter-spacing:2px; text-transform:uppercase; font-weight:800; }
+    #screen-login .sub { color:var(--muted); font-size:.9rem; margin:4px 0 28px; }
+    .setor-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; max-width:380px; margin-bottom:20px; }
+    .setor-btn { padding:14px 8px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--muted); font-size:.85rem; font-weight:700; cursor:pointer; text-align:center; transition:all .2s; box-shadow:0 2px 8px rgba(26,47,74,.06); }
+    .setor-btn .icon { font-size:1.5rem; display:block; margin-bottom:4px; }
+    .setor-btn.active { border-color:var(--primary); color:var(--primary); background:#EFF6FF; }
     .setor-btn.disabled { opacity:.35; cursor:default; }
+    .login-box { width:100%; max-width:380px; display:flex; flex-direction:column; gap:12px; }
+    .login-box input { padding:14px 16px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-size:1rem; outline:none; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .login-box input:focus { border-color:var(--primary); }
+    .btn-primary { padding:12px 20px; border-radius:10px; border:none; background:var(--primary); color:#fff; font-size:.95rem; font-weight:700; cursor:pointer; transition:opacity .2s; }
+    .btn-primary:hover { opacity:.88; }
+    .btn-gold { padding:10px 18px; border-radius:10px; border:none; background:linear-gradient(135deg,var(--gold),#a07830); color:#fff; font-size:.85rem; font-weight:700; cursor:pointer; transition:opacity .2s; }
+    .btn-gold:hover { opacity:.88; }
+    .login-err { color:var(--danger); font-size:.85rem; text-align:center; min-height:18px; }
+    .falcioni-footer { text-align:center; margin-top:28px; opacity:.2; }
+    .falcioni-footer img { height:20px; }
 
-    .login-box { width:100%; max-width:360px; display:flex; flex-direction:column; gap:12px; }
-    .login-box input {
-      padding:14px 16px; border-radius:10px; border:1.5px solid var(--border);
-      background:var(--card2); color:var(--text); font-size:1rem; outline:none;
-    }
-    .login-box input:focus { border-color:var(--gold); }
-    .btn-gold {
-      padding:14px; border-radius:10px; border:none;
-      background:linear-gradient(135deg,var(--gold),#a07830); color:#000;
-      font-size:1rem; font-weight:700; cursor:pointer; transition:opacity .2s;
-    }
-    .btn-gold:hover { opacity:.85; }
-    .login-err { color:var(--danger); font-size:.82rem; text-align:center; min-height:18px; }
-    .falcioni-footer { text-align:center; margin-top:32px; opacity:.25; }
-    .falcioni-footer img { height:22px; }
-
-    /* ── TELA PRINCIPAL ── */
+    /* APP */
     #screen-app { display:none; flex-direction:column; min-height:100vh; }
-
-    .app-header {
-      position:sticky; top:0; z-index:100;
-      background:var(--card); border-bottom:1px solid var(--border);
-      display:flex; align-items:center; gap:10px; padding:10px 16px;
-    }
-    .app-header img.logo-h { height:32px; }
+    .app-header { position:sticky; top:0; z-index:100; background:var(--primary); display:flex; align-items:center; gap:10px; padding:11px 16px; box-shadow:0 2px 8px rgba(26,47,74,.25); }
+    .app-header .logo-h { height:34px; border-radius:6px; background:#fff; padding:3px 6px; }
     .app-header .info { flex:1; }
-    .app-header .info h2 { font-size:.9rem; color:var(--gold); font-weight:700; }
-    .app-header .info span { font-size:.7rem; color:var(--muted); }
+    .app-header .info h2 { font-size:1rem; color:var(--gold); font-weight:800; }
+    .app-header .info span { font-size:.72rem; color:rgba(255,255,255,.6); }
     .mes-sel { display:flex; align-items:center; gap:6px; }
-    .mes-sel select, .mes-sel input {
-      padding:6px 8px; border-radius:8px; border:1.5px solid var(--border);
-      background:var(--card2); color:var(--text); font-size:.8rem; outline:none;
-    }
+    .mes-sel select, .mes-sel input { padding:6px 8px; border-radius:8px; border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.12); color:#fff; font-size:.8rem; outline:none; }
     .mes-sel select:focus, .mes-sel input:focus { border-color:var(--gold); }
-    .btn-logout {
-      background:none; border:1px solid var(--border); color:var(--muted);
-      border-radius:8px; padding:6px 10px; cursor:pointer; font-size:.75rem;
-    }
-    .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
+    .mes-sel option { background:var(--primary); }
+    .btn-logout { background:none; border:1px solid rgba(255,255,255,.25); color:rgba(255,255,255,.7); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:.75rem; transition:all .2s; }
+    .btn-logout:hover { border-color:rgba(220,38,38,.5); color:#fca5a5; }
 
-    /* ── TABS ── */
-    .tabs { display:flex; background:var(--card); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
+    /* TABS */
+    .tabs { display:flex; background:var(--card); border-bottom:2px solid var(--border); overflow-x:auto; scrollbar-width:none; }
     .tabs::-webkit-scrollbar { display:none; }
-    .tab-btn {
-      flex:0 0 auto; padding:12px 16px; border:none; background:none;
-      color:var(--muted); font-size:.8rem; font-weight:600; cursor:pointer;
-      border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s;
-    }
-    .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+    .tab-btn { flex:0 0 auto; padding:13px 14px; border:none; background:none; color:var(--muted); font-size:.82rem; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:all .2s; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
     .tab-content { display:none; padding:16px; }
     .tab-content.active { display:block; }
 
-    /* ── BADGES ── */
-    .badge {
-      display:inline-block; padding:3px 9px; border-radius:20px;
-      font-size:.72rem; font-weight:700;
-    }
-    .badge.Ouro   { background:#2a2000; color:var(--ouro); border:1px solid var(--ouro); }
-    .badge.Prata  { background:#1a1a1a; color:var(--prata); border:1px solid var(--prata); }
-    .badge.Bronze { background:#1a0f00; color:var(--bronze); border:1px solid var(--bronze); }
-    .badge.Fora   { background:#1a1a1a; color:var(--fora); border:1px solid var(--fora); }
-    .badge.sem-dado { background:#1a1a1a; color:#555; border:1px solid #333; }
+    /* BADGES */
+    .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:700; }
+    .badge.Ouro   { background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; }
+    .badge.Prata  { background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; }
+    .badge.Bronze { background:#FEF9C3; color:#78350F; border:1px solid #FDE68A; }
+    .badge.Fora   { background:#FFF1F2; color:#9F1239; border:1px solid #FECDD3; }
+    .badge.sem-dado { background:#F8FAFC; color:#CBD5E1; border:1px solid #E2E8F0; }
 
-    /* ── PAINEL ── */
-    .section-title { font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:10px; padding-left:2px; }
+    /* PAINEL */
+    .section-title { font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:12px; }
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+    .kpi-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:18px; }
+    .kpi-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 1px 6px rgba(26,47,74,.06); }
+    .kpi-card .kpi-label { font-size:.74rem; color:var(--muted); margin-bottom:4px; line-height:1.3; }
+    .kpi-card .kpi-val   { font-size:1.8rem; font-weight:800; color:var(--primary); line-height:1; margin-bottom:6px; }
+    .kpi-card.accent { border-left:3px solid var(--gold); }
+    .kpi-card.green  { border-left:3px solid var(--green); }
+    .kpi-card.warn   { border-left:3px solid #F59E0B; }
+    .kpi-card.danger { border-left:3px solid var(--danger); }
 
-    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
-    .kpi-card {
-      background:var(--card); border:1px solid var(--border); border-radius:12px;
-      padding:14px; display:flex; flex-direction:column; gap:4px;
-    }
-    .kpi-card .kpi-label { font-size:.7rem; color:var(--muted); }
-    .kpi-card .kpi-val   { font-size:1.6rem; font-weight:800; color:var(--text); line-height:1; }
-    .kpi-card .kpi-sub   { font-size:.7rem; color:var(--muted); }
+    .equipe-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+    .equipe-item { flex:1; min-width:100px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:0 1px 4px rgba(26,47,74,.04); }
+    .equipe-item .eq-label { font-size:.72rem; color:var(--muted); margin-bottom:4px; }
+    .equipe-item .eq-val   { font-size:1.1rem; font-weight:800; color:var(--primary); margin-bottom:4px; }
 
-    .equipe-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
-    .equipe-item {
-      flex:1; min-width:120px; background:var(--card); border:1px solid var(--border);
-      border-radius:10px; padding:10px 12px;
-    }
-    .equipe-item .eq-label { font-size:.68rem; color:var(--muted); margin-bottom:4px; }
-    .equipe-item .eq-val   { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
-    .equipe-item .eq-badge { }
-
-    /* ── GRID CONSULTORAS ── */
-    .consult-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media(min-width:600px) { .consult-grid { grid-template-columns:repeat(3,1fr); } }
-    .consult-card {
-      background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px;
-    }
-    .consult-card .c-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-    .c-avatar {
-      width:32px; height:32px; border-radius:50%; background:var(--card2);
-      border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center;
-      font-size:.7rem; font-weight:700; color:var(--gold); flex-shrink:0;
-    }
-    .c-nome { font-size:.85rem; font-weight:700; color:var(--text); }
-    .c-ind-row { display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border); }
+    .consult-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+    @media(min-width:540px) { .consult-grid { grid-template-columns:repeat(3,1fr); } }
+    .consult-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .c-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+    .c-avatar { width:34px; height:34px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; color:var(--gold); flex-shrink:0; }
+    .c-nome { font-size:.9rem; font-weight:700; color:var(--primary); }
+    .c-ind-row { display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:.78rem; }
     .c-ind-row:last-child { border-bottom:none; }
-    .c-ind-label { font-size:.7rem; color:var(--muted); }
-    .c-ind-val   { font-size:.75rem; font-weight:700; }
+    .c-ind-label { color:var(--muted); }
 
-    /* ── LANÇAMENTO ── */
-    .lanc-section { background:var(--card); border:1px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
-    .lanc-section-header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 16px; cursor:pointer; user-select:none;
-    }
-    .lanc-section-header .lsh-title { font-size:.9rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
-    .lanc-section-header .lsh-chev  { color:var(--muted); transition:transform .2s; font-size:.8rem; }
+    /* DESTAQUES */
+    .destaques-card { background:linear-gradient(135deg,var(--primary),#2d4a6b); border-radius:14px; padding:16px; margin-bottom:16px; }
+    .destaques-card .dt-title { color:var(--gold); font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .destaque-item { display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.1); }
+    .destaque-item:last-child { border-bottom:none; }
+    .destaque-ini { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; color:var(--gold); flex-shrink:0; }
+    .destaque-text { font-size:.82rem; color:rgba(255,255,255,.9); line-height:1.4; }
+    .destaque-nome { font-size:.7rem; color:rgba(255,255,255,.5); margin-top:2px; }
+
+    /* INDICADOR (Painel um-a-um) */
+    .indicador-block { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .indicador-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .indicador-nome { font-size:.86rem; font-weight:700; color:var(--primary); }
+    .indicador-nomes { font-size:.7rem; color:var(--muted); margin-top:4px; line-height:1.4; }
+    .indicador-valores { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .indicador-val { font-size:1.3rem; font-weight:800; color:var(--primary); }
+    .indicador-plano-wrap { border-top:1px dashed var(--border); padding-top:10px; margin-top:10px; }
+    .indicador-plano-label { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px; }
+    .btn-add-plano { background:none; border:1.5px dashed var(--border); color:var(--muted); border-radius:8px; padding:9px; cursor:pointer; font-size:.8rem; width:100%; text-align:center; transition:all .2s; }
+    .btn-add-plano:hover { border-color:var(--primary); color:var(--primary); }
+    .indicador-plano-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+
+    /* DASHBOARD */
+    .dash-chart-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .dash-chart-title { font-size:.82rem; font-weight:700; color:var(--primary); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+    .chart-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:.72rem; color:var(--muted); }
+    .chart-legend span::before { content:'—'; margin-right:4px; }
+    .dash-rank-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .dash-rank-row:last-child { border-bottom:none; }
+    .dash-rank-pos { font-size:.8rem; font-weight:700; color:var(--muted); min-width:20px; }
+    .dash-rank-avatar { width:30px; height:30px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; color:var(--gold); flex-shrink:0; }
+    .dash-rank-nome { flex:1; font-size:.85rem; font-weight:700; color:var(--text); }
+    .dash-rank-vals { font-size:.75rem; color:var(--muted); text-align:right; line-height:1.5; }
+    .dash-rank-bar-wrap { height:6px; background:var(--border); border-radius:3px; overflow:hidden; margin-top:3px; min-width:60px; }
+    .dash-rank-bar { height:100%; border-radius:3px; background:var(--gold); transition:width .6s ease; }
+    .dash-annual-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+    .dash-annual-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:center; }
+    .dash-annual-label { font-size:.72rem; color:var(--muted); margin-bottom:4px; }
+    .dash-annual-val   { font-size:1.4rem; font-weight:800; color:var(--primary); }
+    .dash-annual-sub   { font-size:.7rem; color:var(--muted); margin-top:2px; }
+
+    /* LANÇAMENTO */
+    .lanc-section { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:10px; overflow:hidden; box-shadow:0 1px 4px rgba(26,47,74,.04); }
+    .lanc-section-header { display:flex; align-items:center; justify-content:space-between; padding:13px 16px; cursor:pointer; user-select:none; }
+    .lsh-title { font-size:.92rem; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; }
+    .lsh-chev  { color:var(--muted); transition:transform .2s; }
     .lanc-section.open .lsh-chev { transform:rotate(180deg); }
-    .lanc-section-body { display:none; padding:0 16px 16px; }
+    .lanc-section-body { display:none; padding:0 16px 16px; border-top:1px solid var(--border); }
     .lanc-section.open .lanc-section-body { display:block; }
-
     .form-group { margin-bottom:12px; }
-    .form-group label { display:block; font-size:.75rem; color:var(--muted); margin-bottom:5px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border);
-      background:var(--card2); color:var(--text); font-size:.9rem; outline:none; font-family:inherit;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--gold); }
+    .form-group label { display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px; font-weight:600; }
+    .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--card2); color:var(--text); font-size:.9rem; outline:none; font-family:inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--primary); }
     .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-
-    .btn-lancar {
-      display:block; width:100%; padding:16px; border:none; border-radius:12px;
-      background:linear-gradient(135deg,var(--gold),#a07830); color:#000;
-      font-size:1rem; font-weight:800; cursor:pointer; text-align:center;
-      margin-top:8px; letter-spacing:.5px;
-    }
+    .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .btn-lancar { display:block; width:100%; padding:16px; border:none; border-radius:12px; background:var(--primary); color:#fff; font-size:1rem; font-weight:800; cursor:pointer; text-align:center; margin-top:10px; }
     .btn-lancar:hover { opacity:.88; }
+    .nota-sat-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .nota-sat-row input.nota-num { width:72px; padding:8px; border-radius:8px; border:1.5px solid var(--border); background:var(--card2); color:var(--text); font-size:.9rem; outline:none; text-align:center; }
+    .nota-sat-row input.nota-cli { flex:1; padding:8px; border-radius:8px; border:1.5px solid var(--border); background:var(--card2); color:var(--text); font-size:.9rem; outline:none; }
+    .btn-remove-nota { background:none; border:1px solid #FCA5A5; color:var(--danger); border-radius:6px; padding:5px 8px; cursor:pointer; font-size:.8rem; flex-shrink:0; }
+    .btn-add-nota { background:none; border:1.5px dashed var(--border); color:var(--muted); border-radius:8px; padding:9px; cursor:pointer; font-size:.85rem; width:100%; text-align:center; transition:all .2s; margin-bottom:10px; }
+    .btn-add-nota:hover { border-color:var(--primary); color:var(--primary); }
+    .sat-media-live { text-align:center; padding:10px; background:var(--card2); border-radius:8px; border:1px solid var(--border); font-size:.85rem; color:var(--muted); }
+    .sat-media-live strong { color:var(--primary); font-size:1.05rem; }
 
-    /* ── HISTÓRICO ── */
+    /* PLANOS */
+    .plano-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; box-shadow:0 1px 4px rgba(26,47,74,.04); }
+    .plano-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+    .plano-indicador { font-size:.78rem; font-weight:700; color:var(--primary); background:#EFF6FF; border:1px solid #BFDBFE; padding:3px 10px; border-radius:20px; }
+    .plano-periodo { font-size:.75rem; color:var(--muted); }
+    .plano-row { display:flex; gap:6px; margin-bottom:5px; font-size:.82rem; }
+    .pr-label { color:var(--gold); font-weight:700; min-width:52px; flex-shrink:0; }
+    .pr-val   { color:var(--text); line-height:1.4; }
+    .plano-footer { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; border-top:1px solid var(--border); padding-top:8px; }
+    .plano-who  { font-size:.75rem; background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; padding:2px 8px; border-radius:20px; }
+    .plano-when { font-size:.75rem; background:#F0F9FF; border:1px solid #BAE6FD; color:#075985; padding:2px 8px; border-radius:20px; }
+    .btn-del-plano { background:none; border:none; color:#FCA5A5; cursor:pointer; font-size:1rem; padding:2px 6px; opacity:.6; }
+    .btn-del-plano:hover { opacity:1; }
+
+    /* HISTÓRICO */
     .hist-toggle { display:flex; gap:8px; margin-bottom:14px; }
-    .htog-btn {
-      flex:1; padding:9px 12px; border-radius:8px; border:1.5px solid var(--border);
-      background:var(--card); color:var(--muted); font-size:.82rem; font-weight:600;
-      cursor:pointer; transition:all .2s;
-    }
-    .htog-btn.active { border-color:var(--gold); color:var(--gold); background:#1e1600; }
-
+    .htog-btn { flex:1; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); color:var(--muted); font-size:.85rem; font-weight:600; cursor:pointer; transition:all .2s; }
+    .htog-btn.active { border-color:var(--primary); color:var(--primary); background:#EFF6FF; }
     .hist-table-wrap { overflow-x:auto; }
-    .hist-table { width:100%; border-collapse:collapse; font-size:.75rem; min-width:500px; }
-    .hist-table th { background:var(--card2); color:var(--muted); padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
-    .hist-table td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .hist-table { width:100%; border-collapse:collapse; font-size:.8rem; min-width:600px; }
+    .hist-table th { background:var(--card2); color:var(--muted); padding:9px 10px; text-align:left; border-bottom:2px solid var(--border); white-space:nowrap; font-size:.76rem; }
+    .hist-table td { padding:8px 10px; border-bottom:1px solid var(--border); }
     .hist-table tr:hover td { background:var(--card2); }
-
     .hist-diario-sel { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
-    .hist-diario-sel select, .hist-diario-sel input {
-      padding:8px 10px; border-radius:8px; border:1.5px solid var(--border);
-      background:var(--card2); color:var(--text); font-size:.85rem; outline:none;
-    }
+    .hist-diario-sel select, .hist-diario-sel input { padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-size:.85rem; outline:none; }
 
-    /* ── CONFIG ── */
-    .config-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
-    .config-section h4 { color:var(--gold); font-size:.85rem; margin-bottom:12px; }
+    /* CONFIG */
+    .config-section { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; }
+    .config-section h4 { color:var(--primary); font-size:.9rem; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:8px; }
 
-    /* ── MODAL ── */
-    .modal-bg {
-      position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:500;
-      display:none; align-items:flex-end; justify-content:center;
-    }
+    /* MODAL */
+    .modal-bg { position:fixed; inset:0; background:rgba(26,47,74,.5); z-index:500; display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(2px); }
     .modal-bg.open { display:flex; }
-    .modal {
-      background:var(--card); border-radius:20px 20px 0 0; padding:24px 20px;
-      width:100%; max-width:500px; max-height:90vh; overflow-y:auto;
-    }
-    .modal h3 { font-size:1.1rem; color:var(--gold); margin-bottom:16px; }
+    .modal { background:var(--card); border-radius:20px 20px 0 0; padding:24px 20px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 -8px 40px rgba(26,47,74,.2); }
+    .modal h3 { font-size:1.1rem; color:var(--primary); margin-bottom:16px; font-weight:800; }
     .modal-actions { display:flex; gap:10px; margin-top:20px; }
-    .btn-cancel {
-      flex:1; padding:12px; border-radius:8px; border:1px solid var(--border);
-      background:none; color:var(--muted); cursor:pointer; font-size:.9rem;
-    }
+    .btn-cancel { flex:1; padding:12px; border-radius:8px; border:1.5px solid var(--border); background:none; color:var(--muted); cursor:pointer; font-size:.9rem; font-weight:600; }
 
-    /* ── LOADING / SPINNER ── */
-    .loading { text-align:center; padding:32px; color:var(--muted); font-size:.85rem; }
-    .spinner {
-      width:28px; height:28px; border:3px solid var(--border);
-      border-top-color:var(--gold); border-radius:50%;
-      animation:spin .8s linear infinite; margin:0 auto 10px;
-    }
+    /* UTILS */
+    .loading { text-align:center; padding:40px; color:var(--muted); font-size:.9rem; }
+    .spinner { width:28px; height:28px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
     @keyframes spin { to { transform:rotate(360deg); } }
-
-    /* ── TOAST ── */
-    #toast {
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:var(--card2); border:1px solid var(--border); color:var(--text);
-      padding:10px 20px; border-radius:20px; font-size:.85rem; z-index:9000;
-      opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap;
-    }
+    .empty { text-align:center; padding:40px 16px; color:var(--muted); font-size:.9rem; }
+    .empty .e-icon { font-size:2.2rem; margin-bottom:10px; }
+    #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; padding:10px 20px; border-radius:20px; font-size:.85rem; z-index:9000; opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; box-shadow:0 4px 20px rgba(26,47,74,.3); }
     #toast.show { opacity:1; }
-
-    /* ── EMPTY STATE ── */
-    .empty { text-align:center; padding:40px 16px; color:var(--muted); font-size:.85rem; }
-    .empty .e-icon { font-size:2rem; margin-bottom:8px; }
   </style>
 </head>
 <body>
 
-<!-- ── SPLASH ── -->
+<!-- SPLASH -->
 <div id="splash">
   <img src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
   <h1>Falcioni KPIs</h1>
@@ -264,44 +237,29 @@
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
 </div>
 
-<!-- ── LOGIN ── -->
+<!-- LOGIN -->
 <div id="screen-login">
-  <img class="logo" src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
+  <img class="logo-login" src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
   <h1>Falcioni KPIs</h1>
-  <p class="sub">Sistema de Indicadores</p>
-
+  <p class="sub">Sistema de Indicadores de Desempenho</p>
   <div class="setor-grid">
-    <button class="setor-btn active" onclick="selSetor('consultoria',this)">
-      <span class="icon">📊</span>Consultoria
-    </button>
-    <button class="setor-btn disabled" title="Em breve">
-      <span class="icon">💼</span>Comercial
-    </button>
-    <button class="setor-btn disabled" title="Em breve">
-      <span class="icon">📣</span>Marketing
-    </button>
+    <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
+    <button class="setor-btn disabled"><span class="icon">💼</span>Comercial</button>
+    <button class="setor-btn disabled"><span class="icon">📣</span>Marketing</button>
   </div>
-
   <div class="login-box">
-    <input type="password" id="inp-senha" placeholder="Senha de acesso"
-      onkeydown="if(event.key==='Enter')login()">
-    <button class="btn-gold" onclick="login()">Entrar</button>
+    <input type="password" id="inp-senha" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-primary" style="padding:14px" onclick="login()">Entrar</button>
     <div class="login-err" id="login-err"></div>
   </div>
-
-  <div class="falcioni-footer">
-    <img src="Falcioni.jpg" alt="Falcioni">
-  </div>
+  <div class="falcioni-footer"><img src="Falcioni.jpg" alt="Falcioni"></div>
 </div>
 
-<!-- ── APP ── -->
+<!-- APP -->
 <div id="screen-app">
   <div class="app-header">
     <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
-    <div class="info">
-      <h2>Falcioni KPIs</h2>
-      <span id="app-setor-label">Consultoria</span>
-    </div>
+    <div class="info"><h2>Falcioni KPIs</h2><span id="app-setor-label">Consultoria</span></div>
     <div class="mes-sel">
       <select id="sel-mes" onchange="carregarDados()">
         <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
@@ -316,46 +274,34 @@
 
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('painel',this)">📊 Painel</button>
+    <button class="tab-btn" onclick="showTab('dashboard',this)">📈 Dashboard</button>
     <button class="tab-btn" onclick="showTab('lancar',this)">📋 Lançar</button>
     <button class="tab-btn" onclick="showTab('historico',this)">📅 Histórico</button>
     <button class="tab-btn" onclick="showTab('config',this)">⚙️ Config</button>
   </div>
 
-  <!-- ── TAB: PAINEL ── -->
+  <!-- PAINEL -->
   <div id="tab-painel" class="tab-content active">
     <div id="painel-loading" class="loading"><div class="spinner"></div>Carregando...</div>
     <div id="painel-body" style="display:none">
+      <p class="section-title">Indicadores da Consultoria</p>
+      <div id="indicadores-lista"></div>
 
-      <p class="section-title">Indicadores da Equipe</p>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Controle de Horas</div>
-          <div class="kpi-val" id="kpi-horas">—</div>
-          <div id="kpi-horas-badge"></div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Clientes Novos</div>
-          <div class="kpi-val" id="kpi-clientes">—</div>
-          <div class="kpi-sub">no mês</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Total Vendas</div>
-          <div class="kpi-val" id="kpi-vendas-eq">—</div>
-          <div id="kpi-vendas-eq-badge"></div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Satisfação Média</div>
-          <div class="kpi-val" id="kpi-satisfacao">—</div>
-          <div id="kpi-satisfacao-badge"></div>
-        </div>
+      <div id="outros-planos-section" style="display:none">
+        <p class="section-title" style="margin-top:16px">📋 Outros Planos</p>
+        <div id="outros-planos-lista"></div>
       </div>
 
-      <p class="section-title">Metas Coletivas</p>
-      <div class="equipe-row" id="equipe-row"></div>
-
-      <p class="section-title" style="margin-top:16px">Por Consultora</p>
+      <p class="section-title" style="margin-top:16px">Indicadores por Consultora</p>
       <div class="consult-grid" id="consult-grid"></div>
 
+      <div id="destaques-section" style="display:none">
+        <p class="section-title" style="margin-top:16px">⭐ Destaques do Mês</p>
+        <div class="destaques-card">
+          <div class="dt-title">🏆 Destaques</div>
+          <div id="destaques-lista"></div>
+        </div>
+      </div>
     </div>
     <div id="painel-empty" class="empty" style="display:none">
       <div class="e-icon">📋</div>
@@ -363,19 +309,54 @@
     </div>
   </div>
 
-  <!-- ── TAB: LANÇAR ── -->
-  <div id="tab-lancar" class="tab-content">
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="tab-content">
+    <div id="dash-loading" class="loading"><div class="spinner"></div>Carregando dashboard...</div>
+    <div id="dash-body" style="display:none">
 
-    <!-- Dados gerais -->
-    <div class="lanc-section open">
-      <div class="lanc-section-header" onclick="toggleSection(this)">
-        <span class="lsh-title">🗓️ Dados Gerais</span>
-        <span class="lsh-chev">▼</span>
+      <p class="section-title">Resumo do Ano</p>
+      <div class="dash-annual-grid" id="dash-annual"></div>
+
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">
+          Evolução Mensal
+          <div class="chart-legend">
+            <span style="color:#C9A84C">Satisfação</span>
+            <span style="color:#1A2F4A">Horas %</span>
+            <span style="color:#16A34A">Meta Cli %</span>
+          </div>
+        </div>
+        <svg id="svg-evolucao" width="100%" viewBox="0 0 680 160" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
+
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Vendas por Consultora (Acumulado)</div>
+        <div id="dash-rank-vendas"></div>
+      </div>
+
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Postagens por Consultora (Acumulado)</div>
+        <div id="dash-rank-postagens"></div>
+      </div>
+
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Novos Conhecimentos por Consultora</div>
+        <div id="dash-rank-conhecimentos"></div>
+      </div>
+    </div>
+    <div id="dash-empty" class="empty" style="display:none">
+      <div class="e-icon">📈</div><p>Sem dados para exibir no dashboard.</p>
+    </div>
+  </div>
+
+  <!-- LANÇAR -->
+  <div id="tab-lancar" class="tab-content">
+    <!-- Dados Gerais -->
+    <div class="lanc-section open">
+      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🗓️ Dados Gerais</span><span class="lsh-chev">▼</span></div>
       <div class="lanc-section-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Mês</label>
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Mês</label>
             <select id="l-mes">
               <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
               <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
@@ -383,142 +364,175 @@
               <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Ano</label>
-            <input type="number" id="l-ano" value="2026" min="2024" max="2030">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Lançado por</label>
-          <select id="l-lancadopor">
-            <option value="">Selecione...</option>
-            <option>Déborah</option><option>Lívia</option><option>Paloma</option>
-            <option>Izabela</option><option>Marília</option><option>Alan</option>
-          </select>
+          <div class="form-group"><label>Ano</label><input type="number" id="l-ano" value="2026" min="2024" max="2030"></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Controle de Horas (%)</label>
-            <input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1">
-          </div>
-          <div class="form-group">
-            <label>Clientes Novos</label>
-            <input type="number" id="l-clientes" placeholder="Ex: 2" min="0">
-          </div>
+          <div class="form-group"><label>Controle de Horas (%)</label><input type="number" id="l-horas" placeholder="Ex: 92.5" min="0" max="200" step="0.1"></div>
+          <div class="form-group"><label>Clientes que Iniciaram</label><input type="number" id="l-iniciaram" placeholder="Ex: 22" min="0"></div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group"><label>Clientes Novos</label><input type="number" id="l-clientes" placeholder="Ex: 2" min="0"></div>
+          <div class="form-group"><label>Horas Excedentes (qtd)</label><input type="number" id="l-excederam" placeholder="Ex: 9" min="0"></div>
+          <div class="form-group"><label>Horas Pendentes (qtd)</label><input type="number" id="l-pendentes" placeholder="Ex: 10" min="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Meta Clientes Atingida (qtd)</label><input type="number" id="l-meta-qtd" placeholder="Ex: 7" min="0"></div>
+          <div class="form-group"><label>Total de Clientes Ativos</label><input type="number" id="l-total-cli" placeholder="Ex: 11" min="0"></div>
+        </div>
+        <div class="form-group"><label>Clientes que Bateram Meta (nomes)</label><input type="text" id="l-meta-nomes" placeholder="Ex: Barbalha, Colorado, Betinho..."></div>
+        <div class="form-row">
+          <div class="form-group"><label>Horas Previstas</label><input type="text" id="l-horas-prev" placeholder="Ex: 292h23m"></div>
+          <div class="form-group"><label>Horas Executadas</label><input type="text" id="l-horas-exec" placeholder="Ex: 286h05m"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Novos — Nomes dos Clientes</label><input type="text" id="l-novos-nomes" placeholder="Ex: Padaria, OFEBAS..."></div>
+          <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
+        </div>
+        <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
+        <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
+        <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
+        <div class="form-row">
+          <div class="form-group"><label>Em Negociação (qtd)</label><input type="number" id="l-negociacao" placeholder="0" min="0"></div>
+          <div class="form-group"><label>Em Negociação — Nomes</label><input type="text" id="l-negociacao-nomes" placeholder="Ex: Leão Sampaio..."></div>
         </div>
       </div>
     </div>
 
-    <!-- Uma seção por consultora -->
+    <!-- Satisfação -->
+    <div class="lanc-section open">
+      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Satisfação do Cliente</span><span class="lsh-chev">▼</span></div>
+      <div class="lanc-section-body">
+        <p style="font-size:.82rem;color:var(--muted);margin:12px 0 12px">Adicione a nota de cada cliente avaliador (0 a 10). A média é automática.</p>
+        <div style="display:flex;gap:6px;margin-bottom:6px;font-size:.74rem;color:var(--muted);padding:0 2px">
+          <span style="width:72px;text-align:center">Nota</span><span style="flex:1">Cliente (opcional)</span>
+        </div>
+        <div id="sat-lista"></div>
+        <button class="btn-add-nota" onclick="addNotaSat()">+ Adicionar avaliação</button>
+        <div class="sat-media-live" id="sat-media-live">Adicione notas para ver a média</div>
+      </div>
+    </div>
+
+    <!-- Por consultora -->
     <div id="consult-sections"></div>
+
+    <!-- Destaques -->
+    <div class="lanc-section">
+      <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Destaques do Mês</span><span class="lsh-chev">▼</span></div>
+      <div class="lanc-section-body">
+        <div class="form-group" style="margin-top:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
+          <label style="color:var(--gold);font-weight:700">🏢 Consultoria (geral)</label>
+          <input type="text" id="dt-consultoria" placeholder="Destaque geral da consultoria no mês">
+        </div>
+        <div id="destaques-form"></div>
+      </div>
+    </div>
 
     <button class="btn-lancar" onclick="salvarLancamento()">💾 Salvar Lançamento</button>
   </div>
 
-  <!-- ── TAB: HISTÓRICO ── -->
+  <!-- HISTÓRICO -->
   <div id="tab-historico" class="tab-content">
     <div class="hist-toggle">
       <button class="htog-btn active" onclick="switchHist('mensal',this)">📅 Mensal</button>
       <button class="htog-btn" onclick="switchHist('diario',this)">📋 Lançamentos</button>
     </div>
-
-    <!-- Mensal -->
     <div id="hist-mensal">
       <div class="hist-table-wrap">
         <table class="hist-table">
-          <thead>
-            <tr>
-              <th>Mês</th>
-              <th>Horas %</th>
-              <th>Cli. Novos</th>
-              <th>Vendas Eq.</th>
-              <th>Post. Eq.</th>
-              <th>Conh. Eq.</th>
-              <th>Satisf. Méd.</th>
-              <th>Lançado por</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th>Mês</th><th>H.Prev.</th><th>H.Exec.</th><th>Horas %</th>
+            <th>Iniciaram</th><th>Novos</th><th>Finalizados</th><th>Excedentes</th><th>Pendentes</th>
+            <th>Meta Cli</th><th>Satisf.</th><th>Vendas</th><th>Post.</th><th>Conh.</th>
+          </tr></thead>
           <tbody id="hist-mensal-body">
-            <tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Carregando...</td></tr>
+            <tr><td colspan="10" style="color:var(--muted);text-align:center;padding:24px">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
-    <!-- Lançamentos -->
     <div id="hist-diario" style="display:none">
       <div class="hist-diario-sel">
-        <select id="h-mes">
+        <select id="h-mes" onchange="renderLancamentos()">
           <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
           <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
           <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
           <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
         </select>
         <input type="number" id="h-ano" value="2026" min="2024" max="2030" style="width:72px" onchange="renderLancamentos()">
-        <select id="h-mes" onchange="renderLancamentos()" style="display:none"></select>
       </div>
       <div id="lanc-lista"></div>
     </div>
   </div>
 
-  <!-- ── TAB: CONFIG ── -->
+  <!-- CONFIG -->
   <div id="tab-config" class="tab-content">
     <div class="config-section">
-      <h4>🔑 Senhas por Setor</h4>
-      <div class="form-group">
-        <label>Nova senha — Consultoria</label>
-        <input type="password" id="nova-senha-consultoria" placeholder="••••••">
-      </div>
-      <div class="form-group">
-        <label>Nova senha — Comercial (futuro)</label>
-        <input type="password" id="nova-senha-comercial" placeholder="••••••" disabled style="opacity:.4">
-      </div>
-      <div class="form-group">
-        <label>Nova senha — Marketing (futuro)</label>
-        <input type="password" id="nova-senha-marketing" placeholder="••••••" disabled style="opacity:.4">
-      </div>
-      <button class="btn-gold" onclick="salvarSenhas()" style="padding:10px 20px;font-size:.85rem">Salvar Senhas</button>
+      <h4>🔑 Senha de Acesso</h4>
+      <div class="form-group"><label>Nova senha — Consultoria</label><input type="password" id="nova-senha-consultoria" placeholder="Nova senha"></div>
+      <button class="btn-primary" onclick="salvarSenhas()" style="padding:10px 20px">Salvar Senha</button>
     </div>
-
     <div class="config-section">
-      <h4>🎯 Metas — Individual</h4>
+      <h4>🎯 Metas Individuais</h4>
       <div id="config-metas-ind"></div>
-      <button class="btn-gold" onclick="salvarMetas()" style="padding:10px 20px;font-size:.85rem;margin-top:10px">Salvar Metas</button>
+      <button class="btn-primary" onclick="salvarMetas()" style="padding:10px 20px;margin-top:12px">Salvar Metas</button>
     </div>
-
     <div class="config-section">
-      <h4>🎯 Metas — Equipe</h4>
+      <h4>🎯 Metas Equipe</h4>
       <div id="config-metas-eq"></div>
+      <button class="btn-primary" onclick="salvarMetasEq()" style="padding:10px 20px;margin-top:12px">Salvar Metas Equipe</button>
     </div>
-
     <div class="config-section">
       <h4>🔗 API Power BI</h4>
-      <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px">URL para Web Connector no Power BI:</p>
-      <div style="font-size:.7rem;color:var(--gold);margin-bottom:4px">Lançamentos Consultoria:</div>
-      <div id="api-url" style="background:var(--card2);padding:8px 10px;border-radius:8px;font-size:.65rem;color:var(--muted);word-break:break-all;border:1px solid var(--border)"></div>
-      <button onclick="copiarApi()" style="margin-top:6px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.75rem">📋 Copiar</button>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">URL Web Connector — Lançamentos Consultoria:</p>
+      <div id="api-url" style="background:var(--card2);padding:10px;border-radius:8px;font-size:.68rem;color:var(--muted);word-break:break-all;border:1px solid var(--border)"></div>
+      <button onclick="copiarApi()" style="margin-top:8px;background:none;border:1.5px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem">📋 Copiar</button>
     </div>
   </div>
 </div>
 
-<!-- ── MODAL LANÇAMENTO ── -->
+<!-- MODAL CONFIRMAR -->
 <div class="modal-bg" id="modal-confirm">
   <div class="modal">
     <h3>⚠️ Confirmar Lançamento</h3>
-    <p id="modal-confirm-txt" style="color:var(--muted);font-size:.85rem;line-height:1.5"></p>
+    <p id="modal-confirm-txt" style="color:var(--muted);font-size:.88rem;line-height:1.6"></p>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-gold" style="flex:1" onclick="confirmarSalvar()">Confirmar</button>
+      <button class="btn-primary" style="flex:2;padding:12px;border-radius:8px;font-size:.9rem;font-weight:700" onclick="confirmarSalvar()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PLANO -->
+<div class="modal-bg" id="modal-plano">
+  <div class="modal">
+    <h3>📌 Novo Plano de Ação</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Período</label>
+        <select id="p-mes"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select>
+      </div>
+      <div class="form-group"><label>Ano</label><input type="number" id="p-ano" value="2026" min="2024" max="2030"></div>
+    </div>
+    <div class="form-group"><label>Indicador</label>
+      <select id="p-indicador"><option>Controle de Horas</option><option>Satisfação</option><option>Meta Clientes</option><option>Vendas Equipe</option><option>Postagens Equipe</option><option>Conh. Equipe</option><option>Clientes Iniciaram</option><option>Clientes Novos</option><option>Clientes Finalizados</option><option>Horas Excedentes</option><option>Horas Pendentes</option><option>Em Negociação</option><option>Outro</option></select>
+    </div>
+    <div class="form-group"><label>O que?</label><textarea id="p-oque" rows="2" placeholder="Descreva a ação..."></textarea></div>
+    <div class="form-group"><label>Como?</label><textarea id="p-como" rows="2" placeholder="Como será executado..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Quem?</label><input type="text" id="p-quem" placeholder="Ex: Consultoras"></div>
+      <div class="form-group"><label>Quando?</label><input type="text" id="p-quando" placeholder="Ex: Semanal"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-primary" style="flex:2;padding:12px;border-radius:8px;font-weight:700" onclick="salvarPlano()">Salvar</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<!-- ── SCRIPTS ── -->
 <script type="module">
 import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, query, where, orderBy }
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, where }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -534,553 +548,742 @@ const db  = getFirestore(app);
 
 // ── CONSTANTES ────────────────────────────────────────────────
 const CONSULTORAS = [
-  { key:'deborah',  nome:'Déborah',  ini:'DB' },
-  { key:'livia',    nome:'Lívia',    ini:'LV' },
-  { key:'paloma',   nome:'Paloma',   ini:'PM' },
-  { key:'izabela',  nome:'Izabela',  ini:'IZ' },
-  { key:'marilia',  nome:'Marília',  ini:'ML' },
-  { key:'alan',     nome:'Alan',     ini:'AL' },
+  { key:'livia',   nome:'Lívia',   ini:'LV' },
+  { key:'paloma',  nome:'Paloma',  ini:'PM' },
+  { key:'alan',    nome:'Alan',    ini:'AL' },
+  { key:'eduarda', nome:'Eduarda', ini:'ED' },
 ];
 
-const METAS_IND_PADRAO = {
-  vendas:        { label:'Vendas',              tipo:'maior', bronze:1,  prata:2,  ouro:3,  unit:''  },
-  postagens:     { label:'Postagens',           tipo:'maior', bronze:8,  prata:10, ouro:12, unit:''  },
-  conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1,  prata:2,  ouro:3,  unit:''  },
-  satisfacao:    { label:'Satisfação',          tipo:'maior', bronze:8,  prata:9,  ouro:10, unit:''  },
+const METAS_IND_PAD = {
+  vendas:        { label:'Vendas',              tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
+  postagens:     { label:'Postagens',           tipo:'maior', bronze:8, prata:10,ouro:12, unit:'' },
+  conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
 };
-const METAS_EQ_PADRAO = {
-  controle_horas:{ label:'Controle de Horas', tipo:'maior', bronze:90, prata:95, ouro:100, unit:'%' },
-  vendas_eq:     { label:'Vendas Equipe',      tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
-  postagens_eq:  { label:'Postagens Equipe',   tipo:'maior', bronze:24, prata:30, ouro:36,  unit:''  },
-  conhec_eq:     { label:'Conh. Equipe',       tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+const METAS_EQ_PAD = {
+  controle_horas: { label:'Controle de Horas', tipo:'maior', bronze:90, prata:95, ouro:100, unit:'%' },
+  satisfacao:     { label:'Satisfação',        tipo:'maior', bronze:8,  prata:9,  ouro:10,  unit:''  },
+  meta_clientes:  { label:'Meta Clientes',     tipo:'maior', bronze:55, prata:65, ouro:75,  unit:'%' },
+  vendas_eq:      { label:'Vendas Equipe',     tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+  postagens_eq:   { label:'Postagens Equipe',  tipo:'maior', bronze:24, prata:30, ouro:36,  unit:''  },
+  conhec_eq:      { label:'Conh. Equipe',      tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+  // Provisórios — ajustar em Config → Metas Equipe
+  clientes_novos:       { label:'Clientes Novos',       tipo:'maior', bronze:1, prata:2, ouro:3, unit:'' },
+  clientes_finalizados: { label:'Clientes Finalizados', tipo:'menor', bronze:2, prata:1, ouro:0, unit:'' },
+  clientes_excederam:   { label:'Horas Excedentes',     tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
+  clientes_pendentes:   { label:'Horas Pendentes',      tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
+  clientes_iniciaram:   { label:'Clientes Iniciaram',   tipo:'maior', bronze:2, prata:4, ouro:6, unit:'' },
+  clientes_negociacao:  { label:'Em Negociação',        tipo:'maior', bronze:1, prata:3, ouro:5, unit:'' },
 };
+const MESES_NOME = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_ABREV = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-let METAS_IND = {...METAS_IND_PADRAO};
-let METAS_EQ  = {...METAS_EQ_PADRAO};
+let METAS_IND = {...METAS_IND_PAD};
+let METAS_EQ  = {...METAS_EQ_PAD};
 let setorAtual = 'consultoria';
 let pendingPayload = null;
+let satNotas = [];
+let satIdCounter = 0;
+let todosPlanos = [];
+
+// ── REGISTRO ÚNICO DE INDICADORES ──────────────────────────────
+// label é o nome canônico usado tanto no bloco do Painel quanto no campo `indicador` dos planos.
+// Chaves em minúsculo — a comparação com dados antigos do Firestore é sempre case-insensitive (ver canonIndicador).
+const ALIAS_INDICADOR = {
+  'vendas consultoria':    'Vendas Equipe',
+  'metas alcançadas':      'Meta Clientes',
+  'postagens':             'Postagens Equipe',
+  'novos conhecimentos':   'Conh. Equipe',
+  'satisfação do cliente': 'Satisfação',
+};
+const INDICADORES = [
+  { key:'controle_horas',       label:'Controle de Horas',    getValor:d=>d.controle_horas_pct, getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%`,
+    getSub:d=>(d.horas_previstas||d.horas_executadas)?`Previstas: ${d.horas_previstas||'—'} · Executadas: ${d.horas_executadas||'—'}`:null },
+  { key:'satisfacao',           label:'Satisfação',           getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
+  { key:'meta_clientes',        label:'Meta Clientes',        getValor:d=>d.meta_clientes_pct ?? (d.meta_clientes_qtd&&d.total_clientes?Math.round(d.meta_clientes_qtd/d.total_clientes*100):null), getNomes:d=>d.meta_clientes_nomes, fmt:v=>`${Number(v).toFixed(0)}%`,
+    getSub:d=>d.meta_clientes_qtd&&d.total_clientes?`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`:null },
+  { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
+  { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
+  { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
+  { key:'clientes_iniciaram',   label:'Clientes Iniciaram',   getValor:d=>d.clientes_iniciaram, getNomes:null },
+  { key:'clientes_novos',       label:'Clientes Novos',       getValor:d=>d.clientes_novos, getNomes:d=>d.clientes_novos_nomes },
+  { key:'clientes_finalizados', label:'Clientes Finalizados', getValor:d=>d.clientes_finalizados, getNomes:d=>d.clientes_finalizados_nomes },
+  { key:'clientes_excederam',   label:'Horas Excedentes',     getValor:d=>d.clientes_excederam, getNomes:d=>d.clientes_excederam_nomes },
+  { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
+  { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
+];
+function canonIndicador(raw) {
+  if(!raw) return null;
+  const low=raw.trim().toLowerCase();
+  if(ALIAS_INDICADOR[low]) return ALIAS_INDICADOR[low];
+  const found=INDICADORES.find(i=>i.label.toLowerCase()===low);
+  return found?found.label:raw;
+}
+function planosDoIndicador(label, mes, ano) {
+  return todosPlanos.filter(p=>p.mes===mes && p.ano===ano && canonIndicador(p.indicador)===label);
+}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function avaliar(val, meta) {
-  if (val === null || val === undefined || val === '') return 'sem-dado';
-  const v = Number(val);
-  if (isNaN(v)) return 'sem-dado';
-  if (meta.tipo === 'maior') {
-    if (meta.ouro   !== null && v >= meta.ouro)   return 'Ouro';
-    if (meta.prata  !== null && v >= meta.prata)  return 'Prata';
-    if (meta.bronze !== null && v >= meta.bronze) return 'Bronze';
-    return 'Fora';
+  if (val===null||val===undefined||val==='') return 'sem-dado';
+  const v=Number(val); if(isNaN(v)) return 'sem-dado';
+  if(meta.tipo==='maior') {
+    if(v>=meta.ouro) return 'Ouro'; if(v>=meta.prata) return 'Prata'; if(v>=meta.bronze) return 'Bronze'; return 'Fora';
   }
-  if (meta.ouro   !== null && v <= meta.ouro)   return 'Ouro';
-  if (meta.prata  !== null && v <= meta.prata)  return 'Prata';
-  if (meta.bronze !== null && v <= meta.bronze) return 'Bronze';
-  return 'Fora';
+  if(v<=meta.ouro) return 'Ouro'; if(v<=meta.prata) return 'Prata'; if(v<=meta.bronze) return 'Bronze'; return 'Fora';
 }
-
-function badge(nivel) {
-  const icons = { Ouro:'🥇', Prata:'🥈', Bronze:'🥉', Fora:'⚠️', 'sem-dado':'—' };
-  const labels = { Ouro:'Ouro', Prata:'Prata', Bronze:'Bronze', Fora:'Fora', 'sem-dado':'—' };
-  return `<span class="badge ${nivel}">${icons[nivel]||''} ${labels[nivel]||nivel}</span>`;
+function badge(n) {
+  const ic={Ouro:'🥇 ',Prata:'🥈 ',Bronze:'🥉 ',Fora:'⚠️ ','sem-dado':''};
+  const lb={Ouro:'Ouro',Prata:'Prata',Bronze:'Bronze',Fora:'Fora','sem-dado':'—'};
+  return `<span class="badge ${n}">${ic[n]||''}${lb[n]||n}</span>`;
 }
-
-function fmt(val, unit) {
-  if (val === null || val === undefined || val === '') return '—';
-  const n = Number(val);
-  if (isNaN(n)) return '—';
-  return unit === '%' ? `${n.toFixed(1)}%` : `${n.toLocaleString('pt-BR', {maximumFractionDigits:1})}${unit?' '+unit:''}`;
-}
-
 function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
-
 function show(id) {
-  ['screen-login','screen-app'].forEach(s => {
-    document.getElementById(s).style.display = 'none';
-  });
-  document.getElementById(id).style.display = 'flex';
+  ['screen-login','screen-app'].forEach(s=>document.getElementById(s).style.display='none');
+  document.getElementById(id).style.display='flex';
 }
-
-window.fecharModal = () => {
-  document.querySelectorAll('.modal-bg').forEach(m => m.classList.remove('open'));
-};
+window.fecharModal=()=>document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('open'));
 
 // ── AUTH ──────────────────────────────────────────────────────
-window.selSetor = (setor, btn) => {
-  if (btn.classList.contains('disabled')) return;
-  document.querySelectorAll('.setor-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  setorAtual = setor;
+window.selSetor=(setor,btn)=>{
+  if(btn.classList.contains('disabled')) return;
+  document.querySelectorAll('.setor-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); setorAtual=setor;
 };
-
-window.login = async () => {
-  const senha = document.getElementById('inp-senha').value;
-  const err   = document.getElementById('login-err');
-  if (!senha) { err.textContent = 'Digite a senha'; return; }
+window.login=async()=>{
+  const senha=document.getElementById('inp-senha').value;
+  const err=document.getElementById('login-err');
+  if(!senha){err.textContent='Digite a senha';return;}
   try {
-    const snap = await getDoc(doc(db,'config','senhas'));
-    const senhas = snap.exists() ? snap.data() : {};
-    const esperada = senhas[setorAtual] || 'falcioni2026';
-    if (senha === esperada) {
-      err.textContent = '';
-      await entrarApp();
-    } else {
-      err.textContent = 'Senha incorreta';
-    }
-  } catch(e) {
-    err.textContent = 'Erro de conexão';
-  }
+    const snap=await getDoc(doc(db,'config','senhas'));
+    const senhas=snap.exists()?snap.data():{};
+    if(senha===(senhas[setorAtual]||'falcioni2026')){err.textContent='';await entrarApp();}
+    else err.textContent='Senha incorreta';
+  } catch(e){err.textContent='Erro de conexão';}
 };
-
-window.logout = () => {
-  document.getElementById('inp-senha').value = '';
-  document.getElementById('login-err').textContent = '';
-  show('screen-login');
-};
+window.logout=()=>{document.getElementById('inp-senha').value='';document.getElementById('login-err').textContent='';show('screen-login');};
 
 async function entrarApp() {
   show('screen-app');
-  document.getElementById('app-setor-label').textContent =
-    setorAtual === 'consultoria' ? 'Consultoria' :
-    setorAtual === 'comercial'   ? 'Comercial' : 'Marketing';
-  const hoje = new Date();
-  document.getElementById('sel-mes').value = hoje.getMonth() + 1;
-  document.getElementById('sel-ano').value = hoje.getFullYear();
-  document.getElementById('l-mes').value   = hoje.getMonth() + 1;
-  document.getElementById('l-ano').value   = hoje.getFullYear();
+  const hoje=new Date();
+  ['sel-mes','l-mes','p-mes','h-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getMonth()+1;});
+  ['sel-ano','l-ano','h-ano'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getFullYear();});
   await carregarMetas();
   buildConsultSections();
+  buildDestaquesForm();
   renderConfigMetas();
-  atualizarApiUrl();
-  await carregarDados();
+  document.getElementById('api-url').textContent='https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/lancamentos_consultoria?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU';
+  await Promise.all([carregarDados(), carregarTodosPlanos()]);
 }
 
 // ── METAS ─────────────────────────────────────────────────────
 async function carregarMetas() {
   try {
-    const si = await getDoc(doc(db,'config','metas_ind'));
-    if (si.exists()) METAS_IND = {...METAS_IND_PADRAO, ...si.data()};
-    const se = await getDoc(doc(db,'config','metas_eq'));
-    if (se.exists()) METAS_EQ  = {...METAS_EQ_PADRAO,  ...se.data()};
-  } catch(e) {}
+    const si=await getDoc(doc(db,'config','metas_ind')); if(si.exists()) METAS_IND={...METAS_IND_PAD,...si.data()};
+    const se=await getDoc(doc(db,'config','metas_eq'));  if(se.exists()) METAS_EQ={...METAS_EQ_PAD,...se.data()};
+  }catch(e){}
 }
-
-window.salvarMetas = async () => {
-  const keys = Object.keys(METAS_IND_PADRAO);
-  keys.forEach(k => {
-    const b = document.getElementById(`mi-${k}-b`);
-    const p = document.getElementById(`mi-${k}-p`);
-    const o = document.getElementById(`mi-${k}-o`);
-    if (b) METAS_IND[k] = {...METAS_IND[k], bronze:Number(b.value), prata:Number(p.value), ouro:Number(o.value)};
+window.salvarMetas=async()=>{
+  Object.keys(METAS_IND_PAD).forEach(k=>{
+    const b=document.getElementById(`mi-${k}-b`),p=document.getElementById(`mi-${k}-p`),o=document.getElementById(`mi-${k}-o`);
+    if(b) METAS_IND[k]={...METAS_IND[k],bronze:Number(b.value),prata:Number(p.value),ouro:Number(o.value)};
   });
-  await setDoc(doc(db,'config','metas_ind'), METAS_IND);
+  await setDoc(doc(db,'config','metas_ind'),METAS_IND);
   toast('✅ Metas salvas!');
 };
-
+window.salvarMetasEq=async()=>{
+  Object.keys(METAS_EQ_PAD).forEach(k=>{
+    const b=document.getElementById(`me-${k}-b`),p=document.getElementById(`me-${k}-p`),o=document.getElementById(`me-${k}-o`);
+    if(b) METAS_EQ[k]={...METAS_EQ[k],bronze:Number(b.value),prata:Number(p.value),ouro:Number(o.value)};
+  });
+  await setDoc(doc(db,'config','metas_eq'),METAS_EQ);
+  refreshPlanosView();
+  toast('✅ Metas de equipe salvas!');
+};
 function renderConfigMetas() {
-  const el = document.getElementById('config-metas-ind');
-  el.innerHTML = Object.keys(METAS_IND_PADRAO).map(k => {
-    const m = METAS_IND[k];
-    return `<div style="margin-bottom:12px">
-      <div style="font-size:.78rem;color:var(--gold);margin-bottom:6px">${m.label}</div>
+  document.getElementById('config-metas-ind').innerHTML=Object.keys(METAS_IND_PAD).map(k=>{
+    const m=METAS_IND[k];
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:.82rem;color:var(--primary);font-weight:700;margin-bottom:6px">${m.label}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div><div style="font-size:.68rem;color:var(--muted)">Bronze</div>
-          <input id="mi-${k}-b" type="number" value="${m.bronze}" step="0.1"
-            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
-        <div><div style="font-size:.68rem;color:var(--muted)">Prata</div>
-          <input id="mi-${k}-p" type="number" value="${m.prata}" step="0.1"
-            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
-        <div><div style="font-size:.68rem;color:var(--muted)">Ouro</div>
-          <input id="mi-${k}-o" type="number" value="${m.ouro}" step="0.1"
-            style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.8rem;outline:none"></div>
-      </div>
-    </div>`;
+        ${['b','p','o'].map((l,i)=>`<div><div style="font-size:.72rem;color:var(--muted);margin-bottom:3px">${['Bronze','Prata','Ouro'][i]}</div>
+          <input id="mi-${k}-${l}" type="number" value="${[m.bronze,m.prata,m.ouro][i]}" step="0.1"
+            style="width:100%;padding:6px 8px;border-radius:6px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none"></div>`).join('')}
+      </div></div>`;
   }).join('');
-
-  document.getElementById('config-metas-eq').innerHTML = Object.keys(METAS_EQ_PADRAO).map(k => {
-    const m = METAS_EQ[k];
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.8rem">
-      <span style="color:var(--muted)">${m.label}</span>
-      <span>B≥${m.bronze}${m.unit} · P≥${m.prata}${m.unit} · O≥${m.ouro}${m.unit}</span>
-    </div>`;
+  document.getElementById('config-metas-eq').innerHTML=Object.keys(METAS_EQ_PAD).map(k=>{
+    const m=METAS_EQ[k];
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:.82rem;color:var(--primary);font-weight:700;margin-bottom:6px">${m.label}${m.unit?' ('+m.unit+')':''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        ${['b','p','o'].map((l,i)=>`<div><div style="font-size:.72rem;color:var(--muted);margin-bottom:3px">${['Bronze','Prata','Ouro'][i]}</div>
+          <input id="me-${k}-${l}" type="number" value="${[m.bronze,m.prata,m.ouro][i]}" step="0.1"
+            style="width:100%;padding:6px 8px;border-radius:6px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none"></div>`).join('')}
+      </div></div>`;
   }).join('');
 }
 
-// ── BUILD FORM CONSULTORAS ────────────────────────────────────
+// ── FORM ──────────────────────────────────────────────────────
 function buildConsultSections() {
-  const el = document.getElementById('consult-sections');
-  el.innerHTML = CONSULTORAS.map(c => `
+  document.getElementById('consult-sections').innerHTML=CONSULTORAS.map(c=>`
     <div class="lanc-section" id="ls-${c.key}">
       <div class="lanc-section-header" onclick="toggleSection(this)">
         <span class="lsh-title">
-          <span style="width:28px;height:28px;border-radius:50%;background:var(--card2);border:1.5px solid var(--gold);
-            display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--gold)">${c.ini}</span>
+          <span style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--gold)">${c.ini}</span>
           ${c.nome}
-        </span>
-        <span class="lsh-chev">▼</span>
+        </span><span class="lsh-chev">▼</span>
       </div>
       <div class="lanc-section-body">
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Vendas (qtd.)</label><input type="number" id="l-${c.key}-vendas" placeholder="0" min="0"></div>
+          <div class="form-group"><label>Produto/serviço</label><input type="text" id="l-${c.key}-vendas-desc" placeholder="Descreva"></div>
+        </div>
+        <div class="form-group"><label>Postagens (qtd.)</label><input type="number" id="l-${c.key}-postagens" placeholder="0" min="0"></div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Vendas (qtd.)</label>
-            <input type="number" id="l-${c.key}-vendas" placeholder="0" min="0">
-          </div>
-          <div class="form-group">
-            <label>Produto / serviço</label>
-            <input type="text" id="l-${c.key}-vendas-desc" placeholder="Descreva">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Postagens (qtd.)</label>
-          <input type="number" id="l-${c.key}-postagens" placeholder="0" min="0">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Novos Conhecimentos (qtd.)</label>
-            <input type="number" id="l-${c.key}-conhecimentos" placeholder="0" min="0">
-          </div>
-          <div class="form-group">
-            <label>Descrição</label>
-            <input type="text" id="l-${c.key}-conhec-desc" placeholder="Ex: Power BI">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Satisfação (0–10)</label>
-          <input type="number" id="l-${c.key}-satisfacao" placeholder="Ex: 10" min="0" max="10" step="0.1">
+          <div class="form-group"><label>Novos Conhecimentos</label><input type="number" id="l-${c.key}-conhecimentos" placeholder="0" min="0"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-${c.key}-conhec-desc" placeholder="Ex: Power BI"></div>
         </div>
       </div>
     </div>`).join('');
 }
+function buildDestaquesForm() {
+  document.getElementById('destaques-form').innerHTML=CONSULTORAS.map(c=>`
+    <div class="form-group">
+      <label>${c.nome}</label>
+      <input type="text" id="dt-${c.key}" placeholder="Destaque do mês (opcional)">
+    </div>`).join('');
+}
+window.toggleSection=h=>h.closest('.lanc-section').classList.toggle('open');
 
-window.toggleSection = (header) => {
-  header.closest('.lanc-section').classList.toggle('open');
+// ── SATISFAÇÃO ────────────────────────────────────────────────
+window.addNotaSat=()=>{
+  const id=satIdCounter++;
+  satNotas.push({id,nota:null,cliente:''});
+  const row=document.createElement('div'); row.className='nota-sat-row'; row.id=`sat-row-${id}`;
+  row.innerHTML=`<input class="nota-num" type="number" min="0" max="10" step="0.1" placeholder="0-10" oninput="atualizarSat(${id},'nota',this.value)">
+    <input class="nota-cli" type="text" placeholder="Nome do cliente (opcional)" oninput="atualizarSat(${id},'cliente',this.value)">
+    <button class="btn-remove-nota" onclick="removerSat(${id})">✕</button>`;
+  document.getElementById('sat-lista').appendChild(row);
+  calcSatMedia();
 };
-
-// ── CARREGAR DADOS ────────────────────────────────────────────
-window.carregarDados = async () => {
-  const mes = parseInt(document.getElementById('sel-mes').value);
-  const ano = parseInt(document.getElementById('sel-ano').value);
-
-  document.getElementById('painel-loading').style.display = 'block';
-  document.getElementById('painel-body').style.display    = 'none';
-  document.getElementById('painel-empty').style.display   = 'none';
-
-  const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
-  const snap = await getDocs(q);
-  const docs = snap.docs.map(d => d.data());
-
-  document.getElementById('painel-loading').style.display = 'none';
-
-  if (!docs.length) {
-    document.getElementById('painel-empty').style.display = 'block';
-    return;
-  }
-
-  const d = docs[0]; // Um lançamento por mês
-  document.getElementById('painel-body').style.display = 'block';
-  renderKPIs(d);
-  renderEquipeRow(d);
-  renderConsultGrid(d);
+window.atualizarSat=(id,campo,val)=>{
+  const it=satNotas.find(s=>s.id===id); if(!it) return;
+  if(campo==='nota') it.nota=val!==''?Number(val):null; else it.cliente=val;
+  calcSatMedia();
 };
-
-function renderKPIs(d) {
-  const horas = d.controle_horas_pct;
-  const nHoras = avaliar(horas, METAS_EQ.controle_horas);
-  document.getElementById('kpi-horas').textContent       = horas !== undefined ? `${Number(horas).toFixed(1)}%` : '—';
-  document.getElementById('kpi-horas-badge').innerHTML   = badge(nHoras);
-  document.getElementById('kpi-clientes').textContent    = d.clientes_novos ?? '—';
-
-  const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
-  const nvEq = avaliar(totalVendas, METAS_EQ.vendas_eq);
-  document.getElementById('kpi-vendas-eq').textContent      = totalVendas;
-  document.getElementById('kpi-vendas-eq-badge').innerHTML  = badge(nvEq);
-
-  const satisfs = CONSULTORAS.map(c => Number(d[c.key]?.satisfacao)).filter(v => !isNaN(v) && v > 0);
-  const mediaSat = satisfs.length ? (satisfs.reduce((a,b)=>a+b,0)/satisfs.length) : null;
-  const nSat = avaliar(mediaSat, METAS_IND.satisfacao);
-  document.getElementById('kpi-satisfacao').textContent      = mediaSat !== null ? mediaSat.toFixed(1) : '—';
-  document.getElementById('kpi-satisfacao-badge').innerHTML  = badge(nSat);
+window.removerSat=(id)=>{
+  satNotas=satNotas.filter(s=>s.id!==id);
+  document.getElementById(`sat-row-${id}`)?.remove(); calcSatMedia();
+};
+function calcSatMedia() {
+  const vals=satNotas.map(s=>s.nota).filter(v=>v!==null&&!isNaN(v));
+  const el=document.getElementById('sat-media-live');
+  if(!vals.length){el.innerHTML='Adicione notas para ver a média';return null;}
+  const m=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const n=avaliar(m,METAS_EQ.satisfacao);
+  el.innerHTML=`Média: <strong>${m.toFixed(2)}</strong> &nbsp;${badge(n)}&nbsp; <span style="color:var(--muted);font-size:.76rem">(${vals.length} avaliação${vals.length>1?'ões':''})</span>`;
+  return m;
 }
 
-function renderEquipeRow(d) {
-  const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
-  const totalPost   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.postagens)||0), 0);
-  const totalConh   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.conhecimentos)||0), 0);
+// ── CARREGAR DADOS ────────────────────────────────────────────
+window.carregarDados=async()=>{
+  const mes=parseInt(document.getElementById('sel-mes').value);
+  const ano=parseInt(document.getElementById('sel-ano').value);
+  document.getElementById('painel-loading').style.display='block';
+  document.getElementById('painel-body').style.display='none';
+  document.getElementById('painel-empty').style.display='none';
 
-  const items = [
-    { label:'Vendas Equipe',    val:totalVendas, meta:METAS_EQ.vendas_eq },
-    { label:'Postagens Equipe', val:totalPost,   meta:METAS_EQ.postagens_eq },
-    { label:'Conh. Equipe',     val:totalConh,   meta:METAS_EQ.conhec_eq },
-  ];
+  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
+  const docs=snap.docs.map(d=>d.data());
+  document.getElementById('painel-loading').style.display='none';
 
-  document.getElementById('equipe-row').innerHTML = items.map(item => {
-    const n = avaliar(item.val, item.meta);
-    return `<div class="equipe-item">
-      <div class="eq-label">${item.label}</div>
-      <div class="eq-val">${item.val}</div>
-      <div class="eq-badge">${badge(n)}</div>
+  if(!docs.length){ultimoLancamento=null;document.getElementById('painel-empty').style.display='block';return;}
+
+  const d=docs[0];
+  document.getElementById('painel-body').style.display='block';
+  renderIndicadoresList(d); renderConsultGrid(d); renderDestaques(d);
+};
+let ultimoLancamento=null;
+
+function getSatMedia(d) {
+  if(d.satisfacao_media!==undefined&&d.satisfacao_media!==null) return Number(d.satisfacao_media);
+  const vals=CONSULTORAS.map(c=>Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+
+function renderIndicadoresList(d) {
+  ultimoLancamento=d;
+  const mes=parseInt(document.getElementById('sel-mes').value);
+  const ano=parseInt(document.getElementById('sel-ano').value);
+
+  document.getElementById('indicadores-lista').innerHTML=INDICADORES.map(ind=>{
+    const val=ind.getValor(d);
+    const meta=METAS_EQ[ind.key];
+    const nota=avaliar(val,meta);
+    const valTxt=(val===null||val===undefined||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
+    const nomes=ind.getNomes?ind.getNomes(d):null;
+    const sub=ind.getSub?ind.getSub(d):null;
+    const planos=planosDoIndicador(ind.label,mes,ano);
+    return `<div class="indicador-block">
+      <div class="indicador-head">
+        <div>
+          <div class="indicador-nome">${ind.label}</div>
+          ${sub?`<div class="indicador-nomes">${sub}</div>`:''}
+          ${nomes?`<div class="indicador-nomes">${nomes.substring(0,120)}${nomes.length>120?'…':''}</div>`:''}
+        </div>
+        <div class="indicador-valores">
+          <div class="indicador-val">${valTxt}</div>
+          ${badge(nota)}
+        </div>
+      </div>
+      <div class="indicador-plano-wrap">
+        <div class="indicador-plano-label">Plano de Ação</div>
+        ${planos.length?planos.map(renderPlanoCardCompacto).join(''):`<button class="btn-add-plano" onclick="abrirModalPlano('${ind.label.replace(/'/g,"\\'")}')">+ Adicionar Plano de Ação</button>`}
+      </div>
     </div>`;
   }).join('');
+
+  renderOutrosPlanos(mes,ano);
+}
+
+function renderPlanoCardCompacto(p) {
+  return `<div class="indicador-plano-card" style="margin-bottom:6px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px">
+      <div style="flex:1">
+        ${p.o_que?`<div class="plano-row" style="margin-bottom:3px"><span class="pr-label">O que?</span><span class="pr-val">${p.o_que}</span></div>`:''}
+        ${p.como?`<div class="plano-row"><span class="pr-label">Como?</span><span class="pr-val">${p.como}</span></div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button onclick="editarPlano('${p.id}')" style="background:none;border:1px solid var(--border);color:var(--primary);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:.72rem">✏️</button>
+        <button class="btn-del-plano" onclick="deletarPlano('${p.id}')">🗑️</button>
+      </div>
+    </div>
+    <div class="plano-footer" style="margin-top:0;border-top:none;padding-top:0">
+      ${p.quem?`<span class="plano-who">👤 ${p.quem}</span>`:''}
+      ${p.quando?`<span class="plano-when">📅 ${p.quando}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function renderOutrosPlanos(mes,ano) {
+  const canonLabels=INDICADORES.map(i=>i.label);
+  const orfaos=todosPlanos.filter(p=>p.mes===mes&&p.ano===ano&&!canonLabels.includes(canonIndicador(p.indicador)));
+  const sec=document.getElementById('outros-planos-section');
+  if(!orfaos.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('outros-planos-lista').innerHTML=orfaos.map(p=>`
+    <div class="plano-card">
+      <div class="plano-card-header">
+        <span class="plano-indicador">${p.indicador||'—'}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="editarPlano('${p.id}')" style="background:none;border:1px solid var(--border);color:var(--primary);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem;font-weight:600">✏️ Editar</button>
+          <button class="btn-del-plano" onclick="deletarPlano('${p.id}')">🗑️</button>
+        </div>
+      </div>
+      ${p.o_que?`<div class="plano-row"><span class="pr-label">O que?</span><span class="pr-val">${p.o_que}</span></div>`:''}
+      ${p.como?`<div class="plano-row"><span class="pr-label">Como?</span><span class="pr-val">${p.como}</span></div>`:''}
+      <div class="plano-footer">
+        ${p.quem?`<span class="plano-who">👤 ${p.quem}</span>`:''}
+        ${p.quando?`<span class="plano-when">📅 ${p.quando}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function refreshPlanosView() {
+  if(ultimoLancamento) renderIndicadoresList(ultimoLancamento);
 }
 
 function renderConsultGrid(d) {
-  document.getElementById('consult-grid').innerHTML = CONSULTORAS.map(c => {
-    const cd = d[c.key] || {};
-    const inds = [
-      { label:'Vendas',        val:cd.vendas,        meta:METAS_IND.vendas },
-      { label:'Postagens',     val:cd.postagens,     meta:METAS_IND.postagens },
-      { label:'Conhecimentos', val:cd.conhecimentos, meta:METAS_IND.conhecimentos },
-      { label:'Satisfação',    val:cd.satisfacao,    meta:METAS_IND.satisfacao },
-    ];
+  document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>{
+    const cd=d[c.key]||{};
     return `<div class="consult-card">
-      <div class="c-header">
-        <div class="c-avatar">${c.ini}</div>
-        <div class="c-nome">${c.nome}</div>
-      </div>
-      ${inds.map(i => {
-        const n = avaliar(i.val, i.meta);
-        return `<div class="c-ind-row">
-          <div class="c-ind-label">${i.label}</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span class="c-ind-val">${i.val ?? '—'}</span>
-            ${badge(n)}
-          </div>
-        </div>`;
-      }).join('')}
+      <div class="c-header"><div class="c-avatar">${c.ini}</div><div class="c-nome">${c.nome}</div></div>
+      ${[{label:'Vendas',val:cd.vendas,meta:METAS_IND.vendas},{label:'Postagens',val:cd.postagens,meta:METAS_IND.postagens},{label:'Conhecimentos',val:cd.conhecimentos,meta:METAS_IND.conhecimentos}].map(i=>`
+      <div class="c-ind-row">
+        <div class="c-ind-label">${i.label}</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700">${i.val??'—'}</span>${badge(avaliar(i.val,i.meta))}</div>
+      </div>`).join('')}
     </div>`;
   }).join('');
 }
 
+function renderDestaques(d) {
+  const destaques=d.destaques||[];
+  const temConsultoria=d.destaque_consultoria&&d.destaque_consultoria.trim();
+  const sec=document.getElementById('destaques-section');
+  if(!destaques.length&&!temConsultoria){sec.style.display='none';return;}
+  sec.style.display='block';
+
+  let html='';
+  if(temConsultoria) html+=`<div class="destaque-item">
+    <div class="destaque-ini" style="background:var(--gold);color:#000">FC</div>
+    <div><div class="destaque-text">${d.destaque_consultoria}</div><div class="destaque-nome">Consultoria</div></div>
+  </div>`;
+
+  html+=destaques.map(dt=>{
+    const c=CONSULTORAS.find(x=>x.key===dt.consultora)||{ini:'★',nome:dt.consultora||'Consultora'};
+    return `<div class="destaque-item">
+      <div class="destaque-ini">${c.ini}</div>
+      <div><div class="destaque-text">${dt.texto}</div><div class="destaque-nome">${c.nome}</div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('destaques-lista').innerHTML=html;
+}
+
 // ── SALVAR LANÇAMENTO ─────────────────────────────────────────
-window.salvarLancamento = () => {
-  const mes        = parseInt(document.getElementById('l-mes').value);
-  const ano        = parseInt(document.getElementById('l-ano').value);
-  const lancadoPor = document.getElementById('l-lancadopor').value;
-  const horas      = document.getElementById('l-horas').value;
-  const clientes   = document.getElementById('l-clientes').value;
+window.salvarLancamento=()=>{
+  const mes=parseInt(document.getElementById('l-mes').value);
+  const ano=parseInt(document.getElementById('l-ano').value);
+  const vals=satNotas.map(s=>s.nota).filter(v=>v!==null&&!isNaN(v));
+  const satMedia=vals.length?Number((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(4)):null;
+  const metaQtd=numOuNull('l-meta-qtd');
+  const totalCli=numOuNull('l-total-cli');
+  const metaPct=metaQtd&&totalCli?Math.round(metaQtd/totalCli*100):null;
 
-  const payload = {
-    mes, ano, lancadoPor,
-    data: new Date().toISOString().slice(0,10),
-    controle_horas_pct: horas !== '' ? Number(horas) : null,
-    clientes_novos:     clientes !== '' ? Number(clientes) : null,
-    criadoEm: new Date().toISOString(),
+  const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim()})).filter(d=>d.texto);
+  const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
+
+  const strOuNull=id=>{const el=document.getElementById(id);return el&&el.value.trim()?el.value.trim():null;};
+
+  const payload={
+    mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
+    controle_horas_pct:numOuNull('l-horas'),
+    horas_previstas:   strOuNull('l-horas-prev'),
+    horas_executadas:  strOuNull('l-horas-exec'),
+    clientes_iniciaram:numOuNull('l-iniciaram'),
+    clientes_novos:    numOuNull('l-clientes'),
+    clientes_novos_nomes:     strOuNull('l-novos-nomes'),
+    clientes_finalizados:     numOuNull('l-finalizados'),
+    clientes_finalizados_nomes:strOuNull('l-finalizados-nomes'),
+    clientes_excederam:       numOuNull('l-excederam'),
+    clientes_excederam_nomes: strOuNull('l-excederam-nomes'),
+    clientes_pendentes:       numOuNull('l-pendentes'),
+    clientes_pendentes_nomes: strOuNull('l-pendentes-nomes'),
+    clientes_negociacao:      numOuNull('l-negociacao'),
+    clientes_negociacao_nomes:strOuNull('l-negociacao-nomes'),
+    meta_clientes_qtd: metaQtd,
+    total_clientes:    totalCli,
+    meta_clientes_pct: metaPct,
+    meta_clientes_nomes: strOuNull('l-meta-nomes'),
+    satisfacao_notas:  vals,
+    satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
+    satisfacao_media:  satMedia,
+    destaques,
+    destaque_consultoria: destaque_consultoria||null,
   };
-
-  CONSULTORAS.forEach(c => {
-    payload[c.key] = {
-      vendas:           numOuNull(`l-${c.key}-vendas`),
-      vendas_desc:      document.getElementById(`l-${c.key}-vendas-desc`)?.value || '',
-      postagens:        numOuNull(`l-${c.key}-postagens`),
-      conhecimentos:    numOuNull(`l-${c.key}-conhecimentos`),
-      conhec_desc:      document.getElementById(`l-${c.key}-conhec-desc`)?.value || '',
-      satisfacao:       numOuNull(`l-${c.key}-satisfacao`),
+  CONSULTORAS.forEach(c=>{
+    payload[c.key]={
+      vendas:numOuNull(`l-${c.key}-vendas`),vendas_desc:document.getElementById(`l-${c.key}-vendas-desc`)?.value||'',
+      postagens:numOuNull(`l-${c.key}-postagens`),
+      conhecimentos:numOuNull(`l-${c.key}-conhecimentos`),conhec_desc:document.getElementById(`l-${c.key}-conhec-desc`)?.value||'',
     };
   });
 
-  const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('modal-confirm-txt').textContent =
-    `Salvar lançamento de ${nomesMes[mes-1]}/${ano}${lancadoPor ? ` (por ${lancadoPor})` : ''}?\nEste lançamento substituirá qualquer dado existente para este mês.`;
-  pendingPayload = payload;
+  document.getElementById('modal-confirm-txt').textContent=
+    `Salvar lançamento de ${MESES_NOME[mes]}/${ano}?\nSatisfação: ${satMedia!==null?satMedia.toFixed(2)+' ('+vals.length+' aval.)':'—'}\nDestaques: ${destaques.length}\nEste lançamento substituirá dados existentes para este mês.`;
+  pendingPayload=payload;
   document.getElementById('modal-confirm').classList.add('open');
 };
 
-window.confirmarSalvar = async () => {
-  if (!pendingPayload) return;
+window.confirmarSalvar=async()=>{
+  if(!pendingPayload) return;
   fecharModal();
   try {
-    const mes = pendingPayload.mes;
-    const ano = pendingPayload.ano;
-    // Deletar lançamento existente para o mês se houver
-    const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) {
-      await setDoc(doc(db,'lancamentos_consultoria',d.id), pendingPayload);
-      pendingPayload = null;
-      toast('✅ Lançamento salvo!');
-      // Sync seletores
-      document.getElementById('sel-mes').value = mes;
-      document.getElementById('sel-ano').value = ano;
-      showTab('painel', document.querySelector('.tab-btn'));
-      await carregarDados();
-      return;
-    }
-    // Novo documento
-    await addDoc(collection(db,'lancamentos_consultoria'), pendingPayload);
-    pendingPayload = null;
+    const {mes,ano}=pendingPayload;
+    const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
+    if(!snap.empty) await setDoc(doc(db,'lancamentos_consultoria',snap.docs[0].id),pendingPayload);
+    else await addDoc(collection(db,'lancamentos_consultoria'),pendingPayload);
+    pendingPayload=null;
     toast('✅ Lançamento salvo!');
-    document.getElementById('sel-mes').value = mes;
-    document.getElementById('sel-ano').value = ano;
-    showTab('painel', document.querySelector('.tab-btn'));
+    document.getElementById('sel-mes').value=mes;
+    document.getElementById('sel-ano').value=ano;
+    satNotas=[];satIdCounter=0;
+    document.getElementById('sat-lista').innerHTML='';
+    document.getElementById('sat-media-live').textContent='Adicione notas para ver a média';
+    showTab('painel',document.querySelector('.tab-btn'));
     await carregarDados();
-  } catch(e) {
-    toast('❌ Erro ao salvar: ' + e.message);
-  }
+  }catch(e){toast('❌ Erro: '+e.message);}
 };
 
-function numOuNull(id) {
-  const el = document.getElementById(id);
-  if (!el || el.value === '') return null;
-  return Number(el.value);
+function numOuNull(id) { const el=document.getElementById(id); if(!el||el.value==='') return null; return Number(el.value); }
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function carregarDashboard() {
+  const ano=parseInt(document.getElementById('sel-ano').value);
+  document.getElementById('dash-loading').style.display='block';
+  document.getElementById('dash-body').style.display='none';
+  document.getElementById('dash-empty').style.display='none';
+
+  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('ano','==',ano)));
+  const todos={};
+  snap.docs.forEach(d=>{const dt=d.data();todos[dt.mes]=dt;});
+  if(!Object.keys(todos).length){document.getElementById('dash-loading').style.display='none';document.getElementById('dash-empty').style.display='block';return;}
+
+  document.getElementById('dash-loading').style.display='none';
+  document.getElementById('dash-body').style.display='block';
+  renderDashboardAnual(todos);
+  renderSvgEvolucao(todos);
+  renderDashRanking(todos);
 }
 
+function renderDashboardAnual(todos) {
+  const meses=Object.values(todos);
+  const satVals=meses.map(d=>getSatMedia(d)).filter(v=>v!==null);
+  const horasVals=meses.map(d=>d.controle_horas_pct).filter(v=>v!==null);
+  const metaVals=meses.map(d=>d.meta_clientes_pct).filter(v=>v!==null);
+  const totalVendas=meses.reduce((s,d)=>s+CONSULTORAS.reduce((ss,c)=>ss+(Number(d[c.key]?.vendas)||0),0),0);
+
+  document.getElementById('dash-annual').innerHTML=`
+    <div class="dash-annual-card"><div class="dash-annual-label">Satisfação Média Anual</div><div class="dash-annual-val">${satVals.length?(satVals.reduce((a,b)=>a+b,0)/satVals.length).toFixed(2):'—'}</div><div class="dash-annual-sub">${satVals.length} meses</div></div>
+    <div class="dash-annual-card"><div class="dash-annual-label">Média Horas %</div><div class="dash-annual-val">${horasVals.length?(horasVals.reduce((a,b)=>a+b,0)/horasVals.length).toFixed(1)+'%':'—'}</div><div class="dash-annual-sub">${horasVals.length} meses</div></div>
+    <div class="dash-annual-card"><div class="dash-annual-label">Total Vendas</div><div class="dash-annual-val">${totalVendas}</div><div class="dash-annual-sub">no ano</div></div>`;
+}
+
+function renderSvgEvolucao(todos) {
+  const W=680,H=160,pl=44,pr=10,pt=20,pb=30;
+  const w=W-pl-pr, h=H-pt-pb;
+  const meses=[1,2,3,4,5,6,7,8,9,10,11,12];
+  const satD  =meses.map(m=>todos[m]?getSatMedia(todos[m]):null);
+  const horasD=meses.map(m=>todos[m]?.controle_horas_pct??null);
+  const metaD =meses.map(m=>todos[m]?.meta_clientes_pct??null);
+
+  function pts(data, max) {
+    return data.map((v,i)=>{
+      if(v===null) return null;
+      const x=pl+(i/(meses.length-1))*w;
+      const y=pt+(1-Math.min(v,max)/max)*h;
+      return [x,y];
+    }).filter(Boolean);
+  }
+  function polyline(data,max,color) {
+    const p=pts(data,max); if(p.length<2) return '';
+    return `<polyline points="${p.map(([x,y])=>`${x},${y}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>
+      ${p.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5" fill="${color}"/>`).join('')}`;
+  }
+  function gridLines() {
+    return [0,25,50,75,100].map(v=>{
+      const y=pt+(1-v/100)*h;
+      return `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="${pl-4}" y="${y+4}" text-anchor="end" font-size="9" fill="#94A3B8">${v}</text>`;
+    }).join('');
+  }
+  const labels=meses.map((m,i)=>{
+    const x=pl+(i/(meses.length-1))*w;
+    return `<text x="${x}" y="${H-4}" text-anchor="middle" font-size="9" fill="#94A3B8">${MESES_ABREV[m]}</text>`;
+  }).join('');
+
+  document.getElementById('svg-evolucao').innerHTML=`
+    ${gridLines()}
+    ${polyline(satD.map(v=>v!==null?v*10:null),100,'#C9A84C')}
+    ${polyline(horasD,150,'#1A2F4A')}
+    ${polyline(metaD,100,'#16A34A')}
+    ${labels}`;
+}
+
+function renderDashRanking(todos) {
+  const totais={};
+  CONSULTORAS.forEach(c=>{totais[c.key]={vendas:0,postagens:0,conhecimentos:0};});
+  Object.values(todos).forEach(d=>{
+    CONSULTORAS.forEach(c=>{
+      totais[c.key].vendas       +=(Number(d[c.key]?.vendas)||0);
+      totais[c.key].postagens    +=(Number(d[c.key]?.postagens)||0);
+      totais[c.key].conhecimentos+=(Number(d[c.key]?.conhecimentos)||0);
+    });
+  });
+
+  ['vendas','postagens','conhecimentos'].forEach(ind=>{
+    const sorted=[...CONSULTORAS].sort((a,b)=>totais[b.key][ind]-totais[a.key][ind]);
+    const maxVal=Math.max(...sorted.map(c=>totais[c.key][ind]),1);
+    document.getElementById(`dash-rank-${ind}`).innerHTML=sorted.map((c,i)=>`
+      <div class="dash-rank-row">
+        <div class="dash-rank-pos">${i+1}°</div>
+        <div class="dash-rank-avatar">${c.ini}</div>
+        <div style="flex:1">
+          <div class="dash-rank-nome">${c.nome}</div>
+          <div class="dash-rank-bar-wrap"><div class="dash-rank-bar" style="width:${Math.round(totais[c.key][ind]/maxVal*100)}%"></div></div>
+        </div>
+        <div class="dash-rank-vals"><strong>${totais[c.key][ind]}</strong></div>
+      </div>`).join('');
+  });
+}
+
+// ── PLANOS ────────────────────────────────────────────────────
+async function carregarTodosPlanos() {
+  const snap=await getDocs(collection(db,'planos_acao'));
+  todosPlanos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  refreshPlanosView();
+}
+let editandoPlanoId=null;
+
+window.abrirModalPlano=(indicadorLabel)=>{
+  editandoPlanoId=null;
+  document.querySelector('#modal-plano h3').textContent='📌 Novo Plano de Ação';
+  ['p-oque','p-como','p-quem','p-quando'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-mes').value = document.getElementById('sel-mes').value;
+  document.getElementById('p-ano').value = document.getElementById('sel-ano').value;
+  document.getElementById('p-indicador').value = indicadorLabel||'';
+  ['p-mes','p-ano','p-indicador'].forEach(id=>document.getElementById(id).disabled=!!indicadorLabel);
+  document.getElementById('modal-plano').classList.add('open');
+};
+
+window.editarPlano=(id)=>{
+  const p=todosPlanos.find(x=>x.id===id); if(!p) return;
+  editandoPlanoId=id;
+  document.querySelector('#modal-plano h3').textContent='✏️ Editar Plano de Ação';
+  ['p-mes','p-ano','p-indicador'].forEach(id=>document.getElementById(id).disabled=false);
+  document.getElementById('p-mes').value       = p.mes||1;
+  document.getElementById('p-ano').value       = p.ano||2026;
+  document.getElementById('p-indicador').value = p.indicador||'';
+  document.getElementById('p-oque').value      = p.o_que||'';
+  document.getElementById('p-como').value      = p.como||'';
+  document.getElementById('p-quem').value      = p.quem||'';
+  document.getElementById('p-quando').value    = p.quando||'';
+  document.getElementById('modal-plano').classList.add('open');
+};
+
+window.salvarPlano=async()=>{
+  const plano={
+    mes:parseInt(document.getElementById('p-mes').value),
+    ano:parseInt(document.getElementById('p-ano').value),
+    indicador:document.getElementById('p-indicador').value,
+    o_que:document.getElementById('p-oque').value.trim(),
+    como:document.getElementById('p-como').value.trim(),
+    quem:document.getElementById('p-quem').value.trim(),
+    quando:document.getElementById('p-quando').value.trim(),
+  };
+  if(editandoPlanoId) {
+    // Editar existente
+    await setDoc(doc(db,'planos_acao',editandoPlanoId),{...plano,atualizadoEm:new Date().toISOString()},{merge:true});
+    const idx=todosPlanos.findIndex(p=>p.id===editandoPlanoId);
+    if(idx>=0) todosPlanos[idx]={...todosPlanos[idx],...plano};
+    toast('✅ Plano atualizado!');
+  } else {
+    // Novo
+    plano.criadoEm=new Date().toISOString();
+    const ref=await addDoc(collection(db,'planos_acao'),plano);
+    todosPlanos.unshift({id:ref.id,...plano});
+    toast('✅ Plano salvo!');
+  }
+  editandoPlanoId=null;
+  fecharModal(); refreshPlanosView();
+};
+window.deletarPlano=async(id)=>{
+  if(!confirm('Remover este plano?')) return;
+  await deleteDoc(doc(db,'planos_acao',id));
+  todosPlanos=todosPlanos.filter(p=>p.id!==id);
+  refreshPlanosView(); toast('🗑️ Plano removido');
+};
+
 // ── HISTÓRICO ─────────────────────────────────────────────────
-window.switchHist = (mode, btn) => {
-  document.querySelectorAll('.htog-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('hist-mensal').style.display = mode === 'mensal'  ? '' : 'none';
-  document.getElementById('hist-diario').style.display = mode === 'diario' ? '' : 'none';
-  if (mode === 'diario') renderLancamentos();
+window.switchHist=(mode,btn)=>{
+  document.querySelectorAll('.htog-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  document.getElementById('hist-mensal').style.display=mode==='mensal'?'':'none';
+  document.getElementById('hist-diario').style.display=mode==='diario'?'':'none';
+  if(mode==='diario') renderLancamentos();
 };
 
 async function carregarHistorico(ano) {
-  const q    = query(collection(db,'lancamentos_consultoria'), where('ano','==',ano));
-  const snap = await getDocs(q);
-  const todos = {};
-  snap.docs.forEach(d => { const data = d.data(); todos[data.mes] = data; });
-
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const tbody = document.getElementById('hist-mensal-body');
-  tbody.innerHTML = meses.map((nm,i) => {
-    const d   = todos[i+1];
-    const vazio = `<td colspan="7" style="color:var(--muted);font-style:italic">sem dados</td>`;
-    if (!d) return `<tr><td>${nm}/${ano}</td>${vazio}</tr>`;
-
-    const totalVendas = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.vendas)||0), 0);
-    const totalPost   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.postagens)||0), 0);
-    const totalConh   = CONSULTORAS.reduce((s,c) => s + (Number(d[c.key]?.conhecimentos)||0), 0);
-    const satisfs     = CONSULTORAS.map(c => Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
-    const mediaSat    = satisfs.length ? (satisfs.reduce((a,b)=>a+b,0)/satisfs.length).toFixed(1) : '—';
-    const nh = avaliar(d.controle_horas_pct, METAS_EQ.controle_horas);
-
+  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('ano','==',ano)));
+  const todos={};
+  snap.docs.forEach(d=>{const dt=d.data();todos[dt.mes]=dt;});
+  const tbody=document.getElementById('hist-mensal-body');
+  tbody.innerHTML=MESES_ABREV.slice(1).map((nm,i)=>{
+    const d=todos[i+1];
+    if(!d) return `<tr><td style="font-weight:700">${nm}/${ano}</td><td colspan="9" style="color:var(--muted);font-style:italic;font-size:.78rem">sem dados</td></tr>`;
+    const totalV=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0);
+    const totalP=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0);
+    const totalC=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0);
+    const sat=getSatMedia(d);
+    const metaPct=d.meta_clientes_pct??(d.meta_clientes_qtd&&d.total_clientes?Math.round(d.meta_clientes_qtd/d.total_clientes*100):null);
     return `<tr>
-      <td>${nm}/${ano}</td>
-      <td>${d.controle_horas_pct !== null ? Number(d.controle_horas_pct).toFixed(1)+'%' : '—'} ${badge(nh)}</td>
-      <td>${d.clientes_novos ?? '—'}</td>
-      <td>${totalVendas} ${badge(avaliar(totalVendas, METAS_EQ.vendas_eq))}</td>
-      <td>${totalPost} ${badge(avaliar(totalPost, METAS_EQ.postagens_eq))}</td>
-      <td>${totalConh} ${badge(avaliar(totalConh, METAS_EQ.conhec_eq))}</td>
-      <td>${mediaSat}</td>
-      <td style="color:var(--muted);font-size:.72rem">${d.lancadoPor||'—'}</td>
+      <td style="font-weight:700;white-space:nowrap">${nm}/${ano}</td>
+      <td style="white-space:nowrap">${d.horas_previstas||'—'}</td>
+      <td style="white-space:nowrap">${d.horas_executadas||'—'}</td>
+      <td style="white-space:nowrap">${d.controle_horas_pct!==null&&d.controle_horas_pct!==undefined?Number(d.controle_horas_pct).toFixed(1)+'%':'—'} ${badge(avaliar(d.controle_horas_pct,METAS_EQ.controle_horas))}</td>
+      <td>${d.clientes_iniciaram??'—'}</td>
+      <td style="font-size:.72rem">${d.clientes_novos??'—'}${d.clientes_novos_nomes?'<br><span style="color:var(--success)">'+d.clientes_novos_nomes+'</span>':''}</td>
+      <td style="font-size:.72rem">${d.clientes_finalizados??'—'}${d.clientes_finalizados_nomes?'<br><span style="color:var(--muted)">'+d.clientes_finalizados_nomes+'</span>':''}</td>
+      <td style="font-size:.72rem">${d.clientes_excederam??'—'}${d.clientes_excederam_nomes?'<br><span style="color:#92400E">'+d.clientes_excederam_nomes.substring(0,40)+'</span>':''}</td>
+      <td style="font-size:.72rem">${d.clientes_pendentes??'—'}${d.clientes_pendentes_nomes?'<br><span style="color:#991B1B">'+d.clientes_pendentes_nomes.substring(0,40)+'</span>':''}</td>
+      <td style="white-space:nowrap">${metaPct!==null?metaPct+'%':'—'} ${metaPct!==null?badge(avaliar(metaPct,METAS_EQ.meta_clientes)):''}</td>
+      <td style="white-space:nowrap">${sat!==null?sat.toFixed(2):'—'} ${sat!==null?badge(avaliar(sat,METAS_EQ.satisfacao)):''}</td>
+      <td>${totalV} ${badge(avaliar(totalV,METAS_EQ.vendas_eq))}</td>
+      <td>${totalP}</td><td>${totalC}</td>
     </tr>`;
   }).join('');
 }
 
-window.renderLancamentos = async () => {
-  const mes = parseInt(document.getElementById('h-mes')?.value || document.getElementById('sel-mes').value);
-  const ano = parseInt(document.getElementById('h-ano').value);
-  const lista = document.getElementById('lanc-lista');
-  lista.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
-
-  const q    = query(collection(db,'lancamentos_consultoria'), where('mes','==',mes), where('ano','==',ano));
-  const snap = await getDocs(q);
-  if (!snap.docs.length) {
-    lista.innerHTML = '<div class="empty"><div class="e-icon">📋</div><p>Sem lançamentos neste mês</p></div>';
-    return;
-  }
-
-  lista.innerHTML = snap.docs.map(d => {
-    const r = d.data();
-    const dataBR = r.data ? r.data.split('-').reverse().join('/') : '—';
-    const rows = CONSULTORAS.map(c => {
-      const cd = r[c.key] || {};
-      return `<tr>
-        <td style="color:var(--gold);font-weight:700">${c.nome}</td>
-        <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
-        <td>${cd.postagens??'—'}</td>
-        <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
-        <td>${cd.satisfacao??'—'}</td>
-      </tr>`;
-    }).join('');
-    return `
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;padding:14px">
-        <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
-          Lançado em ${dataBR}${r.lancadoPor ? ' por <strong style="color:var(--text)">'+r.lancadoPor+'</strong>' : ''}
-          · Horas: <strong>${r.controle_horas_pct!==null?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong>
-          · Clientes Novos: <strong>${r.clientes_novos??'—'}</strong>
-        </div>
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:400px">
-            <thead>
-              <tr style="color:var(--muted)">
-                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Consultora</th>
-                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Vendas</th>
-                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Postagens</th>
-                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Conhecimentos</th>
-                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Satisfação</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      </div>`;
+window.renderLancamentos=async()=>{
+  const mes=parseInt(document.getElementById('h-mes').value);
+  const ano=parseInt(document.getElementById('h-ano').value);
+  const lista=document.getElementById('lanc-lista');
+  lista.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>';
+  const snap=await getDocs(query(collection(db,'lancamentos_consultoria'),where('mes','==',mes),where('ano','==',ano)));
+  if(!snap.docs.length){lista.innerHTML='<div class="empty"><div class="e-icon">📋</div><p>Sem lançamentos neste mês</p></div>';return;}
+  lista.innerHTML=snap.docs.map(d=>{
+    const r=d.data(); const sat=getSatMedia(r);
+    const metaPct=r.meta_clientes_pct??(r.meta_clientes_qtd&&r.total_clientes?Math.round(r.meta_clientes_qtd/r.total_clientes*100):null);
+    const rows=CONSULTORAS.map(c=>{const cd=r[c.key]||{};return `<tr>
+      <td style="color:var(--primary);font-weight:700">${c.nome}</td>
+      <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
+      <td>${cd.postagens??'—'}</td>
+      <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
+    </tr>`;}).join('');
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;padding:14px">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.7">
+        Horas: <strong>${r.controle_horas_pct!==null&&r.controle_horas_pct!==undefined?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong> ·
+        Iniciaram: <strong>${r.clientes_iniciaram??'—'}</strong> ·
+        Excederam: <strong>${r.clientes_excederam??'—'}</strong> ·
+        Pendentes: <strong>${r.clientes_pendentes??'—'}</strong><br>
+        Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong> ·
+        Meta Clientes: <strong>${metaPct!==null?metaPct+'%':'—'}</strong>
+        ${r.destaques?.length?`· <span style="color:var(--gold)">⭐ ${r.destaques.length} destaque(s)</span>`:''}
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem;min-width:340px">
+          <thead><tr style="color:var(--muted)">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Consultora</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Vendas</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Postagens</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Conhecimentos</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
   }).join('');
 };
 
 // ── TABS ──────────────────────────────────────────────────────
-window.showTab = (tab, btn) => {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+window.showTab=(tab,btn)=>{
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
-  if (btn) btn.classList.add('active');
-  else document.querySelector('.tab-btn').classList.add('active');
-  if (tab === 'historico') {
-    const ano = parseInt(document.getElementById('sel-ano').value);
-    carregarHistorico(ano);
-  }
+  if(btn) btn.classList.add('active'); else document.querySelector('.tab-btn').classList.add('active');
+  if(tab==='historico') carregarHistorico(parseInt(document.getElementById('sel-ano').value));
+  if(tab==='dashboard') carregarDashboard();
 };
 
 // ── CONFIG ────────────────────────────────────────────────────
-window.salvarSenhas = async () => {
-  const c = document.getElementById('nova-senha-consultoria').value;
-  const snap = await getDoc(doc(db,'config','senhas'));
-  const atual = snap.exists() ? snap.data() : { consultoria:'falcioni2026' };
-  if (c) atual.consultoria = c;
-  await setDoc(doc(db,'config','senhas'), atual);
-  document.getElementById('nova-senha-consultoria').value = '';
-  toast('✅ Senha atualizada!');
+window.salvarSenhas=async()=>{
+  const c=document.getElementById('nova-senha-consultoria').value;
+  const snap=await getDoc(doc(db,'config','senhas')); const atual=snap.exists()?snap.data():{consultoria:'falcioni2026'};
+  if(c) atual.consultoria=c;
+  await setDoc(doc(db,'config','senhas'),atual);
+  document.getElementById('nova-senha-consultoria').value=''; toast('✅ Senha atualizada!');
 };
+window.copiarApi=()=>navigator.clipboard.writeText(document.getElementById('api-url').textContent).then(()=>toast('📋 URL copiada!'));
 
-function atualizarApiUrl() {
-  const url = `https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/lancamentos_consultoria?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
-  document.getElementById('api-url').textContent = url;
-}
-
-window.copiarApi = () => {
-  const url = document.getElementById('api-url').textContent;
-  navigator.clipboard.writeText(url).then(() => toast('📋 URL copiada!'));
-};
-
-// ── INIT ──────────────────────────────────────────────────────
-window.selRole = () => {};
-
-// Histórico: sincroniza seletor de mês no painel diário
-document.getElementById('h-mes') && (() => {
-  const hm = document.getElementById('h-mes');
-  hm.onchange = renderLancamentos;
-  hm.value = new Date().getMonth() + 1;
-})();
-
+// ── COMPATIBILIDADE HISTÓRICA getSatMedia já exportada acima ──
 </script>
 
-<!-- ── PWA ── -->
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
-
-// Splash
-setTimeout(() => document.getElementById('splash-bar').style.width = '100%', 100);
-setTimeout(() => {
-  const s = document.getElementById('splash');
-  s.style.opacity = '0';
-  setTimeout(() => {
-    s.style.display = 'none';
-    document.getElementById('screen-login').style.display = 'flex';
-  }, 600);
-}, 2500);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+setTimeout(()=>document.getElementById('splash-bar').style.width='100%',100);
+setTimeout(()=>{const s=document.getElementById('splash');s.style.opacity='0';setTimeout(()=>{s.style.display='none';document.getElementById('screen-login').style.display='flex';},600);},2500);
 </script>
 </body>
 </html>
