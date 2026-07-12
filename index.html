@@ -758,6 +758,10 @@ function toast(msg) {
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
+// Só aceita http(s) — evita javascript:/data: em href de dados vindos do Firestore
+function linkSeguro(url){ const u=(url||'').trim(); return /^https?:\/\//i.test(u)?u:null; }
+function chipLink(url, rotulo='Abrir planilha'){ const u=linkSeguro(url); if(!u)return ''; const safe=u.replace(/"/g,'%22');
+  return ` <a href="${safe}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:600;color:var(--gold);text-decoration:none;border:1px solid var(--gold);border-radius:6px;padding:1px 7px">📄 ${rotulo}</a>`; }
 function show(id) {
   ['screen-login','screen-app'].forEach(s=>document.getElementById(s).style.display='none');
   document.getElementById(id).style.display='flex';
@@ -939,6 +943,7 @@ function buildComercialVendSections() {
           <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="lc-${c.key}-cafes" placeholder="Ex: 4" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="lc-${c.key}-cafes_desc" placeholder="Ex: Café com cliente Y"></div>
         </div>
+        <div class="form-group"><label>Planilha de Cafés — link do Drive/Sheets (opcional)</label><input type="url" id="lc-${c.key}-cafes_link" placeholder="Cole aqui o link de compartilhamento da planilha/aba"></div>
       </div>
     </div>`).join('');
 }
@@ -1010,7 +1015,7 @@ function limparFormLancar() {
   } else {
     setVal('l-com-ocorrencias');
     CONSULTORAS.forEach(c=>{
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
+      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc','cafes_link'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
     });
   }
   satNotas=[]; satIdCounter=0;
@@ -1043,7 +1048,7 @@ function preencherFormLancar(d) {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
     CONSULTORAS.forEach(c=>{
       const cd=d[c.key]||{};
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
+      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc','cafes_link'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
     });
   }
   // Reconstrói a lista de notas de satisfação (nomeadas + anônimas, a partir do que foi salvo)
@@ -1144,7 +1149,7 @@ function detalheIndicador(ind,d) {
     const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k];
     const ehRS=(k==='venda_consultoria'||k==='venda_palestras');
     const fmtP=v=>ehRS?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:Number(v||0);
-    const linhas=CONSULTORAS.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}`;}).join('<br>');
+    const linhas=CONSULTORAS.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();const lk=(k==='cafes')?chipLink(d[c.key]?.cafes_link):'';return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}${lk}`;}).join('<br>');
     if(CONSULTORAS.length) rows.push(detRow('Por vendedora', linhas));
     if(k==='venda_cursos'){ const val=CONSULTORAS.reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${val.toLocaleString('pt-BR')}`)); }
   }
@@ -1242,7 +1247,7 @@ function renderConsultGrid(d) {
         {label:'Venda Consultoria',val:(cd.venda_consultoria!=null?`R$ ${Number(cd.venda_consultoria).toLocaleString('pt-BR')}`:'—')+dsc(cd.venda_consultoria_desc)},
         {label:'Venda Cursos',val:(cd.cursos_inscritos!=null?`${cd.cursos_inscritos} inscritos`:'—')+dsc(cd.cursos_desc)},
         {label:'Venda Palestras',val:(cd.venda_palestras!=null?`R$ ${Number(cd.venda_palestras).toLocaleString('pt-BR')}`:'—')+dsc(cd.venda_palestras_desc)},
-        {label:'Cafés',val:(cd.cafes??'—')+dsc(cd.cafes_desc)},
+        {label:'Cafés',val:(cd.cafes??'—')+dsc(cd.cafes_desc)+chipLink(cd.cafes_link)},
       ];}
     : c=>{const cd=d[c.key]||{}; return [
         {label:'Vendas',val:cd.vendas??'—',meta:METAS_IND.vendas},
@@ -1315,6 +1320,7 @@ window.salvarLancamento=()=>{
         cursos_desc:            strOuNull(`lc-${c.key}-cursos_desc`),
         cafes:                  numOuNull(`lc-${c.key}-cafes`),
         cafes_desc:             strOuNull(`lc-${c.key}-cafes_desc`),
+        cafes_link:             strOuNull(`lc-${c.key}-cafes_link`),
       };
     });
   } else {
@@ -1495,7 +1501,7 @@ function detalhePPT(ind,d) {
   else if(k==='clientes_pendentes'&&d.clientes_pendentes_nomes)out.push(['Horas pendentes',nomes(d.clientes_pendentes_nomes)]);
   else if(k==='clientes_negociacao'&&d.clientes_negociacao_nomes)out.push(['Em negociação',nomes(d.clientes_negociacao_nomes)]);
   else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; const descC={vendas_eq:'vendas_desc',conhec_eq:'conhec_desc'}[k]; CONSULTORAS.forEach(c=>{const v=Number(d[c.key]?.[campo])||0; const desc=descC?(d[c.key]?.[descC]||''):''; out.push([c.nome, desc?`${v} — ${desc}`:String(v)]);}); }
-  else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; const desc=(d[c.key]?.[campoDesc]||'').trim(); const vt=rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0)); out.push([c.nome, desc?`${vt} — ${desc}`:vt]);}); }
+  else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; const desc=(d[c.key]?.[campoDesc]||'').trim(); const lk=(k==='cafes')?linkSeguro(d[c.key]?.cafes_link):null; const vt=rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0)); out.push([c.nome, (desc?`${vt} — ${desc}`:vt)+(lk?`   ·   planilha: ${lk}`:'')]);}); }
   return out;
 }
 // Série anual de um indicador -> texto "Jan 2 · Fev 4 · ..."
