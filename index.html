@@ -673,19 +673,22 @@ const ALIAS_INDICADOR = {
   'satisfação do cliente': 'Satisfação',
 };
 const INDICADORES_CONSULTORIA = [
+  // Movimentação de clientes primeiro
+  { key:'clientes_iniciaram',   label:'Clientes Iniciaram',   getValor:d=>d.clientes_iniciaram, getNomes:null },
+  { key:'clientes_novos',       label:'Clientes Novos',       getValor:d=>d.clientes_novos, getNomes:d=>d.clientes_novos_nomes },
+  { key:'clientes_finalizados', label:'Clientes Finalizados', getValor:d=>d.clientes_finalizados, getNomes:d=>d.clientes_finalizados_nomes },
+  // Controle de Horas + os dois indicadores de horas correlacionados logo abaixo
   { key:'controle_horas',       label:'Controle de Horas',    getValor:d=>d.controle_horas_pct, getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%`,
     getSub:d=>(d.horas_previstas||d.horas_executadas)?`Previstas: ${d.horas_previstas||'—'} · Executadas: ${d.horas_executadas||'—'}`:null },
+  { key:'clientes_excederam',   label:'Horas Excedentes',     getValor:d=>d.clientes_excederam, getNomes:d=>d.clientes_excederam_nomes },
+  { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
+  // Demais
   { key:'satisfacao',           label:'Satisfação',           getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
   { key:'meta_clientes',        label:'Meta Clientes',        getValor:d=>d.meta_clientes_pct ?? (d.meta_clientes_qtd&&d.total_clientes?Math.round(d.meta_clientes_qtd/d.total_clientes*100):null), getNomes:d=>d.meta_clientes_nomes, fmt:v=>`${Number(v).toFixed(0)}%`,
     getSub:d=>d.meta_clientes_qtd&&d.total_clientes?`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`:null },
   { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
   { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
   { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
-  { key:'clientes_iniciaram',   label:'Clientes Iniciaram',   getValor:d=>d.clientes_iniciaram, getNomes:null },
-  { key:'clientes_novos',       label:'Clientes Novos',       getValor:d=>d.clientes_novos, getNomes:d=>d.clientes_novos_nomes },
-  { key:'clientes_finalizados', label:'Clientes Finalizados', getValor:d=>d.clientes_finalizados, getNomes:d=>d.clientes_finalizados_nomes },
-  { key:'clientes_excederam',   label:'Horas Excedentes',     getValor:d=>d.clientes_excederam, getNomes:d=>d.clientes_excederam_nomes },
-  { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
   { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
 ];
 // Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
@@ -886,7 +889,10 @@ function buildConsultSections() {
           <div class="form-group"><label>Vendas (qtd.)</label><input type="number" id="l-${c.key}-vendas" placeholder="0" min="0"></div>
           <div class="form-group"><label>Produto/serviço</label><input type="text" id="l-${c.key}-vendas-desc" placeholder="Descreva"></div>
         </div>
-        <div class="form-group"><label>Postagens (qtd.)</label><input type="number" id="l-${c.key}-postagens" placeholder="0" min="0"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Postagens (qtd.)</label><input type="number" id="l-${c.key}-postagens" placeholder="0" min="0"></div>
+          <div class="form-group"><label>Satisfação individual (0-10)</label><input type="number" id="l-${c.key}-satisfacao" placeholder="Ex: 9.5" min="0" max="10" step="0.1"></div>
+        </div>
         <div class="form-row">
           <div class="form-group"><label>Novos Conhecimentos</label><input type="number" id="l-${c.key}-conhecimentos" placeholder="0" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="l-${c.key}-conhec-desc" placeholder="Ex: Power BI"></div>
@@ -1140,6 +1146,7 @@ function renderConsultGrid(d) {
         {label:'Vendas',val:cd.vendas??'—',meta:METAS_IND.vendas},
         {label:'Postagens',val:cd.postagens??'—',meta:METAS_IND.postagens},
         {label:'Conhecimentos',val:cd.conhecimentos??'—',meta:METAS_IND.conhecimentos},
+        {label:'Satisfação',val:cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—',meta:METAS_EQ.satisfacao},
       ];};
 
   document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>`
@@ -1247,6 +1254,7 @@ window.salvarLancamento=()=>{
       payload[c.key]={
         vendas:numOuNull(`l-${c.key}-vendas`),vendas_desc:document.getElementById(`l-${c.key}-vendas-desc`)?.value||'',
         postagens:numOuNull(`l-${c.key}-postagens`),
+        satisfacao:numOuNull(`l-${c.key}-satisfacao`),
         conhecimentos:numOuNull(`l-${c.key}-conhecimentos`),conhec_desc:document.getElementById(`l-${c.key}-conhec-desc`)?.value||'',
       };
     });
@@ -1425,12 +1433,12 @@ window.gerarPPT=async()=>{
     sp.addText(setorAtual==='comercial'?'Por Vendedora':'Por Consultora',{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:26,bold:true,color:GOLD,valign:'middle'});
     const cols = setorAtual==='comercial'
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
-      : ['Consultora','Vendas','Postagens','Conhecimentos'];
+      : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação'];
     const th=cols.map(c=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY}}}));
     const trs=CONSULTORAS.map(c=>{ const cd=d[c.key]||{};
       return setorAtual==='comercial'
         ? [c.nome, `R$ ${Number(cd.venda_consultoria||0).toLocaleString('pt-BR')}`, String(Number(cd.cursos_inscritos||0)), `R$ ${Number(cd.venda_palestras||0).toLocaleString('pt-BR')}`, String(Number(cd.cafes||0))]
-        : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0))];
+        : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0)), cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—'];
     });
     sp.addTable([th,...trs],{x:0.5,y:1.5,w:12.3,fontSize:13,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',align:'center'});
     await pptx.writeFile({fileName:`falcikpi_${setorAtual}_${MESES_ABREV[mes]}${ano}.pptx`});
