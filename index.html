@@ -6,6 +6,7 @@
   <title>falcikpi</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1A2F4A">
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <style>
     :root {
       --bg:      #F0F4F8;
@@ -123,19 +124,47 @@
     .destaque-nome { font-size:.7rem; color:rgba(255,255,255,.5); margin-top:2px; }
 
     /* INDICADOR (Painel um-a-um) */
-    .indicador-block { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
-    .indicador-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-    .indicador-nome { font-size:.86rem; font-weight:700; color:var(--primary); }
-    .indicador-nomes { font-size:.7rem; color:var(--muted); margin-top:4px; line-height:1.4; }
-    .indicador-valores { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-    .indicador-val { font-size:1.3rem; font-weight:800; color:var(--primary); }
-    .indicador-plano-wrap { border-top:1px dashed var(--border); padding-top:10px; margin-top:10px; }
-    .indicador-plano-label { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px; }
-    .btn-add-plano { background:none; border:1.5px dashed var(--border); color:var(--muted); border-radius:8px; padding:9px; cursor:pointer; font-size:.8rem; width:100%; text-align:center; transition:all .2s; }
+    .indicador-block { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .indicador-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .indicador-nome { font-size:1.08rem; font-weight:800; color:var(--primary); line-height:1.2; }
+    .indicador-nomes { font-size:.82rem; color:var(--muted); margin-top:4px; line-height:1.45; }
+    .indicador-valores { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+    .indicador-val { font-size:1.7rem; font-weight:800; color:var(--primary); line-height:1; }
+    .indicador-plano-wrap { border-top:1px dashed var(--border); padding-top:10px; margin-top:12px; }
+    .indicador-plano-label { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:6px; }
+    .btn-add-plano { background:none; border:1.5px dashed var(--border); color:var(--muted); border-radius:8px; padding:9px; cursor:pointer; font-size:.82rem; width:100%; text-align:center; transition:all .2s; }
     .btn-add-plano:hover { border-color:var(--primary); color:var(--primary); }
     .indicador-plano-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    /* Detalhe rico do indicador (relatório robusto) */
+    .ind-detalhe { margin-top:12px; border-top:1px solid var(--border); padding-top:10px; display:flex; flex-direction:column; gap:8px; }
+    .ind-det-row { font-size:.84rem; line-height:1.5; }
+    .ind-det-lbl { font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:var(--gold); font-weight:700; display:block; margin-bottom:2px; }
+    .ind-det-val { color:var(--text); }
+    .ind-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:3px; }
+    .ind-chip { font-size:.76rem; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:14px; padding:3px 9px; }
+    .ind-resp { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin-top:5px; }
+    .ind-resp-nota { display:inline-block; min-width:26px; text-align:center; background:var(--primary); color:var(--gold); font-weight:800; font-size:.76rem; border-radius:8px; padding:2px 6px; margin-right:7px; }
+    .ind-resp-txt { font-size:.8rem; color:var(--text); line-height:1.45; }
 
-    /* DASHBOARD */
+    /* DASHBOARD BI */
+    .bi-kpi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    @media(min-width:560px){ .bi-kpi-grid { grid-template-columns:repeat(3,1fr); } }
+    .bi-kpi { background:var(--card); border:1px solid var(--border); border-left:5px solid var(--border); border-radius:12px; padding:12px 14px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .bi-kpi.Ouro{ border-left-color:var(--ouro); } .bi-kpi.Prata{ border-left-color:var(--prata); } .bi-kpi.Bronze{ border-left-color:var(--bronze); } .bi-kpi.Fora{ border-left-color:var(--danger); } .bi-kpi.sem-dado{ border-left-color:var(--border); }
+    .bi-kpi-lbl { font-size:.76rem; color:var(--muted); font-weight:600; line-height:1.3; margin-bottom:6px; min-height:2.1em; }
+    .bi-kpi-val { font-size:1.5rem; font-weight:800; color:var(--primary); line-height:1; margin-bottom:6px; }
+    .bi-chart-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .bi-chart-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+    .bi-chart-nome { font-size:.92rem; font-weight:800; color:var(--primary); }
+    .bi-chart-meta { font-size:.72rem; color:var(--muted); }
+    .bi-tabela { width:100%; border-collapse:collapse; font-size:.8rem; min-width:640px; }
+    .bi-tabela th { background:var(--card2); color:var(--muted); padding:8px 9px; text-align:center; border-bottom:2px solid var(--border); white-space:nowrap; font-size:.74rem; position:sticky; left:auto; }
+    .bi-tabela th:first-child, .bi-tabela td:first-child { text-align:left; font-weight:700; white-space:nowrap; }
+    .bi-tabela td { padding:7px 9px; border-bottom:1px solid var(--border); text-align:center; }
+    .bi-cell { display:inline-block; padding:2px 7px; border-radius:6px; font-weight:700; font-size:.76rem; }
+    .bi-cell.Ouro{ background:#FEF3C7; color:#92400E; } .bi-cell.Prata{ background:#F1F5F9; color:#475569; } .bi-cell.Bronze{ background:#FEF9C3; color:#78350F; } .bi-cell.Fora{ background:#FFF1F2; color:#9F1239; } .bi-cell.sem-dado{ color:#CBD5E1; }
+
+    /* DASHBOARD (legado) */
     .dash-chart-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
     .dash-chart-title { font-size:.82rem; font-weight:700; color:var(--primary); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
     .chart-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:.72rem; color:var(--muted); }
@@ -284,7 +313,10 @@
   <div id="tab-painel" class="tab-content active">
     <div id="painel-loading" class="loading"><div class="spinner"></div>Carregando...</div>
     <div id="painel-body" style="display:none">
-      <p class="section-title" id="indicadores-titulo">Indicadores</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <p class="section-title" id="indicadores-titulo" style="margin:0">Indicadores</p>
+        <button class="btn-gold" onclick="gerarPPT()">📊 Gerar Apresentação (PPT)</button>
+      </div>
       <div id="indicadores-lista"></div>
 
       <div id="outros-planos-section" style="display:none">
@@ -293,7 +325,8 @@
       </div>
 
       <div id="consultora-destaques-wrap">
-        <p class="section-title" style="margin-top:16px">Indicadores por Consultora</p>
+        <p class="section-title" style="margin-top:16px" id="grade-pessoa-titulo">Indicadores por Consultora</p>
+        <div id="grade-satisfacao-nota"></div>
         <div class="consult-grid" id="consult-grid"></div>
 
         <div id="destaques-section" style="display:none">
@@ -315,36 +348,14 @@
   <div id="tab-dashboard" class="tab-content">
     <div id="dash-loading" class="loading"><div class="spinner"></div>Carregando dashboard...</div>
     <div id="dash-body" style="display:none">
+      <p class="section-title" id="dash-kpis-titulo">KPIs do mês</p>
+      <div class="bi-kpi-grid" id="dash-kpis"></div>
 
-      <p class="section-title">Resumo do Ano</p>
-      <div class="dash-annual-grid" id="dash-annual"></div>
+      <p class="section-title" style="margin-top:18px">Evolução no ano</p>
+      <div id="dash-charts"></div>
 
-      <div class="dash-chart-card">
-        <div class="dash-chart-title">
-          Evolução Mensal
-          <div class="chart-legend">
-            <span style="color:#C9A84C">Satisfação</span>
-            <span style="color:#1A2F4A">Horas %</span>
-            <span style="color:#16A34A">Meta Cli %</span>
-          </div>
-        </div>
-        <svg id="svg-evolucao" width="100%" viewBox="0 0 680 160" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-
-      <div class="dash-chart-card">
-        <div class="dash-chart-title">Vendas por Consultora (Acumulado)</div>
-        <div id="dash-rank-vendas"></div>
-      </div>
-
-      <div class="dash-chart-card">
-        <div class="dash-chart-title">Postagens por Consultora (Acumulado)</div>
-        <div id="dash-rank-postagens"></div>
-      </div>
-
-      <div class="dash-chart-card">
-        <div class="dash-chart-title">Novos Conhecimentos por Consultora</div>
-        <div id="dash-rank-conhecimentos"></div>
-      </div>
+      <p class="section-title" style="margin-top:18px">Resumo anual</p>
+      <div style="overflow-x:auto"><div id="dash-tabela"></div></div>
     </div>
     <div id="dash-empty" class="empty" style="display:none">
       <div class="e-icon">📈</div><p>Sem dados para exibir no dashboard.</p>
@@ -424,21 +435,13 @@
 
     <!-- Dados Gerais — Comercial -->
     <div id="lancar-comercial-fields" style="display:none">
+      <!-- Por vendedora (gerado dinamicamente) -->
+      <div id="comercial-vend-sections"></div>
+      <!-- Ocorrências (equipe) -->
       <div class="lanc-section open">
-        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">📋 Dados Gerais</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⚠️ Ocorrências (equipe)</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
-          <div class="form-row" style="margin-top:12px">
-            <div class="form-group"><label>Venda Consultoria (R$)</label><input type="number" id="l-com-venda-consultoria" placeholder="Ex: 5500" min="0" step="0.01"></div>
-            <div class="form-group"><label>Venda Palestras (R$)</label><input type="number" id="l-com-venda-palestras" placeholder="Ex: 7500" min="0" step="0.01"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label>Venda Cursos — Inscritos (qtd)</label><input type="number" id="l-com-cursos-inscritos" placeholder="Ex: 15" min="0"></div>
-            <div class="form-group"><label>Venda Cursos (R$)</label><input type="number" id="l-com-cursos-valor" placeholder="Ex: 3500" min="0" step="0.01"></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="l-com-cafes" placeholder="Ex: 4" min="0"></div>
-            <div class="form-group"><label>Ocorrências (qtd)</label><input type="number" id="l-com-ocorrencias" placeholder="Ex: 0" min="0"></div>
-          </div>
+          <div class="form-group" style="margin-top:12px"><label>Ocorrências no mês (qtd)</label><input type="number" id="l-com-ocorrencias" placeholder="Ex: 0" min="0"></div>
         </div>
       </div>
     </div>
@@ -601,7 +604,6 @@ const db  = getFirestore(app);
 const EQUIPE_CONSULTORIA = [
   { key:'livia',   nome:'Lívia',   ini:'LV' },
   { key:'paloma',  nome:'Paloma',  ini:'PM' },
-  { key:'alan',    nome:'Alan',    ini:'AL' },
   { key:'eduarda', nome:'Eduarda', ini:'ED' },
 ];
 const EQUIPE_COMERCIAL = [
@@ -686,12 +688,17 @@ const INDICADORES_CONSULTORIA = [
   { key:'clientes_pendentes',   label:'Horas Pendentes',      getValor:d=>d.clientes_pendentes, getNomes:d=>d.clientes_pendentes_nomes },
   { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
 ];
+// Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
+function somaVend(d, campo, totalFallback){
+  const s=CONSULTORAS.reduce((acc,c)=>acc+(Number(d[c.key]?.[campo])||0),0);
+  if(s>0) return s;
+  return (d[totalFallback]!==undefined && d[totalFallback]!==null) ? d[totalFallback] : (s||null);
+}
 const INDICADORES_COMERCIAL = [
-  { key:'venda_consultoria', label:'Venda Consultoria',       getValor:d=>d.com_venda_consultoria, getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
-  { key:'venda_cursos',      label:'Venda Cursos',            getValor:d=>d.com_cursos_inscritos, getNomes:null,
-    getSub:d=>d.com_cursos_valor?`R$ ${Number(d.com_cursos_valor).toLocaleString('pt-BR')} em vendas`:null },
-  { key:'venda_palestras',   label:'Venda Palestras',         getValor:d=>d.com_venda_palestras, getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
-  { key:'cafes',             label:'Acompanhamento de Cafés', getValor:d=>d.com_cafes, getNomes:null },
+  { key:'venda_consultoria', label:'Venda Consultoria',       getValor:d=>somaVend(d,'venda_consultoria','com_venda_consultoria'), getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
+  { key:'venda_cursos',      label:'Venda Cursos',            getValor:d=>somaVend(d,'cursos_inscritos','com_cursos_inscritos'), getNomes:null },
+  { key:'venda_palestras',   label:'Venda Palestras',         getValor:d=>somaVend(d,'venda_palestras','com_venda_palestras'), getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
+  { key:'cafes',             label:'Acompanhamento de Cafés', getValor:d=>somaVend(d,'cafes','com_cafes'), getNomes:null },
   { key:'satisfacao',        label:'Pesquisa de Satisfação',  getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
   { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
 ];
@@ -775,7 +782,8 @@ async function entrarApp() {
   document.getElementById('app-setor-label').textContent = SETOR_LABEL[setorAtual];
   document.getElementById('indicadores-titulo').textContent = `Indicadores da ${SETOR_LABEL[setorAtual]}`;
   const ehConsultoria = setorAtual==='consultoria';
-  document.getElementById('consultora-destaques-wrap').style.display = ehConsultoria?'':'none';
+  document.getElementById('consultora-destaques-wrap').style.display = '';
+  document.getElementById('grade-pessoa-titulo').textContent = ehConsultoria?'Indicadores por Consultora':'Indicadores por Vendedora';
   document.getElementById('lancar-consultoria-fields').style.display = ehConsultoria?'':'none';
   document.getElementById('lancar-comercial-fields').style.display = ehConsultoria?'none':'';
   const hoje=new Date();
@@ -784,6 +792,7 @@ async function entrarApp() {
   await carregarMetas();
   await carregarAdminConfig();
   if(ehConsultoria){ buildConsultSections(); buildDestaquesForm(); }
+  else { buildComercialVendSections(); }
   renderConfigMetas();
   document.getElementById('api-url').textContent=`https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/${colLancamentos()}?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
   await Promise.all([carregarDados(), carregarTodosPlanos()]);
@@ -892,6 +901,28 @@ function buildDestaquesForm() {
       <input type="text" id="dt-${c.key}" placeholder="Destaque do mês (opcional)">
     </div>`).join('');
 }
+function buildComercialVendSections() {
+  document.getElementById('comercial-vend-sections').innerHTML=CONSULTORAS.map(c=>`
+    <div class="lanc-section open" id="lv-${c.key}">
+      <div class="lanc-section-header" onclick="toggleSection(this)">
+        <span class="lsh-title">
+          <span style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--gold)">${c.ini}</span>
+          ${c.nome}
+        </span><span class="lsh-chev">▼</span>
+      </div>
+      <div class="lanc-section-body">
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Venda Consultoria (R$)</label><input type="number" id="lc-${c.key}-venda_consultoria" placeholder="Ex: 5500" min="0" step="0.01"></div>
+          <div class="form-group"><label>Venda Palestras (R$)</label><input type="number" id="lc-${c.key}-venda_palestras" placeholder="Ex: 7500" min="0" step="0.01"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Cursos — Inscritos (qtd)</label><input type="number" id="lc-${c.key}-cursos_inscritos" placeholder="Ex: 15" min="0"></div>
+          <div class="form-group"><label>Cursos (R$)</label><input type="number" id="lc-${c.key}-cursos_valor" placeholder="Ex: 3500" min="0" step="0.01"></div>
+        </div>
+        <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="lc-${c.key}-cafes" placeholder="Ex: 4" min="0"></div>
+      </div>
+    </div>`).join('');
+}
 window.toggleSection=h=>h.closest('.lanc-section').classList.toggle('open');
 
 // ── SATISFAÇÃO ────────────────────────────────────────────────
@@ -960,7 +991,8 @@ window.carregarDados=async()=>{
   const d=docs[0];
   document.getElementById('painel-body').style.display='block';
   renderIndicadoresList(d);
-  if(setorAtual==='consultoria'){ renderConsultGrid(d); renderDestaques(d); }
+  renderConsultGrid(d);
+  if(setorAtual==='consultoria'){ renderDestaques(d); }
 };
 let ultimoLancamento=null;
 
@@ -968,6 +1000,47 @@ function getSatMedia(d) {
   if(d.satisfacao_media!==undefined&&d.satisfacao_media!==null) return Number(d.satisfacao_media);
   const vals=CONSULTORAS.map(c=>Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
   return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+
+// ── DETALHE RICO POR INDICADOR (relatório robusto) ─────────────
+function splitNomes(str){ return (str||'').split(/[\/,;]+/).map(s=>s.trim()).filter(Boolean); }
+function chipsHtml(str){ const a=splitNomes(str); return a.length?`<div class="ind-chips">${a.map(n=>`<span class="ind-chip">${n}</span>`).join('')}</div>`:''; }
+function detRow(lbl,valHtml){ return `<div class="ind-det-row"><span class="ind-det-lbl">${lbl}</span><span class="ind-det-val">${valHtml}</span></div>`; }
+function detNomes(lbl,str){ const h=chipsHtml(str); return h?`<div class="ind-det-row"><span class="ind-det-lbl">${lbl}</span>${h}</div>`:''; }
+
+function detalheIndicador(ind,d) {
+  const k=ind.key; const rows=[];
+  if(k==='controle_horas'){
+    if(d.horas_previstas) rows.push(detRow('Horas Previstas', d.horas_previstas));
+    if(d.horas_executadas) rows.push(detRow('Horas Executadas', d.horas_executadas));
+  } else if(k==='satisfacao'){
+    const resp=(d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null));
+    if(resp.length){
+      rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Respostas dos clientes (${resp.length})</span>${resp.map(r=>`<div class="ind-resp"><span class="ind-resp-nota">${r.nota??'—'}</span><span class="ind-resp-txt">${r.cliente||''}</span></div>`).join('')}</div>`);
+    } else if(Array.isArray(d.satisfacao_notas)&&d.satisfacao_notas.length){
+      rows.push(detRow('Notas', d.satisfacao_notas.join(' · ')));
+    }
+  } else if(k==='meta_clientes'){
+    if(d.meta_clientes_qtd&&d.total_clientes) rows.push(detRow('Atingimento', `${d.meta_clientes_qtd} de ${d.total_clientes} clientes`));
+    const r=detNomes('Clientes que bateram a meta', d.meta_clientes_nomes); if(r) rows.push(r);
+  } else if(k==='clientes_novos'){ const r=detNomes('Novos clientes', d.clientes_novos_nomes); if(r) rows.push(r);
+  } else if(k==='clientes_finalizados'){ const r=detNomes('Clientes finalizados', d.clientes_finalizados_nomes); if(r) rows.push(r);
+  } else if(k==='clientes_excederam'){ const r=detNomes('Clientes que excederam horas', d.clientes_excederam_nomes); if(r) rows.push(r);
+  } else if(k==='clientes_pendentes'){ const r=detNomes('Clientes com horas pendentes', d.clientes_pendentes_nomes); if(r) rows.push(r);
+  } else if(k==='clientes_negociacao'){ const r=detNomes('Em negociação', d.clientes_negociacao_nomes); if(r) rows.push(r);
+  } else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){
+    const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k];
+    const linhas=CONSULTORAS.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
+    if(CONSULTORAS.length) rows.push(detRow('Por consultora', linhas));
+  } else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){
+    const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k];
+    const ehRS=(k==='venda_consultoria'||k==='venda_palestras');
+    const fmtP=v=>ehRS?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:Number(v||0);
+    const linhas=CONSULTORAS.map(c=>`${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>`).join(' &nbsp;·&nbsp; ');
+    if(CONSULTORAS.length) rows.push(detRow('Por vendedora', linhas));
+    if(k==='venda_cursos'){ const val=CONSULTORAS.reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${val.toLocaleString('pt-BR')}`)); }
+  }
+  return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:'';
 }
 
 function renderIndicadoresList(d) {
@@ -980,21 +1053,17 @@ function renderIndicadoresList(d) {
     const meta=METAS_EQ[ind.key];
     const nota=avaliar(val,meta);
     const valTxt=(val===null||val===undefined||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
-    const nomes=ind.getNomes?ind.getNomes(d):null;
-    const sub=ind.getSub?ind.getSub(d):null;
+    const detalhe=detalheIndicador(ind,d);
     const planos=planosDoIndicador(ind.label,mes,ano);
     return `<div class="indicador-block">
       <div class="indicador-head">
-        <div>
-          <div class="indicador-nome">${ind.label}</div>
-          ${sub?`<div class="indicador-nomes">${sub}</div>`:''}
-          ${nomes?`<div class="indicador-nomes">${nomes.substring(0,120)}${nomes.length>120?'…':''}</div>`:''}
-        </div>
+        <div class="indicador-nome">${ind.label}</div>
         <div class="indicador-valores">
           <div class="indicador-val">${valTxt}</div>
           ${badge(nota)}
         </div>
       </div>
+      ${detalhe}
       <div class="indicador-plano-wrap">
         <div class="indicador-plano-label">Plano de Ação</div>
         ${planos.length?planos.map(renderPlanoCardCompacto).join(''):`<button class="btn-add-plano" onclick="abrirModalPlano('${ind.label.replace(/'/g,"\\'")}')">+ Adicionar Plano de Ação</button>`}
@@ -1051,17 +1120,37 @@ function refreshPlanosView() {
 }
 
 function renderConsultGrid(d) {
-  document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>{
-    const cd=d[c.key]||{};
-    return `<div class="consult-card">
+  // Nota de satisfação da equipe (destaque no topo da grade)
+  const notaEl=document.getElementById('grade-satisfacao-nota');
+  const sat=getSatMedia(d);
+  if(sat!==null){
+    notaEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px">
+      <span style="font-size:.82rem;color:var(--muted);font-weight:600">⭐ Pesquisa de Satisfação (equipe):</span>
+      <span style="font-size:1.15rem;font-weight:800;color:var(--primary)">${sat.toFixed(2)}</span>${badge(avaliar(sat,METAS_EQ.satisfacao))}</div>`;
+  } else notaEl.innerHTML='';
+
+  const linhas = setorAtual==='comercial'
+    ? c=>{const cd=d[c.key]||{}; return [
+        {label:'Venda Consultoria',val:cd.venda_consultoria!=null?`R$ ${Number(cd.venda_consultoria).toLocaleString('pt-BR')}`:'—'},
+        {label:'Venda Cursos',val:cd.cursos_inscritos!=null?`${cd.cursos_inscritos} inscritos`:'—'},
+        {label:'Venda Palestras',val:cd.venda_palestras!=null?`R$ ${Number(cd.venda_palestras).toLocaleString('pt-BR')}`:'—'},
+        {label:'Cafés',val:cd.cafes??'—'},
+      ];}
+    : c=>{const cd=d[c.key]||{}; return [
+        {label:'Vendas',val:cd.vendas??'—',meta:METAS_IND.vendas},
+        {label:'Postagens',val:cd.postagens??'—',meta:METAS_IND.postagens},
+        {label:'Conhecimentos',val:cd.conhecimentos??'—',meta:METAS_IND.conhecimentos},
+      ];};
+
+  document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>`
+    <div class="consult-card">
       <div class="c-header"><div class="c-avatar">${c.ini}</div><div class="c-nome">${c.nome}</div></div>
-      ${[{label:'Vendas',val:cd.vendas,meta:METAS_IND.vendas},{label:'Postagens',val:cd.postagens,meta:METAS_IND.postagens},{label:'Conhecimentos',val:cd.conhecimentos,meta:METAS_IND.conhecimentos}].map(i=>`
+      ${linhas(c).map(i=>`
       <div class="c-ind-row">
         <div class="c-ind-label">${i.label}</div>
-        <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700">${i.val??'—'}</span>${badge(avaliar(i.val,i.meta))}</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700">${i.val}</span>${i.meta?badge(avaliar(i.val==='—'?null:i.val,i.meta)):''}</div>
       </div>`).join('')}
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function renderDestaques(d) {
@@ -1101,16 +1190,20 @@ window.salvarLancamento=()=>{
   if(setorAtual==='comercial') {
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
-      com_venda_consultoria: numOuNull('l-com-venda-consultoria'),
-      com_venda_palestras:   numOuNull('l-com-venda-palestras'),
-      com_cursos_inscritos:  numOuNull('l-com-cursos-inscritos'),
-      com_cursos_valor:      numOuNull('l-com-cursos-valor'),
-      com_cafes:             numOuNull('l-com-cafes'),
       com_ocorrencias:       numOuNull('l-com-ocorrencias'),
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
       satisfacao_media:  satMedia,
     };
+    CONSULTORAS.forEach(c=>{
+      payload[c.key]={
+        venda_consultoria: numOuNull(`lc-${c.key}-venda_consultoria`),
+        venda_palestras:   numOuNull(`lc-${c.key}-venda_palestras`),
+        cursos_inscritos:  numOuNull(`lc-${c.key}-cursos_inscritos`),
+        cursos_valor:      numOuNull(`lc-${c.key}-cursos_valor`),
+        cafes:             numOuNull(`lc-${c.key}-cafes`),
+      };
+    });
   } else {
     const metaQtd=numOuNull('l-meta-qtd');
     const totalCli=numOuNull('l-total-cli');
@@ -1202,91 +1295,148 @@ async function carregarDashboard() {
 
   document.getElementById('dash-loading').style.display='none';
   document.getElementById('dash-body').style.display='block';
-  renderDashboardAnual(todos);
-  renderSvgEvolucao(todos);
-  renderDashRanking(todos);
+  const mesSel=parseInt(document.getElementById('sel-mes').value);
+  document.getElementById('dash-kpis-titulo').textContent=`KPIs de ${MESES_NOME[mesSel]||''}/${ano}`;
+  renderDashKpis(todos[mesSel]||null);
+  renderDashCharts(todos);
+  renderDashTabela(todos, ano);
 }
 
-function renderDashboardAnual(todos) {
-  const meses=Object.values(todos);
-  const satVals=meses.map(d=>getSatMedia(d)).filter(v=>v!==null);
-  const horasVals=meses.map(d=>d.controle_horas_pct).filter(v=>v!==null);
-  const metaVals=meses.map(d=>d.meta_clientes_pct).filter(v=>v!==null);
-  const totalVendas=meses.reduce((s,d)=>s+CONSULTORAS.reduce((ss,c)=>ss+(Number(d[c.key]?.vendas)||0),0),0);
-
-  document.getElementById('dash-annual').innerHTML=`
-    <div class="dash-annual-card"><div class="dash-annual-label">Satisfação Média Anual</div><div class="dash-annual-val">${satVals.length?(satVals.reduce((a,b)=>a+b,0)/satVals.length).toFixed(2):'—'}</div><div class="dash-annual-sub">${satVals.length} meses</div></div>
-    <div class="dash-annual-card"><div class="dash-annual-label">Média Horas %</div><div class="dash-annual-val">${horasVals.length?(horasVals.reduce((a,b)=>a+b,0)/horasVals.length).toFixed(1)+'%':'—'}</div><div class="dash-annual-sub">${horasVals.length} meses</div></div>
-    <div class="dash-annual-card"><div class="dash-annual-label">Total Vendas</div><div class="dash-annual-val">${totalVendas}</div><div class="dash-annual-sub">no ano</div></div>`;
-}
-
-function renderSvgEvolucao(todos) {
-  const W=680,H=160,pl=44,pr=10,pt=20,pb=30;
-  const w=W-pl-pr, h=H-pt-pb;
-  const meses=[1,2,3,4,5,6,7,8,9,10,11,12];
-  const satD  =meses.map(m=>todos[m]?getSatMedia(todos[m]):null);
-  const horasD=meses.map(m=>todos[m]?.controle_horas_pct??null);
-  const metaD =meses.map(m=>todos[m]?.meta_clientes_pct??null);
-
-  function pts(data, max) {
-    return data.map((v,i)=>{
-      if(v===null) return null;
-      const x=pl+(i/(meses.length-1))*w;
-      const y=pt+(1-Math.min(v,max)/max)*h;
-      return [x,y];
-    }).filter(Boolean);
-  }
-  function polyline(data,max,color) {
-    const p=pts(data,max); if(p.length<2) return '';
-    return `<polyline points="${p.map(([x,y])=>`${x},${y}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>
-      ${p.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5" fill="${color}"/>`).join('')}`;
-  }
-  function gridLines() {
-    return [0,25,50,75,100].map(v=>{
-      const y=pt+(1-v/100)*h;
-      return `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#E2E8F0" stroke-width="1"/>
-        <text x="${pl-4}" y="${y+4}" text-anchor="end" font-size="9" fill="#94A3B8">${v}</text>`;
-    }).join('');
-  }
-  const labels=meses.map((m,i)=>{
-    const x=pl+(i/(meses.length-1))*w;
-    return `<text x="${x}" y="${H-4}" text-anchor="middle" font-size="9" fill="#94A3B8">${MESES_ABREV[m]}</text>`;
+// KPIs do mês selecionado (um card por indicador, colorido por status)
+function renderDashKpis(d) {
+  const el=document.getElementById('dash-kpis');
+  if(!d){ el.innerHTML=`<div class="empty" style="grid-column:1/-1"><p>Sem lançamento no mês selecionado.</p></div>`; return; }
+  el.innerHTML=INDICADORES.filter(i=>i.ativo!==false).map(ind=>{
+    const val=ind.getValor(d);
+    const nota=avaliar(val,METAS_EQ[ind.key]);
+    const valTxt=(val===null||val===undefined||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
+    return `<div class="bi-kpi ${nota}">
+      <div class="bi-kpi-lbl">${ind.label}</div>
+      <div class="bi-kpi-val">${valTxt}</div>
+      ${badge(nota)}
+    </div>`;
   }).join('');
-
-  document.getElementById('svg-evolucao').innerHTML=`
-    ${gridLines()}
-    ${polyline(satD.map(v=>v!==null?v*10:null),100,'#C9A84C')}
-    ${polyline(horasD,150,'#1A2F4A')}
-    ${polyline(metaD,100,'#16A34A')}
-    ${labels}`;
 }
 
-function renderDashRanking(todos) {
-  const totais={};
-  CONSULTORAS.forEach(c=>{totais[c.key]={vendas:0,postagens:0,conhecimentos:0};});
-  Object.values(todos).forEach(d=>{
-    CONSULTORAS.forEach(c=>{
-      totais[c.key].vendas       +=(Number(d[c.key]?.vendas)||0);
-      totais[c.key].postagens    +=(Number(d[c.key]?.postagens)||0);
-      totais[c.key].conhecimentos+=(Number(d[c.key]?.conhecimentos)||0);
+// Um mini-gráfico de barras por indicador (evolução no ano + linha de meta)
+function renderDashCharts(todos) {
+  const meses=[1,2,3,4,5,6,7,8,9,10,11,12];
+  document.getElementById('dash-charts').innerHTML=INDICADORES.filter(i=>i.ativo!==false).map(ind=>{
+    const meta=METAS_EQ[ind.key];
+    const serie=meses.map(m=>{ const v=todos[m]?ind.getValor(todos[m]):null; return (v===null||v===undefined||v==='')?null:Number(v); });
+    const temDado=serie.some(v=>v!==null);
+    if(!temDado) return '';
+    const alvo = meta?(meta.tipo==='maior'?meta.ouro:meta.bronze):null;
+    const maxV=Math.max(...serie.filter(v=>v!==null), alvo||0, 1);
+    const W=680,H=150,pl=8,pr=8,pt=12,pb=20, w=W-pl-pr, h=H-pt-pb;
+    const bw=w/12*0.62, gap=w/12;
+    const barras=serie.map((v,i)=>{
+      const x=pl+i*gap+(gap-bw)/2;
+      if(v===null) return `<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="9" fill="#CBD5E1">${MESES_ABREV[i+1]}</text>`;
+      const bh=Math.max(2,(v/maxV)*h);
+      const y=pt+h-bh;
+      const nota=avaliar(v,meta);
+      const cor={Ouro:'#CA8A04',Prata:'#94A3B8',Bronze:'#B45309',Fora:'#DC2626','sem-dado':'#CBD5E1'}[nota]||'#1A2F4A';
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${cor}"/>
+        <text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="8.5" fill="#64748B">${ind.fmt&&ind.key!=='satisfacao'?String(v):(Math.round(v*100)/100)}</text>
+        <text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="9" fill="#94A3B8">${MESES_ABREV[i+1]}</text>`;
+    }).join('');
+    const linhaMeta = alvo!=null ? (()=>{ const y=pt+h-Math.min(alvo,maxV)/maxV*h; return `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#C9A84C" stroke-width="1.3" stroke-dasharray="5 4"/>`;})() : '';
+    return `<div class="bi-chart-card">
+      <div class="bi-chart-head"><span class="bi-chart-nome">${ind.label}</span>${meta?`<span class="bi-chart-meta">Meta ${meta.tipo==='maior'?'Ouro ≥':'Ouro ≤'} ${alvo}${meta.unit||''} · linha dourada</span>`:''}</div>
+      <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${linhaMeta}${barras}</svg>
+    </div>`;
+  }).join('') || `<div class="empty"><p>Sem dados no ano para os gráficos.</p></div>`;
+}
+
+// Tabela-resumo anual: meses × indicadores, célula colorida por status
+function renderDashTabela(todos, ano) {
+  const meses=[1,2,3,4,5,6,7,8,9,10,11,12].filter(m=>todos[m]);
+  const inds=INDICADORES.filter(i=>i.ativo!==false);
+  if(!meses.length){ document.getElementById('dash-tabela').innerHTML=''; return; }
+  const head=`<tr><th>Mês</th>${inds.map(i=>`<th>${i.label}</th>`).join('')}</tr>`;
+  const body=meses.map(m=>{
+    const d=todos[m];
+    const cels=inds.map(ind=>{
+      const v=ind.getValor(d);
+      const nota=avaliar(v,METAS_EQ[ind.key]);
+      const txt=(v===null||v===undefined||v==='')?'—':(ind.fmt?ind.fmt(v):String(v));
+      return `<td><span class="bi-cell ${nota}">${txt}</span></td>`;
+    }).join('');
+    return `<tr><td>${MESES_ABREV[m]}/${String(ano).slice(2)}</td>${cels}</tr>`;
+  }).join('');
+  document.getElementById('dash-tabela').innerHTML=`<table class="bi-tabela"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+// ── APRESENTAÇÃO PPT ──────────────────────────────────────────
+function detalhePPT(ind,d) {
+  const k=ind.key, out=[], nomes=s=>splitNomes(s).join(', ');
+  if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Executadas',d.horas_executadas]); }
+  else if(k==='satisfacao'){ (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).slice(0,6).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'').substring(0,140)])); }
+  else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
+  else if(k==='clientes_novos'&&d.clientes_novos_nomes)out.push(['Novos clientes',nomes(d.clientes_novos_nomes)]);
+  else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
+  else if(k==='clientes_excederam'&&d.clientes_excederam_nomes)out.push(['Excederam horas',nomes(d.clientes_excederam_nomes)]);
+  else if(k==='clientes_pendentes'&&d.clientes_pendentes_nomes)out.push(['Horas pendentes',nomes(d.clientes_pendentes_nomes)]);
+  else if(k==='clientes_negociacao'&&d.clientes_negociacao_nomes)out.push(['Em negociação',nomes(d.clientes_negociacao_nomes)]);
+  else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; CONSULTORAS.forEach(c=>out.push([c.nome,String(Number(d[c.key]?.[campo])||0)])); }
+  else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; out.push([c.nome, rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0))]);}); }
+  return out;
+}
+window.gerarPPT=async()=>{
+  if(typeof PptxGenJS==='undefined'){ toast('❌ Biblioteca de PPT não carregou'); return; }
+  const d=ultimoLancamento;
+  if(!d){ toast('Sem lançamento no mês selecionado'); return; }
+  const mes=parseInt(document.getElementById('sel-mes').value), ano=parseInt(document.getElementById('sel-ano').value);
+  const NAVY='1A2F4A', GOLD='C9A84C', WHITE='FFFFFF';
+  const statColor={Ouro:'CA8A04',Prata:'6B7280',Bronze:'B45309',Fora:'DC2626','sem-dado':'94A3B8'};
+  toast('⏳ Gerando apresentação...');
+  try {
+    const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE';
+    // Capa
+    let s=pptx.addSlide(); s.background={color:NAVY};
+    s.addText('falcikpi',{x:0.6,y:2.2,w:12,h:1,fontSize:54,bold:true,color:GOLD});
+    s.addText(`Relatório de Indicadores — ${SETOR_LABEL[setorAtual]}`,{x:0.6,y:3.5,w:12,h:0.6,fontSize:24,color:WHITE});
+    s.addText(`${MESES_NOME[mes]} / ${ano}`,{x:0.6,y:4.2,w:12,h:0.6,fontSize:20,color:'AAB4C4'});
+    // Um slide por indicador
+    INDICADORES.filter(i=>i.ativo!==false).forEach(ind=>{
+      const val=ind.getValor(d), nota=avaliar(val,METAS_EQ[ind.key]);
+      const valTxt=(val==null||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
+      const sl=pptx.addSlide(); sl.background={color:WHITE};
+      sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
+      sl.addText(ind.label,{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:26,bold:true,color:GOLD,valign:'middle'});
+      sl.addText(valTxt,{x:0.5,y:1.35,w:7,h:1,fontSize:42,bold:true,color:NAVY});
+      sl.addText(nota==='sem-dado'?'Sem dado':nota.toUpperCase(),{x:8,y:1.55,w:4.8,h:0.7,fontSize:20,bold:true,color:statColor[nota],align:'right'});
+      const det=detalhePPT(ind,d);
+      if(det.length){
+        const rows=det.map(([l,v])=>[{text:l,options:{bold:true,color:NAVY,fill:{color:'F1F5F9'}}},{text:v||'—',options:{color:'1E293B'}}]);
+        sl.addTable(rows,{x:0.5,y:2.6,w:12.3,colW:[3.4,8.9],fontSize:12,rowH:0.3,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
+      }
+      const planos=planosDoIndicador(ind.label,mes,ano);
+      if(planos.length){
+        const txt=planos.map(p=>`• ${p.o_que||''}${p.quem?'  ['+p.quem+']':''}${p.quando?' — '+p.quando:''}`).join('\n');
+        sl.addText('Plano de Ação',{x:0.5,y:6.5,w:12.3,h:0.3,fontSize:12,bold:true,color:GOLD});
+        sl.addText(txt,{x:0.5,y:6.8,w:12.3,h:0.6,fontSize:11,color:'475569'});
+      }
     });
-  });
-
-  ['vendas','postagens','conhecimentos'].forEach(ind=>{
-    const sorted=[...CONSULTORAS].sort((a,b)=>totais[b.key][ind]-totais[a.key][ind]);
-    const maxVal=Math.max(...sorted.map(c=>totais[c.key][ind]),1);
-    document.getElementById(`dash-rank-${ind}`).innerHTML=sorted.map((c,i)=>`
-      <div class="dash-rank-row">
-        <div class="dash-rank-pos">${i+1}°</div>
-        <div class="dash-rank-avatar">${c.ini}</div>
-        <div style="flex:1">
-          <div class="dash-rank-nome">${c.nome}</div>
-          <div class="dash-rank-bar-wrap"><div class="dash-rank-bar" style="width:${Math.round(totais[c.key][ind]/maxVal*100)}%"></div></div>
-        </div>
-        <div class="dash-rank-vals"><strong>${totais[c.key][ind]}</strong></div>
-      </div>`).join('');
-  });
-}
+    // Slide por pessoa
+    const sp=pptx.addSlide(); sp.background={color:WHITE};
+    sp.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
+    sp.addText(setorAtual==='comercial'?'Por Vendedora':'Por Consultora',{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:26,bold:true,color:GOLD,valign:'middle'});
+    const cols = setorAtual==='comercial'
+      ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
+      : ['Consultora','Vendas','Postagens','Conhecimentos'];
+    const th=cols.map(c=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY}}}));
+    const trs=CONSULTORAS.map(c=>{ const cd=d[c.key]||{};
+      return setorAtual==='comercial'
+        ? [c.nome, `R$ ${Number(cd.venda_consultoria||0).toLocaleString('pt-BR')}`, String(Number(cd.cursos_inscritos||0)), `R$ ${Number(cd.venda_palestras||0).toLocaleString('pt-BR')}`, String(Number(cd.cafes||0))]
+        : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0))];
+    });
+    sp.addTable([th,...trs],{x:0.5,y:1.5,w:12.3,fontSize:13,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',align:'center'});
+    await pptx.writeFile({fileName:`falcikpi_${setorAtual}_${MESES_ABREV[mes]}${ano}.pptx`});
+    toast('✅ Apresentação gerada!');
+  } catch(e){ toast('❌ Erro no PPT: '+e.message); }
+};
 
 // ── PLANOS ────────────────────────────────────────────────────
 async function carregarTodosPlanos() {
