@@ -616,6 +616,7 @@ const METAS_IND_PAD_CONSULTORIA = {
   vendas:        { label:'Vendas',              tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
   postagens:     { label:'Postagens',           tipo:'maior', bronze:8, prata:10,ouro:12, unit:'' },
   conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
+  satisfacao:    { label:'Satisfação (individual)', tipo:'maior', bronze:8, prata:9, ouro:10, unit:'' },
 };
 const METAS_IND_PAD_COMERCIAL = {}; // sem metas individuais nesta etapa
 
@@ -631,7 +632,7 @@ const METAS_EQ_PAD_CONSULTORIA = {
   clientes_finalizados: { label:'Clientes Finalizados', tipo:'menor', bronze:2, prata:1, ouro:0, unit:'' },
   clientes_excederam:   { label:'Horas Excedentes',     tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
   clientes_pendentes:   { label:'Horas Pendentes',      tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
-  clientes_iniciaram:   { label:'Clientes Iniciaram',   tipo:'maior', bronze:2, prata:4, ouro:6, unit:'' },
+  // Clientes Iniciaram é indicador informativo (contagem) — sem meta/badge por decisão do usuário
   clientes_negociacao:  { label:'Em Negociação',        tipo:'maior', bronze:1, prata:3, ouro:5, unit:'' },
 };
 const METAS_EQ_PAD_COMERCIAL = {
@@ -739,6 +740,7 @@ function planosDoIndicador(label, mes, ano) {
 
 // ── UTILS ─────────────────────────────────────────────────────
 function avaliar(val, meta) {
+  if (!meta) return 'sem-dado';
   if (val===null||val===undefined||val==='') return 'sem-dado';
   const v=Number(val); if(isNaN(v)) return 'sem-dado';
   if(meta.tipo==='maior') {
@@ -807,6 +809,7 @@ async function carregarMetas() {
   try {
     const si=await getDoc(doc(db,'config',docConfig('metas_ind'))); if(si.exists()) METAS_IND={...METAS_IND_PAD,...si.data()};
     const se=await getDoc(doc(db,'config',docConfig('metas_eq')));  if(se.exists()) METAS_EQ={...METAS_EQ_PAD,...se.data()};
+    if(setorAtual==='consultoria') delete METAS_EQ.clientes_iniciaram; // indicador informativo, sem meta
   }catch(e){}
 }
 
@@ -1155,7 +1158,7 @@ function renderIndicadoresList(d) {
         <div class="indicador-nome">${ind.label}</div>
         <div class="indicador-valores">
           <div class="indicador-val">${valTxt}</div>
-          ${badge(nota)}
+          ${meta?badge(nota):''}
         </div>
       </div>
       ${detalhe}
@@ -1235,7 +1238,7 @@ function renderConsultGrid(d) {
         {label:'Vendas',val:cd.vendas??'—',meta:METAS_IND.vendas},
         {label:'Postagens',val:cd.postagens??'—',meta:METAS_IND.postagens},
         {label:'Conhecimentos',val:cd.conhecimentos??'—',meta:METAS_IND.conhecimentos},
-        {label:'Satisfação',val:cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—',meta:METAS_EQ.satisfacao},
+        {label:'Satisfação',val:cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—',meta:METAS_IND.satisfacao},
       ];};
 
   document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>`
@@ -1410,7 +1413,7 @@ function renderDashKpis(d) {
     return `<div class="bi-kpi ${nota}">
       <div class="bi-kpi-lbl">${ind.label}</div>
       <div class="bi-kpi-val">${valTxt}</div>
-      ${badge(nota)}
+      ${METAS_EQ[ind.key]?badge(nota):''}
     </div>`;
   }).join('');
 }
@@ -1468,68 +1471,144 @@ function renderDashTabela(todos, ano) {
 // ── APRESENTAÇÃO PPT ──────────────────────────────────────────
 function detalhePPT(ind,d) {
   const k=ind.key, out=[], nomes=s=>splitNomes(s).join(', ');
-  if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Executadas',d.horas_executadas]); }
-  else if(k==='satisfacao'){ (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).slice(0,6).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'').substring(0,140)])); }
+  if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
+  else if(k==='satisfacao'){ const sm=getSatMedia(d); if(sm!=null)out.push(['Média da equipe',sm.toFixed(2)+(d.satisfacao_notas?.length?`  (${d.satisfacao_notas.length} avaliações)`:'')]); (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'—')])); }
   else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
+  else if(k==='clientes_iniciaram'){ if(d.clientes_iniciaram!=null)out.push(['Clientes atendidos no mês',String(d.clientes_iniciaram)]); }
   else if(k==='clientes_novos'&&d.clientes_novos_nomes)out.push(['Novos clientes',nomes(d.clientes_novos_nomes)]);
   else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
   else if(k==='clientes_excederam'&&d.clientes_excederam_nomes)out.push(['Excederam horas',nomes(d.clientes_excederam_nomes)]);
   else if(k==='clientes_pendentes'&&d.clientes_pendentes_nomes)out.push(['Horas pendentes',nomes(d.clientes_pendentes_nomes)]);
   else if(k==='clientes_negociacao'&&d.clientes_negociacao_nomes)out.push(['Em negociação',nomes(d.clientes_negociacao_nomes)]);
-  else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; CONSULTORAS.forEach(c=>out.push([c.nome,String(Number(d[c.key]?.[campo])||0)])); }
+  else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; const descC={vendas_eq:'vendas_desc',conhec_eq:'conhec_desc'}[k]; CONSULTORAS.forEach(c=>{const v=Number(d[c.key]?.[campo])||0; const desc=descC?(d[c.key]?.[descC]||''):''; out.push([c.nome, desc?`${v} — ${desc}`:String(v)]);}); }
   else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; out.push([c.nome, rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0))]);}); }
   return out;
+}
+// Série anual de um indicador -> texto "Jan 2 · Fev 4 · ..."
+function evoLinhaPPT(ind, todosAno){
+  const parts=[];
+  for(let m=1;m<=12;m++){ const dd=todosAno[m]; if(!dd)continue; const v=ind.getValor(dd); if(v==null||v==='')continue; parts.push(`${MESES_ABREV[m]} ${ind.fmt?ind.fmt(v):v}`); }
+  return parts.join('   ·   ');
 }
 window.gerarPPT=async()=>{
   if(typeof PptxGenJS==='undefined'){ toast('❌ Biblioteca de PPT não carregou'); return; }
   const d=ultimoLancamento;
   if(!d){ toast('Sem lançamento no mês selecionado'); return; }
   const mes=parseInt(document.getElementById('sel-mes').value), ano=parseInt(document.getElementById('sel-ano').value);
-  const NAVY='1A2F4A', GOLD='C9A84C', WHITE='FFFFFF';
+  const NAVY='1A2F4A', GOLD='C9A84C', WHITE='FFFFFF', SLATE='475569', LIGHT='F1F5F9';
   const statColor={Ouro:'CA8A04',Prata:'6B7280',Bronze:'B45309',Fora:'DC2626','sem-dado':'94A3B8'};
+  const statLabel={Ouro:'🥇 OURO',Prata:'🥈 PRATA',Bronze:'🥉 BRONZE',Fora:'⚠️ FORA','sem-dado':'—'};
   toast('⏳ Gerando apresentação...');
   try {
+    // Carrega o ano inteiro para a evolução e o resumo
+    const todosAno={};
+    try { const snap=await getDocs(query(collection(db,colLancamentos()),where('ano','==',ano))); snap.docs.forEach(x=>{const dt=x.data();todosAno[dt.mes]=dt;}); } catch(e){}
+    const inds=INDICADORES.filter(i=>i.ativo!==false);
+    const hoje=new Date().toLocaleDateString('pt-BR');
+
     const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE';
-    // Capa
+    pptx.defineSlideMaster({ title:'FALCI', background:{color:WHITE},
+      objects:[{text:{text:'Falcioni Consultoria · falcikpi',options:{x:0.5,y:7.05,w:8,h:0.3,fontSize:9,color:'94A3B8'}}}] });
+    // cabeçalho navy padrão
+    const header=(sl,titulo)=>{ sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
+      sl.addShape(pptx.ShapeType.rect,{x:0,y:1.05,w:13.33,h:0.06,fill:{color:GOLD}});
+      sl.addText(titulo,{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:25,bold:true,color:GOLD,valign:'middle'}); };
+
+    // ── CAPA ──
     let s=pptx.addSlide(); s.background={color:NAVY};
-    s.addText('falcikpi',{x:0.6,y:2.2,w:12,h:1,fontSize:54,bold:true,color:GOLD});
-    s.addText(`Relatório de Indicadores — ${SETOR_LABEL[setorAtual]}`,{x:0.6,y:3.5,w:12,h:0.6,fontSize:24,color:WHITE});
-    s.addText(`${MESES_NOME[mes]} / ${ano}`,{x:0.6,y:4.2,w:12,h:0.6,fontSize:20,color:'AAB4C4'});
-    // Um slide por indicador
-    INDICADORES.filter(i=>i.ativo!==false).forEach(ind=>{
-      const val=ind.getValor(d), nota=avaliar(val,METAS_EQ[ind.key]);
+    s.addShape(pptx.ShapeType.rect,{x:0,y:3.05,w:5,h:0.07,fill:{color:GOLD}});
+    s.addText('falcikpi',{x:0.6,y:1.9,w:12,h:1,fontSize:56,bold:true,color:GOLD});
+    s.addText(`Relatório de Indicadores de Desempenho`,{x:0.6,y:3.25,w:12,h:0.6,fontSize:24,color:WHITE});
+    s.addText(`${SETOR_LABEL[setorAtual]}  ·  ${MESES_NOME[mes]} / ${ano}`,{x:0.6,y:4.0,w:12,h:0.6,fontSize:20,color:'AAB4C4'});
+    s.addText(`Falcioni Consultoria  ·  gerado em ${hoje}`,{x:0.6,y:6.7,w:12,h:0.4,fontSize:12,color:'6B7A90'});
+
+    // ── RESUMO EXECUTIVO ──
+    const rs=pptx.addSlide(); rs.background={color:WHITE}; header(rs,'Resumo Executivo');
+    const tally={Ouro:0,Prata:0,Bronze:0,Fora:0,'sem-dado':0};
+    inds.forEach(ind=>{ const m=METAS_EQ[ind.key]; if(!m)return; const n=avaliar(ind.getValor(d),m); if(tally[n]!=null)tally[n]++; });
+    const pills=[['Ouro',tally.Ouro],['Prata',tally.Prata],['Bronze',tally.Bronze],['Fora',tally.Fora]];
+    pills.forEach(([k,v],i)=>{ const x=0.5+i*3.15;
+      rs.addShape(pptx.ShapeType.roundRect,{x,y:1.45,w:2.9,h:1.1,fill:{color:LIGHT},line:{color:statColor[k],width:1.5},rectRadius:0.08});
+      rs.addText(String(v),{x,y:1.55,w:2.9,h:0.6,fontSize:30,bold:true,color:statColor[k],align:'center'});
+      rs.addText(statLabel[k],{x,y:2.15,w:2.9,h:0.35,fontSize:12,bold:true,color:SLATE,align:'center'}); });
+    const rrows=[[{text:'Indicador',options:{bold:true,color:WHITE,fill:{color:NAVY}}},{text:'Valor',options:{bold:true,color:WHITE,fill:{color:NAVY},align:'center'}},{text:'Status',options:{bold:true,color:WHITE,fill:{color:NAVY},align:'center'}}]];
+    inds.forEach((ind,i)=>{ const val=ind.getValor(d), m=METAS_EQ[ind.key], n=avaliar(val,m);
       const valTxt=(val==null||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
-      const sl=pptx.addSlide(); sl.background={color:WHITE};
-      sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
-      sl.addText(ind.label,{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:26,bold:true,color:GOLD,valign:'middle'});
-      sl.addText(valTxt,{x:0.5,y:1.35,w:7,h:1,fontSize:42,bold:true,color:NAVY});
-      sl.addText(nota==='sem-dado'?'Sem dado':nota.toUpperCase(),{x:8,y:1.55,w:4.8,h:0.7,fontSize:20,bold:true,color:statColor[nota],align:'right'});
+      const fill=i%2?'FFFFFF':'F8FAFC';
+      rrows.push([{text:ind.label,options:{color:'1E293B',fill:{color:fill}}},{text:valTxt,options:{color:NAVY,bold:true,align:'center',fill:{color:fill}}},{text:m?statLabel[n]:'—',options:{color:statColor[n],bold:true,align:'center',fill:{color:fill}}}]); });
+    rs.addTable(rrows,{x:0.5,y:2.85,w:12.3,colW:[6.9,2.7,2.7],fontSize:12,rowH:0.28,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
+
+    // ── UM SLIDE POR INDICADOR ──
+    inds.forEach(ind=>{
+      const m=METAS_EQ[ind.key];
+      const val=ind.getValor(d), nota=avaliar(val,m);
+      const valTxt=(val==null||val==='')?'—':(ind.fmt?ind.fmt(val):String(val));
+      const sl=pptx.addSlide(); sl.background={color:WHITE}; header(sl,ind.label);
+      sl.addText(valTxt,{x:0.5,y:1.3,w:6.5,h:1,fontSize:44,bold:true,color:NAVY});
+      if(m) sl.addText(statLabel[nota],{x:6.9,y:1.5,w:5.9,h:0.7,fontSize:22,bold:true,color:statColor[nota],align:'right'});
+      // faixa de metas Bronze/Prata/Ouro
+      if(m){ const degraus=[['Bronze',m.bronze,'B45309'],['Prata',m.prata,'6B7280'],['Ouro',m.ouro,'CA8A04']];
+        degraus.forEach(([lb,vl,cor],i)=>{ const x=6.9+i*1.97;
+          sl.addShape(pptx.ShapeType.roundRect,{x,y:2.25,w:1.85,h:0.55,fill:{color:LIGHT},line:{color:cor,width:1},rectRadius:0.05});
+          sl.addText(`${lb}: ${vl}${m.unit||''}`,{x,y:2.25,w:1.85,h:0.55,fontSize:11,bold:true,color:cor,align:'center',valign:'middle'}); }); }
       const det=detalhePPT(ind,d);
+      let yPlano=6.3;
       if(det.length){
-        const rows=det.map(([l,v])=>[{text:l,options:{bold:true,color:NAVY,fill:{color:'F1F5F9'}}},{text:v||'—',options:{color:'1E293B'}}]);
-        sl.addTable(rows,{x:0.5,y:2.6,w:12.3,colW:[3.4,8.9],fontSize:12,rowH:0.3,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
+        const rows=det.map(([l,v])=>[{text:l,options:{bold:true,color:NAVY,fill:{color:LIGHT}}},{text:v||'—',options:{color:'1E293B'}}]);
+        sl.addTable(rows,{x:0.5,y:3.05,w:12.3,colW:[3.4,8.9],fontSize:12,rowH:0.3,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
       }
+      // evolução no ano
+      const evo=evoLinhaPPT(ind,todosAno);
+      if(evo){ sl.addText([{text:'Evolução no ano:  ',options:{bold:true,color:GOLD}},{text:evo,options:{color:SLATE}}],{x:0.5,y:yPlano,w:12.3,h:0.35,fontSize:11}); yPlano+=0.45; }
+      // plano de ação
       const planos=planosDoIndicador(ind.label,mes,ano);
       if(planos.length){
-        const txt=planos.map(p=>`• ${p.o_que||''}${p.quem?'  ['+p.quem+']':''}${p.quando?' — '+p.quando:''}`).join('\n');
-        sl.addText('Plano de Ação',{x:0.5,y:6.5,w:12.3,h:0.3,fontSize:12,bold:true,color:GOLD});
-        sl.addText(txt,{x:0.5,y:6.8,w:12.3,h:0.6,fontSize:11,color:'475569'});
+        const txt=planos.map(p=>`• ${p.o_que||''}${p.quem?'   👤 '+p.quem:''}${p.quando?'   📅 '+p.quando:''}`).join('\n');
+        sl.addShape(pptx.ShapeType.roundRect,{x:0.5,y:yPlano,w:12.3,h:0.9,fill:{color:'FEF9EC'},line:{color:GOLD,width:1},rectRadius:0.05});
+        sl.addText([{text:'Plano de Ação\n',options:{bold:true,color:'B45309',fontSize:12}},{text:txt,options:{color:SLATE,fontSize:11}}],{x:0.7,y:yPlano+0.08,w:11.9,h:0.75,valign:'top'});
       }
     });
-    // Slide por pessoa
-    const sp=pptx.addSlide(); sp.background={color:WHITE};
-    sp.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
-    sp.addText(setorAtual==='comercial'?'Por Vendedora':'Por Consultora',{x:0.5,y:0.15,w:12.3,h:0.75,fontSize:26,bold:true,color:GOLD,valign:'middle'});
+
+    // ── EVOLUÇÃO ANUAL (meses × indicadores) ──
+    const mm=[]; for(let m2=1;m2<=12;m2++) if(todosAno[m2]) mm.push(m2);
+    if(mm.length){
+      const ev=pptx.addSlide(); ev.background={color:WHITE}; header(ev,`Evolução Anual · ${ano}`);
+      const head=[{text:'Indicador',options:{bold:true,color:WHITE,fill:{color:NAVY},fontSize:10}},...mm.map(m2=>({text:MESES_ABREV[m2],options:{bold:true,color:WHITE,fill:{color:NAVY},align:'center',fontSize:10}}))];
+      const body=inds.map((ind,i)=>{ const fill=i%2?'FFFFFF':'F8FAFC';
+        return [{text:ind.label,options:{color:'1E293B',fill:{color:fill},fontSize:9.5}},...mm.map(m2=>{ const dd=todosAno[m2]; const v=ind.getValor(dd); const n=avaliar(v,METAS_EQ[ind.key]); const t=(v==null||v==='')?'—':(ind.fmt?ind.fmt(v):String(v)); return {text:t,options:{color:statColor[n]||'1E293B',bold:n!=='sem-dado',align:'center',fill:{color:fill},fontSize:9}};})]; });
+      ev.addTable([head,...body],{x:0.4,y:1.35,w:12.5,fontSize:9,rowH:0.26,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
+    }
+
+    // ── POR PESSOA ──
+    const sp=pptx.addSlide(); sp.background={color:WHITE}; header(sp,setorAtual==='comercial'?'Por Vendedora':'Por Consultora');
     const cols = setorAtual==='comercial'
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
       : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação'];
-    const th=cols.map(c=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY}}}));
-    const trs=CONSULTORAS.map(c=>{ const cd=d[c.key]||{};
-      return setorAtual==='comercial'
+    const th=cols.map((c,i)=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY},align:i?'center':'left'}}));
+    const trs=CONSULTORAS.map((c,idx)=>{ const cd=d[c.key]||{}; const fill=idx%2?'FFFFFF':'F8FAFC';
+      const cells = setorAtual==='comercial'
         ? [c.nome, `R$ ${Number(cd.venda_consultoria||0).toLocaleString('pt-BR')}`, String(Number(cd.cursos_inscritos||0)), `R$ ${Number(cd.venda_palestras||0).toLocaleString('pt-BR')}`, String(Number(cd.cafes||0))]
         : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0)), cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—'];
+      return cells.map((t,i)=>({text:t,options:{color:i?'1E293B':NAVY,bold:i===0,align:i?'center':'left',fill:{color:fill}}}));
     });
-    sp.addTable([th,...trs],{x:0.5,y:1.5,w:12.3,fontSize:13,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',align:'center'});
+    sp.addTable([th,...trs],{x:0.5,y:1.4,w:12.3,fontSize:13,rowH:0.4,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle'});
+
+    // ── PLANOS DE AÇÃO (consolidado) ──
+    const planosMes=todosPlanos.filter(p=>p.mes===mes&&p.ano===ano);
+    if(planosMes.length){
+      const pl=pptx.addSlide(); pl.background={color:WHITE}; header(pl,'Planos de Ação do Mês');
+      const ph=['Indicador','O quê?','Quem','Quando'].map((c,i)=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY},align:i>=2?'center':'left'}}));
+      const pr=planosMes.map((p,idx)=>{ const fill=idx%2?'FFFFFF':'F8FAFC';
+        return [{text:canonIndicador(p.indicador)||'—',options:{color:NAVY,bold:true,fill:{color:fill}}},{text:p.o_que||'—',options:{color:'1E293B',fill:{color:fill}}},{text:p.quem||'—',options:{color:SLATE,align:'center',fill:{color:fill}}},{text:p.quando||'—',options:{color:SLATE,align:'center',fill:{color:fill}}}]; });
+      pl.addTable([ph,...pr],{x:0.5,y:1.4,w:12.3,colW:[3,5.3,2,2],fontSize:11,rowH:0.3,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
+    }
+
+    // ── ENCERRAMENTO ──
+    const fim=pptx.addSlide(); fim.background={color:NAVY};
+    fim.addShape(pptx.ShapeType.rect,{x:0,y:3.6,w:4,h:0.07,fill:{color:GOLD}});
+    fim.addText('Obrigado!',{x:0.6,y:2.6,w:12,h:1,fontSize:48,bold:true,color:GOLD});
+    fim.addText('Falcioni Consultoria  ·  falcikpi',{x:0.6,y:3.8,w:12,h:0.5,fontSize:18,color:'AAB4C4'});
+
     await pptx.writeFile({fileName:`falcikpi_${setorAtual}_${MESES_ABREV[mes]}${ano}.pptx`});
     toast('✅ Apresentação gerada!');
   } catch(e){ toast('❌ Erro no PPT: '+e.message); }
