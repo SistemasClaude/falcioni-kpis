@@ -1,4 +1,4 @@
-const CACHE = 'falcioni-kpis-v14';
+const CACHE = 'falcioni-kpis-v15';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
