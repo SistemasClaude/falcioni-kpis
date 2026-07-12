@@ -370,15 +370,16 @@
       <div class="lanc-section-body">
         <div class="form-row" style="margin-top:12px">
           <div class="form-group"><label>Mês</label>
-            <select id="l-mes">
+            <select id="l-mes" onchange="carregarParaEditarSeExistir()">
               <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
               <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
               <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
               <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
             </select>
           </div>
-          <div class="form-group"><label>Ano</label><input type="number" id="l-ano" value="2026" min="2024" max="2030"></div>
+          <div class="form-group"><label>Ano</label><input type="number" id="l-ano" value="2026" min="2024" max="2030" onchange="carregarParaEditarSeExistir()"></div>
         </div>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:8px" id="lancar-modo-aviso">Novo lançamento — se já existir dado salvo para este mês, ele será carregado aqui para edição.</p>
       </div>
     </div>
 
@@ -979,6 +980,94 @@ function calcSatMedia() {
   el.innerHTML=`Média: <strong>${m.toFixed(2)}</strong> &nbsp;${badge(n)}&nbsp; <span style="color:var(--muted);font-size:.76rem">(${vals.length} avaliação${vals.length>1?'ões':''})</span>`;
   return m;
 }
+
+// ── CARREGAR PARA EDIÇÃO (Lançar mês já salvo) ──────────────────
+function limparFormLancar() {
+  const ehConsultoria = setorAtual==='consultoria';
+  const setVal=(id,v='')=>{const el=document.getElementById(id); if(el) el.value=v;};
+  if(ehConsultoria) {
+    ['l-horas-prev','l-horas-exec','l-iniciaram','l-clientes','l-novos-nomes','l-finalizados','l-finalizados-nomes',
+     'l-excederam','l-excederam-nomes','l-pendentes','l-pendentes-nomes','l-negociacao','l-negociacao-nomes',
+     'l-meta-qtd','l-total-cli','l-meta-nomes','dt-consultoria'].forEach(id=>setVal(id));
+    document.getElementById('controle-horas-live').innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';
+    CONSULTORAS.forEach(c=>{
+      setVal(`dt-${c.key}`);
+      setVal(`l-${c.key}-vendas`); setVal(`l-${c.key}-vendas-desc`); setVal(`l-${c.key}-postagens`);
+      setVal(`l-${c.key}-satisfacao`); setVal(`l-${c.key}-conhecimentos`); setVal(`l-${c.key}-conhec-desc`);
+    });
+  } else {
+    setVal('l-com-ocorrencias');
+    CONSULTORAS.forEach(c=>{
+      ['venda_consultoria','venda_palestras','cursos_inscritos','cursos_valor','cafes'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
+    });
+  }
+  satNotas=[]; satIdCounter=0;
+  document.getElementById('sat-lista').innerHTML='';
+  document.getElementById('sat-media-live').textContent='Adicione notas para ver a média';
+}
+
+function preencherFormLancar(d) {
+  const ehConsultoria = setorAtual==='consultoria';
+  const setVal=(id,v)=>{const el=document.getElementById(id); if(el) el.value=(v===null||v===undefined)?'':v;};
+  if(ehConsultoria) {
+    setVal('l-horas-prev',d.horas_previstas); setVal('l-horas-exec',d.horas_executadas);
+    setVal('l-iniciaram',d.clientes_iniciaram);
+    setVal('l-clientes',d.clientes_novos); setVal('l-novos-nomes',d.clientes_novos_nomes);
+    setVal('l-finalizados',d.clientes_finalizados); setVal('l-finalizados-nomes',d.clientes_finalizados_nomes);
+    setVal('l-excederam',d.clientes_excederam); setVal('l-excederam-nomes',d.clientes_excederam_nomes);
+    setVal('l-pendentes',d.clientes_pendentes); setVal('l-pendentes-nomes',d.clientes_pendentes_nomes);
+    setVal('l-negociacao',d.clientes_negociacao); setVal('l-negociacao-nomes',d.clientes_negociacao_nomes);
+    setVal('l-meta-qtd',d.meta_clientes_qtd); setVal('l-total-cli',d.total_clientes); setVal('l-meta-nomes',d.meta_clientes_nomes);
+    setVal('dt-consultoria',d.destaque_consultoria);
+    atualizarControleHoras();
+    CONSULTORAS.forEach(c=>{
+      const cd=d[c.key]||{};
+      setVal(`l-${c.key}-vendas`,cd.vendas); setVal(`l-${c.key}-vendas-desc`,cd.vendas_desc);
+      setVal(`l-${c.key}-postagens`,cd.postagens); setVal(`l-${c.key}-satisfacao`,cd.satisfacao);
+      setVal(`l-${c.key}-conhecimentos`,cd.conhecimentos); setVal(`l-${c.key}-conhec-desc`,cd.conhec_desc);
+    });
+    (d.destaques||[]).forEach(dt=>setVal(`dt-${dt.consultora}`,dt.texto));
+  } else {
+    setVal('l-com-ocorrencias',d.com_ocorrencias);
+    CONSULTORAS.forEach(c=>{
+      const cd=d[c.key]||{};
+      ['venda_consultoria','venda_palestras','cursos_inscritos','cursos_valor','cafes'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
+    });
+  }
+  // Reconstrói a lista de notas de satisfação (nomeadas + anônimas, a partir do que foi salvo)
+  const clientes=(d.satisfacao_clientes||[]).map(c=>({nota:c.nota,cliente:c.cliente}));
+  const restantes=(d.satisfacao_notas||[]).slice();
+  clientes.forEach(c=>{const idx=restantes.indexOf(c.nota); if(idx>-1) restantes.splice(idx,1);});
+  [...clientes, ...restantes.map(v=>({nota:v,cliente:''}))].forEach(s=>{
+    window.addNotaSat();
+    const id=satNotas[satNotas.length-1].id;
+    const row=document.getElementById(`sat-row-${id}`);
+    row.querySelector('.nota-num').value=s.nota??'';
+    row.querySelector('.nota-cli').value=s.cliente||'';
+    window.atualizarSat(id,'nota',s.nota??'');
+    window.atualizarSat(id,'cliente',s.cliente||'');
+  });
+}
+
+window.carregarParaEditarSeExistir=async()=>{
+  const mes=parseInt(document.getElementById('l-mes').value);
+  const ano=parseInt(document.getElementById('l-ano').value);
+  const aviso=document.getElementById('lancar-modo-aviso');
+  if(!mes||!ano) return;
+  limparFormLancar();
+  if(aviso) aviso.textContent='Verificando lançamento existente...';
+  try {
+    const snap=await getDocs(query(collection(db,colLancamentos()),where('mes','==',mes),where('ano','==',ano)));
+    if(!snap.empty) {
+      preencherFormLancar(snap.docs[0].data());
+      if(aviso) aviso.innerHTML=`✏️ <strong>Editando</strong> lançamento já salvo de ${MESES_NOME[mes]}/${ano} — altere os campos e clique em Salvar para atualizar.`;
+    } else if(aviso) {
+      aviso.textContent=`Novo lançamento para ${MESES_NOME[mes]}/${ano} — nenhum dado salvo ainda para este mês.`;
+    }
+  } catch(e) {
+    if(aviso) aviso.textContent='Erro ao verificar lançamento existente: '+e.message;
+  }
+};
 
 // ── CARREGAR DADOS ────────────────────────────────────────────
 window.carregarDados=async()=>{
@@ -1599,6 +1688,7 @@ window.showTab=(tab,btn)=>{
   if(btn) btn.classList.add('active'); else document.querySelector('.tab-btn').classList.add('active');
   if(tab==='historico') carregarHistorico(parseInt(document.getElementById('sel-ano').value));
   if(tab==='dashboard') carregarDashboard();
+  if(tab==='lancar') carregarParaEditarSeExistir();
 };
 
 // ── CONFIG ────────────────────────────────────────────────────
