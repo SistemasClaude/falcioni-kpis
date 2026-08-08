@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>falcikpi</title>
+  <title>Falcikpi</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1A2F4A">
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -261,7 +261,7 @@
 <!-- SPLASH -->
 <div id="splash">
   <img src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
-  <h1>falcikpi</h1>
+  <h1>Falcikpi</h1>
   <p>Sistema de Indicadores</p>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
 </div>
@@ -269,7 +269,7 @@
 <!-- LOGIN -->
 <div id="screen-login">
   <img class="logo-login" src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
-  <h1>falcikpi</h1>
+  <h1>Falcikpi</h1>
   <p class="sub">Sistema de Indicadores de Desempenho</p>
   <div class="setor-grid">
     <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
@@ -288,7 +288,7 @@
 <div id="screen-app">
   <div class="app-header">
     <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
-    <div class="info"><h2>falcikpi</h2><span id="app-setor-label">Consultoria</span></div>
+    <div class="info"><h2>Falcikpi</h2><span id="app-setor-label">Consultoria</span></div>
     <div class="mes-sel">
       <select id="sel-mes" onchange="carregarDados()">
         <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
@@ -411,10 +411,6 @@
           <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
           <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
           <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
-          <div class="form-row">
-            <div class="form-group"><label>Em Negociação (qtd)</label><input type="number" id="l-negociacao" placeholder="0" min="0"></div>
-            <div class="form-group"><label>Em Negociação — Nomes</label><input type="text" id="l-negociacao-nomes" placeholder="Ex: Leão Sampaio..."></div>
-          </div>
         </div>
       </div>
 
@@ -569,7 +565,7 @@
       <div class="form-group"><label>Ano</label><input type="number" id="p-ano" value="2026" min="2024" max="2030"></div>
     </div>
     <div class="form-group"><label>Indicador</label>
-      <select id="p-indicador"><option>Controle de Horas</option><option>Satisfação</option><option>Meta Clientes</option><option>Vendas Equipe</option><option>Postagens Equipe</option><option>Conh. Equipe</option><option>Clientes Iniciaram</option><option>Clientes Novos</option><option>Clientes Finalizados</option><option>Horas Excedentes</option><option>Horas Pendentes</option><option>Em Negociação</option><option>Outro</option></select>
+      <select id="p-indicador"><option>Controle de Horas</option><option>Satisfação</option><option>Meta Clientes</option><option>Vendas Equipe</option><option>Postagens Equipe</option><option>Conh. Equipe</option><option>Clientes Iniciaram</option><option>Clientes Novos</option><option>Clientes Finalizados</option><option>Horas Excedentes</option><option>Horas Pendentes</option><option>Outro</option></select>
     </div>
     <div class="form-group"><label>O que?</label><textarea id="p-oque" rows="2" placeholder="Descreva a ação..."></textarea></div>
     <div class="form-row">
@@ -634,7 +630,6 @@ const METAS_EQ_PAD_CONSULTORIA = {
   clientes_excederam:   { label:'Horas Excedentes',     tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
   clientes_pendentes:   { label:'Horas Pendentes',      tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
   // Clientes Iniciaram é indicador informativo (contagem) — sem meta/badge por decisão do usuário
-  clientes_negociacao:  { label:'Em Negociação',        tipo:'maior', bronze:1, prata:3, ouro:5, unit:'' },
 };
 const METAS_EQ_PAD_COMERCIAL = {
   // Bronze de venda_consultoria/venda_palestras/cafes e Ouro de ocorrencias/satisfacao vêm da planilha "Base Metas" (dado real);
@@ -692,7 +687,6 @@ const INDICADORES_CONSULTORIA = [
   { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
   { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
   { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
-  { key:'clientes_negociacao',  label:'Em Negociação',        getValor:d=>d.clientes_negociacao, getNomes:d=>d.clientes_negociacao_nomes },
 ];
 // Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
 function somaVend(d, campo, totalFallback){
@@ -1004,7 +998,7 @@ function limparFormLancar() {
   const setVal=(id,v='')=>{const el=document.getElementById(id); if(el) el.value=v;};
   if(ehConsultoria) {
     ['l-horas-prev','l-horas-exec','l-iniciaram','l-clientes','l-novos-nomes','l-finalizados','l-finalizados-nomes',
-     'l-excederam','l-excederam-nomes','l-pendentes','l-pendentes-nomes','l-negociacao','l-negociacao-nomes',
+     'l-excederam','l-excederam-nomes','l-pendentes','l-pendentes-nomes',
      'l-meta-qtd','l-total-cli','l-meta-nomes','dt-consultoria'].forEach(id=>setVal(id));
     document.getElementById('controle-horas-live').innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';
     CONSULTORAS.forEach(c=>{
@@ -1033,7 +1027,6 @@ function preencherFormLancar(d) {
     setVal('l-finalizados',d.clientes_finalizados); setVal('l-finalizados-nomes',d.clientes_finalizados_nomes);
     setVal('l-excederam',d.clientes_excederam); setVal('l-excederam-nomes',d.clientes_excederam_nomes);
     setVal('l-pendentes',d.clientes_pendentes); setVal('l-pendentes-nomes',d.clientes_pendentes_nomes);
-    setVal('l-negociacao',d.clientes_negociacao); setVal('l-negociacao-nomes',d.clientes_negociacao_nomes);
     setVal('l-meta-qtd',d.meta_clientes_qtd); setVal('l-total-cli',d.total_clientes); setVal('l-meta-nomes',d.meta_clientes_nomes);
     setVal('dt-consultoria',d.destaque_consultoria);
     atualizarControleHoras();
@@ -1139,7 +1132,6 @@ function detalheIndicador(ind,d) {
   } else if(k==='clientes_finalizados'){ const r=detNomes('Clientes finalizados', d.clientes_finalizados_nomes); if(r) rows.push(r);
   } else if(k==='clientes_excederam'){ const r=detNomes('Clientes que excederam horas', d.clientes_excederam_nomes); if(r) rows.push(r);
   } else if(k==='clientes_pendentes'){ const r=detNomes('Clientes com horas pendentes', d.clientes_pendentes_nomes); if(r) rows.push(r);
-  } else if(k==='clientes_negociacao'){ const r=detNomes('Em negociação', d.clientes_negociacao_nomes); if(r) rows.push(r);
   } else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){
     const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k];
     const linhas=CONSULTORAS.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
@@ -1350,8 +1342,6 @@ window.salvarLancamento=()=>{
       clientes_excederam_nomes: strOuNull('l-excederam-nomes'),
       clientes_pendentes:       numOuNull('l-pendentes'),
       clientes_pendentes_nomes: strOuNull('l-pendentes-nomes'),
-      clientes_negociacao:      numOuNull('l-negociacao'),
-      clientes_negociacao_nomes:strOuNull('l-negociacao-nomes'),
       meta_clientes_qtd: metaQtd,
       total_clientes:    totalCli,
       meta_clientes_pct: metaPct,
@@ -1499,7 +1489,6 @@ function detalhePPT(ind,d) {
   else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
   else if(k==='clientes_excederam'&&d.clientes_excederam_nomes)out.push(['Excederam horas',nomes(d.clientes_excederam_nomes)]);
   else if(k==='clientes_pendentes'&&d.clientes_pendentes_nomes)out.push(['Horas pendentes',nomes(d.clientes_pendentes_nomes)]);
-  else if(k==='clientes_negociacao'&&d.clientes_negociacao_nomes)out.push(['Em negociação',nomes(d.clientes_negociacao_nomes)]);
   else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; const descC={vendas_eq:'vendas_desc',conhec_eq:'conhec_desc'}[k]; CONSULTORAS.forEach(c=>{const v=Number(d[c.key]?.[campo])||0; const desc=descC?(d[c.key]?.[descC]||''):''; out.push([c.nome, desc?`${v} — ${desc}`:String(v)]);}); }
   else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; const desc=(d[c.key]?.[campoDesc]||'').trim(); const lk=(k==='cafes')?linkSeguro(d[c.key]?.cafes_link):null; const vt=rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0)); out.push([c.nome, (desc?`${vt} — ${desc}`:vt)+(lk?`   ·   planilha: ${lk}`:'')]);}); }
   return out;
@@ -1528,7 +1517,7 @@ window.gerarPPT=async()=>{
 
     const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE';
     pptx.defineSlideMaster({ title:'FALCI', background:{color:WHITE},
-      objects:[{text:{text:'Falcioni Consultoria · falcikpi',options:{x:0.5,y:7.05,w:8,h:0.3,fontSize:9,color:'94A3B8'}}}] });
+      objects:[{text:{text:'Falcioni Consultoria · Falcikpi',options:{x:0.5,y:7.05,w:8,h:0.3,fontSize:9,color:'94A3B8'}}}] });
     // cabeçalho navy padrão
     const header=(sl,titulo)=>{ sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
       sl.addShape(pptx.ShapeType.rect,{x:0,y:1.05,w:13.33,h:0.06,fill:{color:GOLD}});
@@ -1537,7 +1526,7 @@ window.gerarPPT=async()=>{
     // ── CAPA ──
     let s=pptx.addSlide(); s.background={color:NAVY};
     s.addShape(pptx.ShapeType.rect,{x:0,y:3.05,w:5,h:0.07,fill:{color:GOLD}});
-    s.addText('falcikpi',{x:0.6,y:1.9,w:12,h:1,fontSize:56,bold:true,color:GOLD});
+    s.addText('Falcikpi',{x:0.6,y:1.9,w:12,h:1,fontSize:56,bold:true,color:GOLD});
     s.addText(`Relatório de Indicadores de Desempenho`,{x:0.6,y:3.25,w:12,h:0.6,fontSize:24,color:WHITE});
     s.addText(`${SETOR_LABEL[setorAtual]}  ·  ${MESES_NOME[mes]} / ${ano}`,{x:0.6,y:4.0,w:12,h:0.6,fontSize:20,color:'AAB4C4'});
     s.addText(`Falcioni Consultoria  ·  gerado em ${hoje}`,{x:0.6,y:6.7,w:12,h:0.4,fontSize:12,color:'6B7A90'});
@@ -1627,7 +1616,7 @@ window.gerarPPT=async()=>{
     const fim=pptx.addSlide(); fim.background={color:NAVY};
     fim.addShape(pptx.ShapeType.rect,{x:0,y:3.6,w:4,h:0.07,fill:{color:GOLD}});
     fim.addText('Obrigado!',{x:0.6,y:2.6,w:12,h:1,fontSize:48,bold:true,color:GOLD});
-    fim.addText('Falcioni Consultoria  ·  falcikpi',{x:0.6,y:3.8,w:12,h:0.5,fontSize:18,color:'AAB4C4'});
+    fim.addText('Falcioni Consultoria  ·  Falcikpi',{x:0.6,y:3.8,w:12,h:0.5,fontSize:18,color:'AAB4C4'});
 
     await pptx.writeFile({fileName:`falcikpi_${setorAtual}_${MESES_ABREV[mes]}${ano}.pptx`});
     toast('✅ Apresentação gerada!');
