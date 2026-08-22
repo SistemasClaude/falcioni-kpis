@@ -467,18 +467,7 @@
       <button class="htog-btn" onclick="switchHist('diario',this)">📋 Lançamentos</button>
     </div>
     <div id="hist-mensal">
-      <div class="hist-table-wrap">
-        <table class="hist-table">
-          <thead><tr>
-            <th>Mês</th><th>H.Prev.</th><th>H.Exec.</th><th>Horas %</th>
-            <th>Iniciaram</th><th>Novos</th><th>Finalizados</th><th>Excedentes</th><th>Pendentes</th>
-            <th>Meta Cli</th><th>Satisf.</th><th>Vendas</th><th>Post.</th><th>Conh.</th>
-          </tr></thead>
-          <tbody id="hist-mensal-body">
-            <tr><td colspan="10" style="color:var(--muted);text-align:center;padding:24px">Carregando...</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div style="overflow-x:auto"><div id="hist-mensal-tabela"></div></div>
     </div>
     <div id="hist-diario" style="display:none">
       <div class="hist-diario-sel">
@@ -498,8 +487,14 @@
   <div id="tab-config" class="tab-content">
     <div class="config-section">
       <h4>🔑 Senha de Acesso</h4>
-      <div class="form-group"><label>Nova senha — Consultoria</label><input type="password" id="nova-senha-consultoria" placeholder="Nova senha"></div>
+      <div class="form-group"><label id="nova-senha-label">Nova senha</label><input type="password" id="nova-senha-consultoria" placeholder="Nova senha"></div>
       <button class="btn-primary" onclick="salvarSenhas()" style="padding:10px 20px">Salvar Senha</button>
+    </div>
+    <div class="config-section" id="config-cafe-link" style="display:none">
+      <h4>☕ Link da planilha de Cafés</h4>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Cole o link uma vez — ele é usado automaticamente em todos os meses do Comercial.</p>
+      <div class="form-group"><input type="url" id="cafe-link-input" placeholder="https://docs.google.com/spreadsheets/..."></div>
+      <button class="btn-primary" onclick="salvarCafeLink()" style="padding:10px 20px">Salvar Link</button>
     </div>
     <div class="config-section">
       <h4>🎯 Metas Individuais</h4>
@@ -599,11 +594,17 @@ const db  = getFirestore(app);
 
 // ── CONSTANTES POR SETOR ─────────────────────────────────────
 const EQUIPE_CONSULTORIA = [
-  { key:'livia',   nome:'Lívia',   ini:'LV' },
-  { key:'paloma',  nome:'Paloma',  ini:'PM' },
-  { key:'eduarda', nome:'Eduarda', ini:'ED' },
+  { key:'livia',    nome:'Lívia',    ini:'LV' },
+  { key:'andressa', nome:'Andressa', ini:'AN' },
+  { key:'eduarda',  nome:'Eduarda',  ini:'ED' },
+  { key:'daniel',   nome:'Daniel',   ini:'DN' },
 ];
 const EQUIPE_COMERCIAL = [
+  { key:'raqueliny', nome:'Raqueliny', ini:'RQ' },
+  { key:'marilia',   nome:'Marília',   ini:'MA' },
+];
+// Equipe histórica do Comercial até julho/2026 (jul já preenchido com a Eduarda).
+const EQUIPE_COMERCIAL_HIST = [
   { key:'raqueliny', nome:'Raqueliny', ini:'RQ' },
   { key:'eduarda',   nome:'Eduarda',   ini:'ED' },
   { key:'marilia',   nome:'Marília',   ini:'MA' },
@@ -645,6 +646,37 @@ const METAS_EQ_PAD_COMERCIAL = {
 const SETOR_LABEL = { consultoria:'Consultoria', comercial:'Comercial' };
 const SETOR_SENHA_PADRAO = { consultoria:'falcioni2026', comercial:'comercial2026' };
 
+// ── EQUIPE POR MÊS (data de corte) ─────────────────────────────
+// Equipe histórica da Consultoria até julho/2026 (jan–jul já preenchidos com a Paloma).
+const EQUIPE_CONSULTORIA_HIST = [
+  { key:'livia',   nome:'Lívia',   ini:'LV' },
+  { key:'paloma',  nome:'Paloma',  ini:'PM' },
+  { key:'eduarda', nome:'Eduarda', ini:'ED' },
+];
+// Cortes por setor: antes do corte usa a equipe histórica; a partir do corte usa rosterAtual (vigente).
+const CORTES = {
+  consultoria: { corte:{ano:2026,mes:8}, hist:EQUIPE_CONSULTORIA_HIST },
+  comercial:   { corte:{ano:2026,mes:8}, hist:EQUIPE_COMERCIAL_HIST },
+};
+// Equipe vigente carregada de config/colaboradores no login (por setor). Fallback = EQUIPE_*.
+let rosterAtual = [];
+// Retorna a equipe efetiva para um mês/ano do setor atual.
+function equipeDoMes(mes, ano) {
+  const c=CORTES[setorAtual];
+  if(c){ const antes=(ano < c.corte.ano) || (ano===c.corte.ano && mes < c.corte.mes); if(antes) return c.hist; }
+  return rosterAtual;
+}
+function equipeDoDoc(d) { return equipeDoMes(Number(d?.mes), Number(d?.ano)); }
+// Link único da planilha de Cafés (Comercial), salvo em config e aplicado a todo mês.
+let cafeLinkComercial = '';
+function cafeLinkDoDoc(d) {
+  if(d && d.cafe_link_geral) return d.cafe_link_geral;
+  if(cafeLinkComercial) return cafeLinkComercial;
+  // fallback p/ docs antigos que guardavam o link por vendedora
+  if(d){ for(const c of equipeDoDoc(d)){ const l=d[c.key]?.cafes_link; if(l) return l; } }
+  return '';
+}
+
 // Bindings "ao vivo" do setor atualmente logado — repovoados por aplicarSetor() no login.
 let CONSULTORAS = [];
 let METAS_IND_PAD = {};
@@ -684,13 +716,13 @@ const INDICADORES_CONSULTORIA = [
   { key:'satisfacao',           label:'Satisfação',           getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
   { key:'meta_clientes',        label:'Meta Clientes',        getValor:d=>d.meta_clientes_pct ?? (d.meta_clientes_qtd&&d.total_clientes?Math.round(d.meta_clientes_qtd/d.total_clientes*100):null), getNomes:d=>d.meta_clientes_nomes, fmt:v=>`${Number(v).toFixed(0)}%`,
     getSub:d=>d.meta_clientes_qtd&&d.total_clientes?`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`:null },
-  { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
-  { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
-  { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
+  { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
+  { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
+  { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
 ];
 // Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
 function somaVend(d, campo, totalFallback){
-  const s=CONSULTORAS.reduce((acc,c)=>acc+(Number(d[c.key]?.[campo])||0),0);
+  const s=equipeDoDoc(d).reduce((acc,c)=>acc+(Number(d[c.key]?.[campo])||0),0);
   if(s>0) return s;
   return (d[totalFallback]!==undefined && d[totalFallback]!==null) ? d[totalFallback] : (s||null);
 }
@@ -710,10 +742,16 @@ function aplicarSetor(setor) {
   const indBase  = setor==='comercial' ? INDICADORES_COMERCIAL  : INDICADORES_CONSULTORIA;
   const metaEq   = setor==='comercial' ? METAS_EQ_PAD_COMERCIAL : METAS_EQ_PAD_CONSULTORIA;
   const metaInd  = setor==='comercial' ? METAS_IND_PAD_COMERCIAL: METAS_IND_PAD_CONSULTORIA;
-  CONSULTORAS.length=0; eqBase.forEach(c=>CONSULTORAS.push({...c}));
+  rosterAtual = eqBase.map(c=>({...c}));
+  CONSULTORAS.length=0; rosterAtual.forEach(c=>CONSULTORAS.push({...c}));
   INDICADORES.length=0; indBase.forEach(i=>{i.label=i.labelPadrao; i.ativo=true; INDICADORES.push(i);});
   METAS_EQ_PAD=metaEq; METAS_IND_PAD=metaInd;
   METAS_EQ={...METAS_EQ_PAD}; METAS_IND={...METAS_IND_PAD};
+}
+// Sincroniza CONSULTORAS (equipe "de trabalho" do formulário) com a equipe efetiva de um mês/ano.
+function sincronizarEquipe(mes, ano) {
+  const eq = equipeDoMes(Number(mes), Number(ano));
+  CONSULTORAS.length=0; eq.forEach(c=>CONSULTORAS.push({...c}));
 }
 
 // ── NOMES DE COLEÇÃO/DOC POR SETOR ─────────────────────────────
@@ -799,6 +837,10 @@ async function entrarApp() {
   if(ehConsultoria){ buildConsultSections(); buildDestaquesForm(); }
   else { buildComercialVendSections(); }
   renderConfigMetas();
+  // Config: rótulo da senha do setor atual + seção do link de café (só Comercial)
+  document.getElementById('nova-senha-label').textContent = `Nova senha — ${SETOR_LABEL[setorAtual]}`;
+  const cafeSec=document.getElementById('config-cafe-link');
+  if(cafeSec){ cafeSec.style.display = ehConsultoria?'none':''; const inp=document.getElementById('cafe-link-input'); if(inp) inp.value=cafeLinkComercial||''; }
   document.getElementById('api-url').textContent=`https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/${colLancamentos()}?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
   await Promise.all([carregarDados(), carregarTodosPlanos()]);
 }
@@ -821,11 +863,12 @@ async function carregarAdminConfig() {
   try {
     const sc=await getDoc(doc(db,'config',docConfig('colaboradores')));
     if(sc.exists() && Array.isArray(sc.data().lista) && sc.data().lista.length) {
-      CONSULTORAS.length=0;
-      sc.data().lista.forEach(c=>CONSULTORAS.push(c));
+      rosterAtual = sc.data().lista.map(c=>({...c}));
     } else {
-      await setDoc(doc(db,'config',docConfig('colaboradores')),{lista:CONSULTORAS});
+      await setDoc(doc(db,'config',docConfig('colaboradores')),{lista:rosterAtual});
     }
+    // CONSULTORAS reflete a equipe vigente por padrão; telas por-mês ajustam via equipeDoDoc/sincronizarEquipe.
+    CONSULTORAS.length=0; rosterAtual.forEach(c=>CONSULTORAS.push({...c}));
   } catch(e){}
   try {
     const si=await getDoc(doc(db,'config',docConfig('indicadores_admin')));
@@ -836,7 +879,18 @@ async function carregarAdminConfig() {
       ind.ativo=ov?(ov.ativo!==false):true;
     });
   } catch(e){}
+  cafeLinkComercial='';
+  if(setorAtual==='comercial'){
+    try { const cl=await getDoc(doc(db,'config','cafe_link_comercial')); if(cl.exists()) cafeLinkComercial=cl.data().link||''; } catch(e){}
+  }
 }
+window.salvarCafeLink=async()=>{
+  const v=(document.getElementById('cafe-link-input')?.value||'').trim();
+  cafeLinkComercial=v;
+  await setDoc(doc(db,'config','cafe_link_comercial'),{link:v});
+  toast('✅ Link da planilha de cafés salvo!');
+  if(ultimoLancamento) renderIndicadoresList(ultimoLancamento);
+};
 window.salvarMetas=async()=>{
   Object.keys(METAS_IND_PAD).forEach(k=>{
     const b=document.getElementById(`mi-${k}-b`),p=document.getElementById(`mi-${k}-p`),o=document.getElementById(`mi-${k}-o`);
@@ -937,7 +991,6 @@ function buildComercialVendSections() {
           <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="lc-${c.key}-cafes" placeholder="Ex: 4" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="lc-${c.key}-cafes_desc" placeholder="Ex: Café com cliente Y"></div>
         </div>
-        <div class="form-group"><label>Planilha de Cafés — link do Drive/Sheets (opcional)</label><input type="url" id="lc-${c.key}-cafes_link" placeholder="Cole aqui o link de compartilhamento da planilha/aba"></div>
       </div>
     </div>`).join('');
 }
@@ -1009,7 +1062,7 @@ function limparFormLancar() {
   } else {
     setVal('l-com-ocorrencias');
     CONSULTORAS.forEach(c=>{
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc','cafes_link'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
+      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
     });
   }
   satNotas=[]; satIdCounter=0;
@@ -1041,7 +1094,7 @@ function preencherFormLancar(d) {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
     CONSULTORAS.forEach(c=>{
       const cd=d[c.key]||{};
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc','cafes_link'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
+      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
     });
   }
   // Reconstrói a lista de notas de satisfação (nomeadas + anônimas, a partir do que foi salvo)
@@ -1064,6 +1117,10 @@ window.carregarParaEditarSeExistir=async()=>{
   const ano=parseInt(document.getElementById('l-ano').value);
   const aviso=document.getElementById('lancar-modo-aviso');
   if(!mes||!ano) return;
+  // Ajusta a equipe do formulário para a equipe efetiva do mês selecionado e reconstrói as seções por pessoa.
+  sincronizarEquipe(mes,ano);
+  if(setorAtual==='consultoria'){ buildConsultSections(); buildDestaquesForm(); }
+  else { buildComercialVendSections(); }
   limparFormLancar();
   if(aviso) aviso.textContent='Verificando lançamento existente...';
   try {
@@ -1103,7 +1160,7 @@ let ultimoLancamento=null;
 
 function getSatMedia(d) {
   if(d.satisfacao_media!==undefined&&d.satisfacao_media!==null) return Number(d.satisfacao_media);
-  const vals=CONSULTORAS.map(c=>Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
+  const vals=equipeDoDoc(d).map(c=>Number(d[c.key]?.satisfacao)).filter(v=>!isNaN(v)&&v>0);
   return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
 }
 
@@ -1133,17 +1190,20 @@ function detalheIndicador(ind,d) {
   } else if(k==='clientes_excederam'){ const r=detNomes('Clientes que excederam horas', d.clientes_excederam_nomes); if(r) rows.push(r);
   } else if(k==='clientes_pendentes'){ const r=detNomes('Clientes com horas pendentes', d.clientes_pendentes_nomes); if(r) rows.push(r);
   } else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){
+    const equipe=equipeDoDoc(d);
     const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k];
-    const linhas=CONSULTORAS.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
-    if(CONSULTORAS.length) rows.push(detRow('Por consultora', linhas));
+    const linhas=equipe.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
+    if(equipe.length) rows.push(detRow('Por consultora', linhas));
   } else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){
+    const equipe=equipeDoDoc(d);
     const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k];
     const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k];
     const ehRS=(k==='venda_consultoria'||k==='venda_palestras');
     const fmtP=v=>ehRS?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:Number(v||0);
-    const linhas=CONSULTORAS.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();const lk=(k==='cafes')?chipLink(d[c.key]?.cafes_link):'';return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}${lk}`;}).join('<br>');
-    if(CONSULTORAS.length) rows.push(detRow('Por vendedora', linhas));
-    if(k==='venda_cursos'){ const val=CONSULTORAS.reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${val.toLocaleString('pt-BR')}`)); }
+    const linhas=equipe.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}`;}).join('<br>');
+    if(equipe.length) rows.push(detRow('Por vendedora', linhas));
+    if(k==='venda_cursos'){ const val=equipe.reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${val.toLocaleString('pt-BR')}`)); }
+    if(k==='cafes'){ const lk=cafeLinkDoDoc(d); if(lk) rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Planilha de Cafés</span>${chipLink(lk)}</div>`); }
   }
   return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:'';
 }
@@ -1239,7 +1299,7 @@ function renderConsultGrid(d) {
         {label:'Venda Consultoria',val:(cd.venda_consultoria!=null?`R$ ${Number(cd.venda_consultoria).toLocaleString('pt-BR')}`:'—')+dsc(cd.venda_consultoria_desc)},
         {label:'Venda Cursos',val:(cd.cursos_inscritos!=null?`${cd.cursos_inscritos} inscritos`:'—')+dsc(cd.cursos_desc)},
         {label:'Venda Palestras',val:(cd.venda_palestras!=null?`R$ ${Number(cd.venda_palestras).toLocaleString('pt-BR')}`:'—')+dsc(cd.venda_palestras_desc)},
-        {label:'Cafés',val:(cd.cafes??'—')+dsc(cd.cafes_desc)+chipLink(cd.cafes_link)},
+        {label:'Cafés',val:(cd.cafes??'—')+dsc(cd.cafes_desc)},
       ];}
     : c=>{const cd=d[c.key]||{}; return [
         {label:'Vendas',val:cd.vendas??'—',meta:METAS_IND.vendas},
@@ -1248,7 +1308,7 @@ function renderConsultGrid(d) {
         {label:'Satisfação',val:cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—',meta:METAS_IND.satisfacao},
       ];};
 
-  document.getElementById('consult-grid').innerHTML=CONSULTORAS.map(c=>`
+  document.getElementById('consult-grid').innerHTML=equipeDoDoc(d).map(c=>`
     <div class="consult-card">
       <div class="c-header"><div class="c-avatar">${c.ini}</div><div class="c-nome">${c.nome}</div></div>
       ${linhas(c).map(i=>`
@@ -1273,7 +1333,7 @@ function renderDestaques(d) {
   </div>`;
 
   html+=destaques.map(dt=>{
-    const c=CONSULTORAS.find(x=>x.key===dt.consultora)||{ini:'★',nome:dt.consultora||'Consultora'};
+    const c=equipeDoDoc(d).find(x=>x.key===dt.consultora)||{ini:'★',nome:dt.consultora||'Consultora'};
     return `<div class="destaque-item">
       <div class="destaque-ini">${c.ini}</div>
       <div><div class="destaque-text">${dt.texto}</div><div class="destaque-nome">${c.nome}</div></div>
@@ -1287,6 +1347,7 @@ function renderDestaques(d) {
 window.salvarLancamento=()=>{
   const mes=parseInt(document.getElementById('l-mes').value);
   const ano=parseInt(document.getElementById('l-ano').value);
+  sincronizarEquipe(mes,ano); // grava por pessoa conforme a equipe efetiva do mês
   const vals=satNotas.map(s=>s.nota).filter(v=>v!==null&&!isNaN(v));
   const satMedia=vals.length?Number((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(4)):null;
   const strOuNull=id=>{const el=document.getElementById(id);return el&&el.value.trim()?el.value.trim():null;};
@@ -1297,6 +1358,7 @@ window.salvarLancamento=()=>{
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       com_ocorrencias:       numOuNull('l-com-ocorrencias'),
+      cafe_link_geral:       cafeLinkComercial||null,
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
       satisfacao_media:  satMedia,
@@ -1312,7 +1374,6 @@ window.salvarLancamento=()=>{
         cursos_desc:            strOuNull(`lc-${c.key}-cursos_desc`),
         cafes:                  numOuNull(`lc-${c.key}-cafes`),
         cafes_desc:             strOuNull(`lc-${c.key}-cafes_desc`),
-        cafes_link:             strOuNull(`lc-${c.key}-cafes_link`),
       };
     });
   } else {
@@ -1489,8 +1550,8 @@ function detalhePPT(ind,d) {
   else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
   else if(k==='clientes_excederam'&&d.clientes_excederam_nomes)out.push(['Excederam horas',nomes(d.clientes_excederam_nomes)]);
   else if(k==='clientes_pendentes'&&d.clientes_pendentes_nomes)out.push(['Horas pendentes',nomes(d.clientes_pendentes_nomes)]);
-  else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; const descC={vendas_eq:'vendas_desc',conhec_eq:'conhec_desc'}[k]; CONSULTORAS.forEach(c=>{const v=Number(d[c.key]?.[campo])||0; const desc=descC?(d[c.key]?.[descC]||''):''; out.push([c.nome, desc?`${v} — ${desc}`:String(v)]);}); }
-  else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); CONSULTORAS.forEach(c=>{const v=d[c.key]?.[campo]; const desc=(d[c.key]?.[campoDesc]||'').trim(); const lk=(k==='cafes')?linkSeguro(d[c.key]?.cafes_link):null; const vt=rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0)); out.push([c.nome, (desc?`${vt} — ${desc}`:vt)+(lk?`   ·   planilha: ${lk}`:'')]);}); }
+  else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){ const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k]; const descC={vendas_eq:'vendas_desc',conhec_eq:'conhec_desc'}[k]; equipeDoDoc(d).forEach(c=>{const v=Number(d[c.key]?.[campo])||0; const desc=descC?(d[c.key]?.[descC]||''):''; out.push([c.nome, desc?`${v} — ${desc}`:String(v)]);}); }
+  else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){ const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k]; const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k]; const rs=(k==='venda_consultoria'||k==='venda_palestras'); equipeDoDoc(d).forEach(c=>{const v=d[c.key]?.[campo]; const desc=(d[c.key]?.[campoDesc]||'').trim(); const vt=rs?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:String(Number(v||0)); out.push([c.nome, desc?`${vt} — ${desc}`:vt]);}); if(k==='cafes'){ const lk=linkSeguro(cafeLinkDoDoc(d)); if(lk) out.push(['Planilha de Cafés', lk]); } }
   return out;
 }
 // Série anual de um indicador -> texto "Jan 2 · Fev 4 · ..."
@@ -1594,7 +1655,7 @@ window.gerarPPT=async()=>{
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
       : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação'];
     const th=cols.map((c,i)=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY},align:i?'center':'left'}}));
-    const trs=CONSULTORAS.map((c,idx)=>{ const cd=d[c.key]||{}; const fill=idx%2?'FFFFFF':'F8FAFC';
+    const trs=equipeDoDoc(d).map((c,idx)=>{ const cd=d[c.key]||{}; const fill=idx%2?'FFFFFF':'F8FAFC';
       const cells = setorAtual==='comercial'
         ? [c.nome, `R$ ${Number(cd.venda_consultoria||0).toLocaleString('pt-BR')}`, String(Number(cd.cursos_inscritos||0)), `R$ ${Number(cd.venda_palestras||0).toLocaleString('pt-BR')}`, String(Number(cd.cafes||0))]
         : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0)), cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—'];
@@ -1700,31 +1761,22 @@ async function carregarHistorico(ano) {
   const snap=await getDocs(query(collection(db,colLancamentos()),where('ano','==',ano)));
   const todos={};
   snap.docs.forEach(d=>{const dt=d.data();todos[dt.mes]=dt;});
-  const tbody=document.getElementById('hist-mensal-body');
-  tbody.innerHTML=MESES_ABREV.slice(1).map((nm,i)=>{
-    const d=todos[i+1];
-    if(!d) return `<tr><td style="font-weight:700">${nm}/${ano}</td><td colspan="9" style="color:var(--muted);font-style:italic;font-size:.78rem">sem dados</td></tr>`;
-    const totalV=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0);
-    const totalP=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0);
-    const totalC=CONSULTORAS.reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0);
-    const sat=getSatMedia(d);
-    const metaPct=d.meta_clientes_pct??(d.meta_clientes_qtd&&d.total_clientes?Math.round(d.meta_clientes_qtd/d.total_clientes*100):null);
-    return `<tr>
-      <td style="font-weight:700;white-space:nowrap">${nm}/${ano}</td>
-      <td style="white-space:nowrap">${d.horas_previstas||'—'}</td>
-      <td style="white-space:nowrap">${d.horas_executadas||'—'}</td>
-      <td style="white-space:nowrap">${d.controle_horas_pct!==null&&d.controle_horas_pct!==undefined?Number(d.controle_horas_pct).toFixed(1)+'%':'—'} ${badge(avaliar(d.controle_horas_pct,METAS_EQ.controle_horas))}</td>
-      <td>${d.clientes_iniciaram??'—'}</td>
-      <td style="font-size:.72rem">${d.clientes_novos??'—'}${d.clientes_novos_nomes?'<br><span style="color:var(--success)">'+d.clientes_novos_nomes+'</span>':''}</td>
-      <td style="font-size:.72rem">${d.clientes_finalizados??'—'}${d.clientes_finalizados_nomes?'<br><span style="color:var(--muted)">'+d.clientes_finalizados_nomes+'</span>':''}</td>
-      <td style="font-size:.72rem">${d.clientes_excederam??'—'}${d.clientes_excederam_nomes?'<br><span style="color:#92400E">'+d.clientes_excederam_nomes.substring(0,40)+'</span>':''}</td>
-      <td style="font-size:.72rem">${d.clientes_pendentes??'—'}${d.clientes_pendentes_nomes?'<br><span style="color:#991B1B">'+d.clientes_pendentes_nomes.substring(0,40)+'</span>':''}</td>
-      <td style="white-space:nowrap">${metaPct!==null?metaPct+'%':'—'} ${metaPct!==null?badge(avaliar(metaPct,METAS_EQ.meta_clientes)):''}</td>
-      <td style="white-space:nowrap">${sat!==null?sat.toFixed(2):'—'} ${sat!==null?badge(avaliar(sat,METAS_EQ.satisfacao)):''}</td>
-      <td>${totalV} ${badge(avaliar(totalV,METAS_EQ.vendas_eq))}</td>
-      <td>${totalP}</td><td>${totalC}</td>
-    </tr>`;
+  // Tabela genérica: Mês × indicadores do setor ativo (valor + cor de status por célula).
+  const inds=INDICADORES.filter(i=>i.ativo!==false);
+  const meses=[1,2,3,4,5,6,7,8,9,10,11,12].filter(m=>todos[m]);
+  const el=document.getElementById('hist-mensal-tabela');
+  if(!meses.length){ el.innerHTML=`<div class="empty" style="padding:20px"><p>Sem lançamentos em ${ano}.</p></div>`; return; }
+  const head=`<tr><th>Mês</th>${inds.map(i=>`<th>${i.label}</th>`).join('')}</tr>`;
+  const body=meses.map(m=>{
+    const d=todos[m];
+    const cels=inds.map(ind=>{
+      const v=ind.getValor(d); const nota=avaliar(v,METAS_EQ[ind.key]);
+      const txt=(v===null||v===undefined||v==='')?'—':(ind.fmt?ind.fmt(v):String(v));
+      return `<td><span class="bi-cell ${nota}">${txt}</span></td>`;
+    }).join('');
+    return `<tr><td>${MESES_ABREV[m]}/${String(ano).slice(2)}</td>${cels}</tr>`;
   }).join('');
+  el.innerHTML=`<table class="bi-tabela"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
 window.renderLancamentos=async()=>{
@@ -1734,33 +1786,42 @@ window.renderLancamentos=async()=>{
   lista.innerHTML='<div class="loading"><div class="spinner"></div>Carregando...</div>';
   const snap=await getDocs(query(collection(db,colLancamentos()),where('mes','==',mes),where('ano','==',ano)));
   if(!snap.docs.length){lista.innerHTML='<div class="empty"><div class="e-icon">📋</div><p>Sem lançamentos neste mês</p></div>';return;}
+  const th=t=>`<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">${t}</th>`;
   lista.innerHTML=snap.docs.map(d=>{
     const r=d.data(); const sat=getSatMedia(r);
-    const metaPct=r.meta_clientes_pct??(r.meta_clientes_qtd&&r.total_clientes?Math.round(r.meta_clientes_qtd/r.total_clientes*100):null);
-    const rows=CONSULTORAS.map(c=>{const cd=r[c.key]||{};return `<tr>
-      <td style="color:var(--primary);font-weight:700">${c.nome}</td>
-      <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
-      <td>${cd.postagens??'—'}</td>
-      <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
-    </tr>`;}).join('');
-    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;padding:14px">
-      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.7">
-        Horas: <strong>${r.controle_horas_pct!==null&&r.controle_horas_pct!==undefined?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong> ·
+    let resumo, cols, rows;
+    if(setorAtual==='comercial'){
+      resumo=`Ocorrências: <strong>${r.com_ocorrencias??'—'}</strong> · Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong>`;
+      cols=th('Vendedora')+th('Consultoria (R$)')+th('Cursos (insc.)')+th('Palestras (R$)')+th('Cafés');
+      rows=equipeDoDoc(r).map(c=>{const cd=r[c.key]||{};return `<tr>
+        <td style="color:var(--primary);font-weight:700">${c.nome}</td>
+        <td>${cd.venda_consultoria!=null?'R$ '+Number(cd.venda_consultoria).toLocaleString('pt-BR'):'—'}</td>
+        <td>${cd.cursos_inscritos??'—'}</td>
+        <td>${cd.venda_palestras!=null?'R$ '+Number(cd.venda_palestras).toLocaleString('pt-BR'):'—'}</td>
+        <td>${cd.cafes??'—'}</td>
+      </tr>`;}).join('');
+    } else {
+      const metaPct=r.meta_clientes_pct??(r.meta_clientes_qtd&&r.total_clientes?Math.round(r.meta_clientes_qtd/r.total_clientes*100):null);
+      resumo=`Horas: <strong>${r.controle_horas_pct!==null&&r.controle_horas_pct!==undefined?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong> ·
         Iniciaram: <strong>${r.clientes_iniciaram??'—'}</strong> ·
         Excederam: <strong>${r.clientes_excederam??'—'}</strong> ·
         Pendentes: <strong>${r.clientes_pendentes??'—'}</strong><br>
         Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong> ·
         Meta Clientes: <strong>${metaPct!==null?metaPct+'%':'—'}</strong>
-        ${r.destaques?.length?`· <span style="color:var(--gold)">⭐ ${r.destaques.length} destaque(s)</span>`:''}
-      </div>
+        ${r.destaques?.length?`· <span style="color:var(--gold)">⭐ ${r.destaques.length} destaque(s)</span>`:''}`;
+      cols=th('Consultora')+th('Vendas')+th('Postagens')+th('Conhecimentos');
+      rows=equipeDoDoc(r).map(c=>{const cd=r[c.key]||{};return `<tr>
+        <td style="color:var(--primary);font-weight:700">${c.nome}</td>
+        <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
+        <td>${cd.postagens??'—'}</td>
+        <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
+      </tr>`;}).join('');
+    }
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;padding:14px">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.7">${resumo}</div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:.8rem;min-width:340px">
-          <thead><tr style="color:var(--muted)">
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Consultora</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Vendas</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Postagens</th>
-            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Conhecimentos</th>
-          </tr></thead>
+          <thead><tr style="color:var(--muted)">${cols}</tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1782,10 +1843,11 @@ window.showTab=(tab,btn)=>{
 // ── CONFIG ────────────────────────────────────────────────────
 window.salvarSenhas=async()=>{
   const c=document.getElementById('nova-senha-consultoria').value;
-  const snap=await getDoc(doc(db,'config','senhas')); const atual=snap.exists()?snap.data():{consultoria:'falcioni2026'};
-  if(c) atual.consultoria=c;
+  if(!c){ toast('Digite a nova senha'); return; }
+  const snap=await getDoc(doc(db,'config','senhas')); const atual=snap.exists()?snap.data():{};
+  atual[setorAtual]=c;
   await setDoc(doc(db,'config','senhas'),atual);
-  document.getElementById('nova-senha-consultoria').value=''; toast('✅ Senha atualizada!');
+  document.getElementById('nova-senha-consultoria').value=''; toast(`✅ Senha do ${SETOR_LABEL[setorAtual]} atualizada!`);
 };
 
 // ── ÁREA GERENCIAL: UI ──────────────────────────────────────────
@@ -1844,7 +1906,7 @@ window.salvarIndicadoresAdmin=async()=>{
 // ── EDITOR DE COLABORADORAS ─────────────────────────────────────
 let colabDraft=[];
 function renderColabAdmin() {
-  colabDraft=CONSULTORAS.map(c=>({...c}));
+  colabDraft=rosterAtual.map(c=>({...c})); // gerencia a equipe VIGENTE (agosto/2026 em diante)
   renderColabRows();
 }
 function renderColabRows() {
@@ -1877,7 +1939,8 @@ window.salvarColaboradores=async()=>{
   });
   if(!lista.length){toast('❌ Adicione pelo menos uma colaboradora');return;}
   await setDoc(doc(db,'config',docConfig('colaboradores')),{lista});
-  CONSULTORAS.length=0; lista.forEach(c=>CONSULTORAS.push(c));
+  rosterAtual = lista.map(c=>({...c}));
+  CONSULTORAS.length=0; lista.forEach(c=>CONSULTORAS.push({...c}));
   if(setorAtual==='consultoria'){ buildConsultSections(); buildDestaquesForm(); }
   if(ultimoLancamento){
     renderIndicadoresList(ultimoLancamento);
