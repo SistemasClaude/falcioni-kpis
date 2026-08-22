@@ -135,6 +135,20 @@
     .btn-add-plano { background:none; border:1.5px dashed var(--border); color:var(--muted); border-radius:8px; padding:9px; cursor:pointer; font-size:.82rem; width:100%; text-align:center; transition:all .2s; }
     .btn-add-plano:hover { border-color:var(--primary); color:var(--primary); }
     .indicador-plano-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+    /* Acompanhamento de planos (status) */
+    .st-chip { display:inline-block; font-size:.7rem; font-weight:700; border-radius:20px; padding:2px 9px; border:1px solid transparent; }
+    .st-executado{ background:#DCFCE7; color:#166534; } .st-parcial{ background:#FEF3C7; color:#92400E; } .st-nao_executado{ background:#FEE2E2; color:#991B1B; } .st-pendente{ background:#F1F5F9; color:#64748B; }
+    .acomp-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 6px rgba(26,47,74,.05); }
+    .acomp-card.origem { border-left:4px solid var(--gold); }
+    .acomp-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+    .acomp-ind { font-size:.95rem; font-weight:800; color:var(--primary); }
+    .acomp-meta { font-size:.72rem; color:var(--muted); }
+    .st-btns { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 8px; }
+    .st-btn { font-size:.76rem; font-weight:700; border:1.5px solid var(--border); background:var(--card2); color:var(--muted); border-radius:8px; padding:5px 10px; cursor:pointer; }
+    .st-btn.sel.executado{ background:#16A34A; color:#fff; border-color:#16A34A; } .st-btn.sel.parcial{ background:#D97706; color:#fff; border-color:#D97706; } .st-btn.sel.nao_executado{ background:#DC2626; color:#fff; border-color:#DC2626; } .st-btn.sel.pendente{ background:#64748B; color:#fff; border-color:#64748B; }
+    .acomp-resumo { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .acomp-resumo .rz { flex:1; min-width:80px; text-align:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:8px 6px; }
+    .acomp-rz-n { font-size:1.3rem; font-weight:800; color:var(--primary); } .acomp-rz-l { font-size:.68rem; color:var(--muted); }
     /* Detalhe rico do indicador (relatório robusto) */
     .ind-detalhe { margin-top:12px; border-top:1px solid var(--border); padding-top:10px; display:flex; flex-direction:column; gap:8px; }
     .ind-det-row { font-size:.84rem; line-height:1.5; }
@@ -304,6 +318,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('painel',this)">📊 Painel</button>
     <button class="tab-btn" onclick="showTab('dashboard',this)">📈 Dashboard</button>
+    <button class="tab-btn" onclick="showTab('acomp',this)">✅ Acompanhamento</button>
     <button class="tab-btn" onclick="showTab('lancar',this)">📋 Lançar</button>
     <button class="tab-btn" onclick="showTab('historico',this)">📅 Histórico</button>
     <button class="tab-btn" onclick="showTab('config',this)">⚙️ Config</button>
@@ -360,6 +375,23 @@
     <div id="dash-empty" class="empty" style="display:none">
       <div class="e-icon">📈</div><p>Sem dados para exibir no dashboard.</p>
     </div>
+  </div>
+
+  <!-- ACOMPANHAMENTO -->
+  <div id="tab-acomp" class="tab-content">
+    <p class="section-title">Acompanhamento de Planos de Ação</p>
+    <div class="hist-diario-sel" style="margin-bottom:6px">
+      <select id="acomp-mes" onchange="renderAcompanhamento()">
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+        <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+        <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+      <input type="number" id="acomp-ano" value="2026" min="2024" max="2030" style="width:72px" onchange="renderAcompanhamento()">
+    </div>
+    <div id="acomp-resumo"></div>
+    <div id="acomp-pendentes"></div>
+    <div id="acomp-mes-lista"></div>
   </div>
 
   <!-- LANÇAR -->
@@ -1253,6 +1285,7 @@ function renderPlanoCardCompacto(p) {
     <div class="plano-footer" style="margin-top:0;border-top:none;padding-top:0">
       ${p.quem?`<span class="plano-who">👤 ${p.quem}</span>`:''}
       ${p.quando?`<span class="plano-when">📅 ${p.quando}</span>`:''}
+      ${badgeStatus(statusPlano(p))}
     </div>
   </div>`;
 }
@@ -1690,6 +1723,67 @@ async function carregarTodosPlanos() {
   todosPlanos=snap.docs.map(d=>({id:d.id,...d.data()}));
   refreshPlanosView();
 }
+
+// ── ACOMPANHAMENTO DE PLANOS ──────────────────────────────────
+const ST_LABEL={pendente:'Pendente',executado:'Executado',parcial:'Parcial',nao_executado:'Não executado'};
+function statusPlano(p){ return p.status||'pendente'; }
+function badgeStatus(s){ return `<span class="st-chip st-${s}">${ST_LABEL[s]||s}</span>`; }
+function carregarAcompanhamento(){
+  const hoje=new Date();
+  const am=document.getElementById('acomp-mes'), aa=document.getElementById('acomp-ano');
+  if(am && !am.dataset.init){ am.value=hoje.getMonth()+1; aa.value=hoje.getFullYear(); am.dataset.init='1'; }
+  renderAcompanhamento();
+}
+function cardAcomp(p, comOrigem){
+  const s=statusPlano(p);
+  const btns=['executado','parcial','nao_executado','pendente'].map(st=>
+    `<button class="st-btn ${st} ${s===st?'sel':''}" onclick="setStatusAcomp('${p.id}','${st}')">${ST_LABEL[st]}</button>`).join('');
+  return `<div class="acomp-card ${comOrigem?'origem':''}">
+    <div class="acomp-head">
+      <div><div class="acomp-ind">${p.indicador||'—'}</div>
+        <div class="acomp-meta">${comOrigem?`Planejado em ${MESES_NOME[p.mes]}/${p.ano} · `:''}${p.quem?'👤 '+p.quem+' · ':''}${p.quando?'📅 '+p.quando:''}</div>
+      </div>
+      ${badgeStatus(s)}
+    </div>
+    ${p.o_que?`<div class="plano-row" style="margin-top:8px"><span class="pr-label">O que?</span><span class="pr-val">${p.o_que}</span></div>`:''}
+    <div class="st-btns">${btns}</div>
+    <textarea id="acomp-txt-${p.id}" placeholder="Comentário do acompanhamento (o que foi feito, por quê não...)" rows="2" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none">${p.acomp||''}</textarea>
+    <button class="btn-primary" onclick="salvarAcomp('${p.id}')" style="padding:7px 16px;margin-top:8px;font-size:.82rem">Salvar acompanhamento</button>
+  </div>`;
+}
+window.renderAcompanhamento=()=>{
+  const mes=parseInt(document.getElementById('acomp-mes').value);
+  const ano=parseInt(document.getElementById('acomp-ano').value);
+  const antes=p=> (p.ano<ano) || (p.ano===ano && p.mes<mes);
+  const doMes=todosPlanos.filter(p=>p.mes===mes && p.ano===ano);
+  const pend=todosPlanos.filter(p=>antes(p) && statusPlano(p)==='pendente').sort((a,b)=> (a.ano-b.ano)||(a.mes-b.mes));
+  // Resumo (considera todos os planos do setor)
+  const cont={executado:0,parcial:0,nao_executado:0,pendente:0};
+  todosPlanos.forEach(p=>{cont[statusPlano(p)]=(cont[statusPlano(p)]||0)+1;});
+  document.getElementById('acomp-resumo').innerHTML=`<div class="acomp-resumo">
+    ${['executado','parcial','nao_executado','pendente'].map(st=>`<div class="rz"><div class="acomp-rz-n">${cont[st]||0}</div><div class="acomp-rz-l">${ST_LABEL[st]}</div></div>`).join('')}
+  </div>`;
+  document.getElementById('acomp-pendentes').innerHTML = pend.length
+    ? `<p class="section-title" style="color:var(--danger)">⚠️ Pendentes de meses anteriores (${pend.length})</p>`+pend.map(p=>cardAcomp(p,true)).join('')
+    : '';
+  document.getElementById('acomp-mes-lista').innerHTML =
+    `<p class="section-title" style="margin-top:16px">Planos de ${MESES_NOME[mes]}/${ano}</p>`+
+    (doMes.length? doMes.map(p=>cardAcomp(p,false)).join('') : `<div class="empty"><p>Nenhum plano de ação registrado neste mês.</p></div>`);
+};
+window.setStatusAcomp=(id,st)=>{
+  const p=todosPlanos.find(x=>x.id===id); if(!p) return;
+  p.status=st; renderAcompanhamento();
+};
+window.salvarAcomp=async(id)=>{
+  const p=todosPlanos.find(x=>x.id===id); if(!p) return;
+  const txt=(document.getElementById(`acomp-txt-${id}`)?.value||'').trim();
+  p.status=statusPlano(p); p.acomp=txt; p.avaliadoEm=new Date().toISOString();
+  await setDoc(doc(db,colPlanos(),id),{status:p.status,acomp:txt,avaliadoEm:p.avaliadoEm},{merge:true});
+  toast('✅ Acompanhamento salvo!');
+  renderAcompanhamento();
+  if(ultimoLancamento) renderIndicadoresList(ultimoLancamento);
+};
+
 let editandoPlanoId=null;
 
 window.abrirModalPlano=(indicadorLabel)=>{
@@ -1837,6 +1931,7 @@ window.showTab=(tab,btn)=>{
   if(btn) btn.classList.add('active'); else document.querySelector('.tab-btn').classList.add('active');
   if(tab==='historico') carregarHistorico(parseInt(document.getElementById('sel-ano').value));
   if(tab==='dashboard') carregarDashboard();
+  if(tab==='acomp') carregarAcompanhamento();
   if(tab==='lancar') carregarParaEditarSeExistir();
 };
 
