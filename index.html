@@ -1734,53 +1734,94 @@ function carregarAcompanhamento(){
   if(am && !am.dataset.init){ am.value=hoje.getMonth()+1; aa.value=hoje.getFullYear(); am.dataset.init='1'; }
   renderAcompanhamento();
 }
-function cardAcomp(p, comOrigem){
+function inputAcomp(id,label,val,ph){ return `<div class="form-group" style="margin-bottom:8px"><label style="font-size:.72rem">${label}</label><input id="${id}" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${ph||''}" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none"></div>`; }
+function cardAcomp(p){
   const s=statusPlano(p);
   const btns=['executado','parcial','nao_executado','pendente'].map(st=>
     `<button class="st-btn ${st} ${s===st?'sel':''}" onclick="setStatusAcomp('${p.id}','${st}')">${ST_LABEL[st]}</button>`).join('');
-  return `<div class="acomp-card ${comOrigem?'origem':''}">
+  return `<div class="acomp-card">
     <div class="acomp-head">
-      <div><div class="acomp-ind">${p.indicador||'—'}</div>
-        <div class="acomp-meta">${comOrigem?`Planejado em ${MESES_NOME[p.mes]}/${p.ano} · `:''}${p.quem?'👤 '+p.quem+' · ':''}${p.quando?'📅 '+p.quando:''}</div>
-      </div>
+      <div class="acomp-ind">${p.indicador||'—'}</div>
       ${badgeStatus(s)}
     </div>
-    ${p.o_que?`<div class="plano-row" style="margin-top:8px"><span class="pr-label">O que?</span><span class="pr-val">${p.o_que}</span></div>`:''}
-    <div class="st-btns">${btns}</div>
-    <textarea id="acomp-txt-${p.id}" placeholder="Comentário do acompanhamento (o que foi feito, por quê não...)" rows="2" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none">${p.acomp||''}</textarea>
-    <button class="btn-primary" onclick="salvarAcomp('${p.id}')" style="padding:7px 16px;margin-top:8px;font-size:.82rem">Salvar acompanhamento</button>
+    <div style="margin-top:10px">
+      <label style="font-size:.72rem;color:var(--gold);font-weight:700">O que foi planejado</label>
+      <textarea id="acomp-oque-${p.id}" rows="2" placeholder="Descreva a ação planejada..." style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none;margin-top:2px">${p.o_que||''}</textarea>
+    </div>
+    <div class="form-row" style="margin-top:8px">
+      ${inputAcomp('acomp-quem-'+p.id,'Quem?',p.quem,'Ex: Consultoras')}
+      ${inputAcomp('acomp-quando-'+p.id,'Quando?',p.quando,'Ex: Semanal')}
+    </div>
+    <div style="border-top:1px dashed var(--border);margin-top:6px;padding-top:10px">
+      <label style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">Foi executado?</label>
+      <div class="st-btns">${btns}</div>
+      <textarea id="acomp-txt-${p.id}" placeholder="Comentário do acompanhamento (o que foi feito, por que não...)" rows="2" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none">${p.acomp||''}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-primary" onclick="salvarAcomp('${p.id}')" style="padding:7px 16px;font-size:.82rem">Salvar</button>
+      <button class="btn-del-plano" onclick="deletarPlano('${p.id}')" style="font-size:.82rem">🗑️ Excluir</button>
+    </div>
   </div>`;
 }
 window.renderAcompanhamento=()=>{
   const mes=parseInt(document.getElementById('acomp-mes').value);
   const ano=parseInt(document.getElementById('acomp-ano').value);
-  const antes=p=> (p.ano<ano) || (p.ano===ano && p.mes<mes);
   const doMes=todosPlanos.filter(p=>p.mes===mes && p.ano===ano);
-  const pend=todosPlanos.filter(p=>antes(p) && statusPlano(p)==='pendente').sort((a,b)=> (a.ano-b.ano)||(a.mes-b.mes));
-  // Resumo (considera todos os planos do setor)
+  // Resumo do mês selecionado
   const cont={executado:0,parcial:0,nao_executado:0,pendente:0};
-  todosPlanos.forEach(p=>{cont[statusPlano(p)]=(cont[statusPlano(p)]||0)+1;});
-  document.getElementById('acomp-resumo').innerHTML=`<div class="acomp-resumo">
+  doMes.forEach(p=>{cont[statusPlano(p)]=(cont[statusPlano(p)]||0)+1;});
+  document.getElementById('acomp-resumo').innerHTML = doMes.length ? `<div class="acomp-resumo">
     ${['executado','parcial','nao_executado','pendente'].map(st=>`<div class="rz"><div class="acomp-rz-n">${cont[st]||0}</div><div class="acomp-rz-l">${ST_LABEL[st]}</div></div>`).join('')}
-  </div>`;
-  document.getElementById('acomp-pendentes').innerHTML = pend.length
-    ? `<p class="section-title" style="color:var(--danger)">⚠️ Pendentes de meses anteriores (${pend.length})</p>`+pend.map(p=>cardAcomp(p,true)).join('')
-    : '';
+  </div>` : '';
+  document.getElementById('acomp-pendentes').innerHTML='';
   document.getElementById('acomp-mes-lista').innerHTML =
-    `<p class="section-title" style="margin-top:16px">Planos de ${MESES_NOME[mes]}/${ano}</p>`+
-    (doMes.length? doMes.map(p=>cardAcomp(p,false)).join('') : `<div class="empty"><p>Nenhum plano de ação registrado neste mês.</p></div>`);
+    `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><p class="section-title" style="margin:0">Planos de ${MESES_NOME[mes]}/${ano}</p>
+      <button class="btn-gold" onclick="abrirModalPlanoAcomp()">+ Novo plano</button></div>`+
+    (doMes.length? doMes.map(p=>cardAcomp(p)).join('') : `<div class="empty" style="padding:20px"><p>Nenhum plano de ação neste mês.<br>Adicione um pelo botão acima ou lá no Painel, no indicador desejado.</p></div>`);
 };
+window.abrirModalPlanoAcomp=()=>{
+  // reusa o modal de plano do Painel, já no mês/ano selecionado no Acompanhamento
+  const mes=document.getElementById('acomp-mes').value, ano=document.getElementById('acomp-ano').value;
+  abrirModalPlano();
+  document.getElementById('p-mes').value=mes; document.getElementById('p-ano').value=ano;
+};
+function updateAcompResumo(){
+  const mes=parseInt(document.getElementById('acomp-mes').value);
+  const ano=parseInt(document.getElementById('acomp-ano').value);
+  const doMes=todosPlanos.filter(p=>p.mes===mes && p.ano===ano);
+  const cont={executado:0,parcial:0,nao_executado:0,pendente:0};
+  doMes.forEach(p=>{cont[statusPlano(p)]=(cont[statusPlano(p)]||0)+1;});
+  const el=document.getElementById('acomp-resumo');
+  if(el) el.innerHTML = doMes.length ? `<div class="acomp-resumo">
+    ${['executado','parcial','nao_executado','pendente'].map(st=>`<div class="rz"><div class="acomp-rz-n">${cont[st]||0}</div><div class="acomp-rz-l">${ST_LABEL[st]}</div></div>`).join('')}
+  </div>` : '';
+}
 window.setStatusAcomp=(id,st)=>{
   const p=todosPlanos.find(x=>x.id===id); if(!p) return;
-  p.status=st; renderAcompanhamento();
+  p.status=st;
+  // Atualiza só o visual do card (sem re-render, pra não perder texto não salvo)
+  const card=document.getElementById('acomp-txt-'+id)?.closest('.acomp-card');
+  if(card){
+    card.querySelectorAll('.st-btn').forEach(b=>b.classList.toggle('sel', b.getAttribute('onclick').includes(`'${st}'`)));
+    const chip=card.querySelector('.st-chip'); if(chip){ chip.className='st-chip st-'+st; chip.textContent=ST_LABEL[st]; }
+  }
+  updateAcompResumo();
 };
 window.salvarAcomp=async(id)=>{
   const p=todosPlanos.find(x=>x.id===id); if(!p) return;
-  const txt=(document.getElementById(`acomp-txt-${id}`)?.value||'').trim();
-  p.status=statusPlano(p); p.acomp=txt; p.avaliadoEm=new Date().toISOString();
-  await setDoc(doc(db,colPlanos(),id),{status:p.status,acomp:txt,avaliadoEm:p.avaliadoEm},{merge:true});
-  toast('✅ Acompanhamento salvo!');
-  renderAcompanhamento();
+  const g=cid=>document.getElementById(cid)?.value??'';
+  const patch={
+    o_que:g('acomp-oque-'+id).trim(),
+    quem:g('acomp-quem-'+id).trim(),
+    quando:g('acomp-quando-'+id).trim(),
+    status:statusPlano(p),
+    acomp:g('acomp-txt-'+id).trim(),
+    avaliadoEm:new Date().toISOString(),
+  };
+  Object.assign(p,patch);
+  await setDoc(doc(db,colPlanos(),id),patch,{merge:true});
+  toast('✅ Plano e acompanhamento salvos!');
+  updateAcompResumo();
   if(ultimoLancamento) renderIndicadoresList(ultimoLancamento);
 };
 
@@ -1835,12 +1876,14 @@ window.salvarPlano=async()=>{
   }
   editandoPlanoId=null;
   fecharModal(); refreshPlanosView();
+  if(document.getElementById('tab-acomp')?.classList.contains('active')) renderAcompanhamento();
 };
 window.deletarPlano=async(id)=>{
   if(!confirm('Remover este plano?')) return;
   await deleteDoc(doc(db,colPlanos(),id));
   todosPlanos=todosPlanos.filter(p=>p.id!==id);
   refreshPlanosView(); toast('🗑️ Plano removido');
+  if(document.getElementById('tab-acomp')?.classList.contains('active')) renderAcompanhamento();
 };
 
 // ── HISTÓRICO ─────────────────────────────────────────────────
