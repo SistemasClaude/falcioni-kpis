@@ -288,7 +288,7 @@
   <div class="setor-grid">
     <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
     <button class="setor-btn" onclick="selSetor('comercial',this)"><span class="icon">💼</span>Comercial</button>
-    <button class="setor-btn disabled"><span class="icon">📣</span>Marketing</button>
+    <button class="setor-btn" onclick="selSetor('marketing',this)"><span class="icon">📣</span>Marketing</button>
   </div>
   <div class="login-box">
     <input type="password" id="inp-senha" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')login()">
@@ -475,8 +475,48 @@
       </div>
     </div>
 
-    <!-- Satisfação (comum a todos os setores) -->
-    <div class="lanc-section open">
+    <!-- Dados Gerais — Marketing (só de equipe) -->
+    <div id="lancar-marketing-fields" style="display:none">
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🗓️ Planejamento</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group"><label>Story — Planejado (qtd)</label><input type="number" id="l-mkt-story-plan" placeholder="Ex: 15" min="0"></div>
+            <div class="form-group"><label>Story — Executado (qtd)</label><input type="number" id="l-mkt-story-exec" placeholder="Ex: 14" min="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Feed — Planejado (qtd)</label><input type="number" id="l-mkt-feed-plan" placeholder="Ex: 57" min="0"></div>
+            <div class="form-group"><label>Feed — Executado (qtd)</label><input type="number" id="l-mkt-feed-exec" placeholder="Ex: 43" min="0"></div>
+          </div>
+        </div>
+      </div>
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">👁️ Visualizações</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-row" style="margin-top:12px">
+            <div class="form-group"><label>Qtd de Postagens</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 14" min="0"></div>
+            <div class="form-group"><label>Atingiram 2.500 (qtd)</label><input type="number" id="l-mkt-vis-2500" placeholder="Ex: 10" min="0"></div>
+          </div>
+        </div>
+      </div>
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⏱️ Tempo de Resposta</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-group" style="margin-top:12px"><label>Ocorrências de falha de resposta (qtd)</label><input type="number" id="l-mkt-tempo-qtd" placeholder="Ex: 0" min="0"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-mkt-tempo-desc" placeholder="Ex: Sem ocorrência"></div>
+        </div>
+      </div>
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⚠️ Ocorrências</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-group" style="margin-top:12px"><label>Ocorrências no mês (qtd)</label><input type="number" id="l-mkt-ocor-qtd" placeholder="Ex: 0" min="0"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-mkt-ocor-desc" placeholder="Ex: Sem ocorrência"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Satisfação (Consultoria/Comercial) -->
+    <div class="lanc-section open" id="lancar-satisfacao-sec">
       <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⭐ Satisfação do Cliente</span><span class="lsh-chev">▼</span></div>
       <div class="lanc-section-body">
         <p style="font-size:.82rem;color:var(--muted);margin:12px 0 12px">Adicione a nota de cada cliente avaliador (0 a 10). A média é automática.</p>
@@ -641,6 +681,9 @@ const EQUIPE_COMERCIAL_HIST = [
   { key:'eduarda',   nome:'Eduarda',   ini:'ED' },
   { key:'marilia',   nome:'Marília',   ini:'MA' },
 ];
+const EQUIPE_MARKETING = [
+  { key:'aridny', nome:'Aridny', ini:'AR' },
+];
 
 const METAS_IND_PAD_CONSULTORIA = {
   vendas:        { label:'Vendas',              tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
@@ -674,9 +717,18 @@ const METAS_EQ_PAD_COMERCIAL = {
   satisfacao:        { label:'Pesquisa de Satisfação',   tipo:'maior', bronze:8,    prata:9,     ouro:10,    unit:'' },
   ocorrencias:       { label:'Ocorrências',              tipo:'menor', bronze:3,    prata:1,     ouro:0,     unit:'' },
 };
+const METAS_IND_PAD_MARKETING = {}; // Marketing é só de equipe (sem metas por pessoa)
+const METAS_EQ_PAD_MARKETING = {
+  // Planejamento/Visualizações: metas % da planilha "Base Metas" (70/80/90); Tempo/Ocorrências tipo menor (Ouro 0, resto provisório)
+  plan_story:    { label:'Planejamento Story', tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
+  plan_feed:     { label:'Planejamento Feed',  tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
+  visualizacoes: { label:'Visualizações',      tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
+  tempo_resposta:{ label:'Tempo de Resposta',  tipo:'menor', bronze:3,  prata:1,  ouro:0,  unit:'' },
+  ocorrencias:   { label:'Ocorrências',        tipo:'menor', bronze:3,  prata:1,  ouro:0,  unit:'' },
+};
 
-const SETOR_LABEL = { consultoria:'Consultoria', comercial:'Comercial' };
-const SETOR_SENHA_PADRAO = { consultoria:'falcioni2026', comercial:'comercial2026' };
+const SETOR_LABEL = { consultoria:'Consultoria', comercial:'Comercial', marketing:'Marketing' };
+const SETOR_SENHA_PADRAO = { consultoria:'falcioni2026', comercial:'comercial2026', marketing:'marketing2026' };
 
 // ── EQUIPE POR MÊS (data de corte) ─────────────────────────────
 // Equipe histórica da Consultoria até julho/2026 (jan–jul já preenchidos com a Paloma).
@@ -766,14 +818,24 @@ const INDICADORES_COMERCIAL = [
   { key:'satisfacao',        label:'Pesquisa de Satisfação',  getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
   { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
 ];
-[INDICADORES_CONSULTORIA, INDICADORES_COMERCIAL].forEach(arr=>arr.forEach(ind=>{ind.labelPadrao=ind.label; ind.ativo=true;}));
+const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(plan)*100).toFixed(1)) : null);
+const INDICADORES_MARKETING = [
+  { key:'plan_story',    label:'Planejamento Story', getValor:d=>pctExec(d.mkt_story_plan,d.mkt_story_exec), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
+  { key:'plan_feed',     label:'Planejamento Feed',  getValor:d=>pctExec(d.mkt_feed_plan,d.mkt_feed_exec),  getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
+  { key:'visualizacoes', label:'Visualizações',      getValor:d=>pctExec(d.mkt_vis_postagens,d.mkt_vis_2500), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
+  { key:'tempo_resposta',label:'Tempo de Resposta',  getValor:d=>d.mkt_tempo_qtd, getNomes:null },
+  { key:'ocorrencias',   label:'Ocorrências',        getValor:d=>d.mkt_ocor_qtd, getNomes:null },
+];
+[INDICADORES_CONSULTORIA, INDICADORES_COMERCIAL, INDICADORES_MARKETING].forEach(arr=>arr.forEach(ind=>{ind.labelPadrao=ind.label; ind.ativo=true;}));
 let INDICADORES = [];
+// Setores que têm quebra por pessoa (grade/lançamento por colaborador).
+function setorTemPessoas(setor){ return setor==='consultoria' || setor==='comercial'; }
 
 function aplicarSetor(setor) {
-  const eqBase   = setor==='comercial' ? EQUIPE_COMERCIAL       : EQUIPE_CONSULTORIA;
-  const indBase  = setor==='comercial' ? INDICADORES_COMERCIAL  : INDICADORES_CONSULTORIA;
-  const metaEq   = setor==='comercial' ? METAS_EQ_PAD_COMERCIAL : METAS_EQ_PAD_CONSULTORIA;
-  const metaInd  = setor==='comercial' ? METAS_IND_PAD_COMERCIAL: METAS_IND_PAD_CONSULTORIA;
+  const eqBase   = setor==='comercial' ? EQUIPE_COMERCIAL : setor==='marketing' ? EQUIPE_MARKETING : EQUIPE_CONSULTORIA;
+  const indBase  = setor==='comercial' ? INDICADORES_COMERCIAL : setor==='marketing' ? INDICADORES_MARKETING : INDICADORES_CONSULTORIA;
+  const metaEq   = setor==='comercial' ? METAS_EQ_PAD_COMERCIAL : setor==='marketing' ? METAS_EQ_PAD_MARKETING : METAS_EQ_PAD_CONSULTORIA;
+  const metaInd  = setor==='comercial' ? METAS_IND_PAD_COMERCIAL: setor==='marketing' ? METAS_IND_PAD_MARKETING: METAS_IND_PAD_CONSULTORIA;
   rosterAtual = eqBase.map(c=>({...c}));
   CONSULTORAS.length=0; rosterAtual.forEach(c=>CONSULTORAS.push({...c}));
   INDICADORES.length=0; indBase.forEach(i=>{i.label=i.labelPadrao; i.ativo=true; INDICADORES.push(i);});
@@ -784,6 +846,11 @@ function aplicarSetor(setor) {
 function sincronizarEquipe(mes, ano) {
   const eq = equipeDoMes(Number(mes), Number(ano));
   CONSULTORAS.length=0; eq.forEach(c=>CONSULTORAS.push({...c}));
+}
+// Preenche o dropdown de indicador do modal de plano com os indicadores do setor atual.
+function preencherDropdownIndicadores(){
+  const sel=document.getElementById('p-indicador'); if(!sel) return;
+  sel.innerHTML=INDICADORES.map(i=>`<option>${i.label}</option>`).join('')+'<option>Outro</option>';
 }
 
 // ── NOMES DE COLEÇÃO/DOC POR SETOR ─────────────────────────────
@@ -857,22 +924,28 @@ async function entrarApp() {
   document.getElementById('app-setor-label').textContent = SETOR_LABEL[setorAtual];
   document.getElementById('indicadores-titulo').textContent = `Indicadores da ${SETOR_LABEL[setorAtual]}`;
   const ehConsultoria = setorAtual==='consultoria';
-  document.getElementById('consultora-destaques-wrap').style.display = '';
-  document.getElementById('grade-pessoa-titulo').textContent = ehConsultoria?'Indicadores por Consultora':'Indicadores por Vendedora';
+  const ehComercial   = setorAtual==='comercial';
+  const ehMarketing   = setorAtual==='marketing';
+  const temPessoas    = setorTemPessoas(setorAtual);
+  document.getElementById('consultora-destaques-wrap').style.display = temPessoas?'':'none';
+  document.getElementById('grade-pessoa-titulo').textContent = ehComercial?'Indicadores por Vendedora':'Indicadores por Consultora';
   document.getElementById('lancar-consultoria-fields').style.display = ehConsultoria?'':'none';
-  document.getElementById('lancar-comercial-fields').style.display = ehConsultoria?'none':'';
+  document.getElementById('lancar-comercial-fields').style.display = ehComercial?'':'none';
+  document.getElementById('lancar-marketing-fields').style.display = ehMarketing?'':'none';
+  const satSec=document.getElementById('lancar-satisfacao-sec'); if(satSec) satSec.style.display = temPessoas?'':'none';
   const hoje=new Date();
   ['sel-mes','l-mes','p-mes','h-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getMonth()+1;});
   ['sel-ano','l-ano','h-ano'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje.getFullYear();});
   await carregarMetas();
   await carregarAdminConfig();
   if(ehConsultoria){ buildConsultSections(); buildDestaquesForm(); }
-  else { buildComercialVendSections(); }
+  else if(ehComercial){ buildComercialVendSections(); }
   renderConfigMetas();
+  preencherDropdownIndicadores();
   // Config: rótulo da senha do setor atual + seção do link de café (só Comercial)
   document.getElementById('nova-senha-label').textContent = `Nova senha — ${SETOR_LABEL[setorAtual]}`;
   const cafeSec=document.getElementById('config-cafe-link');
-  if(cafeSec){ cafeSec.style.display = ehConsultoria?'none':''; const inp=document.getElementById('cafe-link-input'); if(inp) inp.value=cafeLinkComercial||''; }
+  if(cafeSec){ cafeSec.style.display = ehComercial?'':'none'; const inp=document.getElementById('cafe-link-input'); if(inp) inp.value=cafeLinkComercial||''; }
   document.getElementById('api-url').textContent=`https://firestore.googleapis.com/v1/projects/falcioni-kpis/databases/(default)/documents/${colLancamentos()}?key=AIzaSyA69Ql_K-_rOMjigupucmrIF_0L4Um2yxU`;
   await Promise.all([carregarDados(), carregarTodosPlanos()]);
 }
@@ -1091,6 +1164,8 @@ function limparFormLancar() {
       setVal(`l-${c.key}-vendas`); setVal(`l-${c.key}-vendas-desc`); setVal(`l-${c.key}-postagens`);
       setVal(`l-${c.key}-satisfacao`); setVal(`l-${c.key}-conhecimentos`); setVal(`l-${c.key}-conhec-desc`);
     });
+  } else if(setorAtual==='marketing') {
+    ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis-postagens','l-mkt-vis-2500','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
   } else {
     setVal('l-com-ocorrencias');
     CONSULTORAS.forEach(c=>{
@@ -1122,6 +1197,12 @@ function preencherFormLancar(d) {
       setVal(`l-${c.key}-conhecimentos`,cd.conhecimentos); setVal(`l-${c.key}-conhec-desc`,cd.conhec_desc);
     });
     (d.destaques||[]).forEach(dt=>setVal(`dt-${dt.consultora}`,dt.texto));
+  } else if(setorAtual==='marketing') {
+    setVal('l-mkt-story-plan',d.mkt_story_plan); setVal('l-mkt-story-exec',d.mkt_story_exec);
+    setVal('l-mkt-feed-plan',d.mkt_feed_plan);   setVal('l-mkt-feed-exec',d.mkt_feed_exec);
+    setVal('l-mkt-vis-postagens',d.mkt_vis_postagens); setVal('l-mkt-vis-2500',d.mkt_vis_2500);
+    setVal('l-mkt-tempo-qtd',d.mkt_tempo_qtd); setVal('l-mkt-tempo-desc',d.mkt_tempo_desc);
+    setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
   } else {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
     CONSULTORAS.forEach(c=>{
@@ -1185,7 +1266,7 @@ window.carregarDados=async()=>{
   const d=docs[0];
   document.getElementById('painel-body').style.display='block';
   renderIndicadoresList(d);
-  renderConsultGrid(d);
+  if(setorTemPessoas(setorAtual)) renderConsultGrid(d);
   if(setorAtual==='consultoria'){ renderDestaques(d); }
 };
 let ultimoLancamento=null;
@@ -1204,6 +1285,11 @@ function detNomes(lbl,str){ const h=chipsHtml(str); return h?`<div class="ind-de
 
 function detalheIndicador(ind,d) {
   const k=ind.key; const rows=[];
+  if(k==='plan_story'){ rows.push(detRow('Planejado', (d.mkt_story_plan??'—')+' postagens')); rows.push(detRow('Executado', (d.mkt_story_exec??'—')+' postagens')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
+  if(k==='plan_feed'){ rows.push(detRow('Planejado', (d.mkt_feed_plan??'—')+' postagens')); rows.push(detRow('Executado', (d.mkt_feed_exec??'—')+' postagens')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
+  if(k==='visualizacoes'){ rows.push(detRow('Qtd de Postagens', d.mkt_vis_postagens??'—')); rows.push(detRow('Atingiram 2.500', d.mkt_vis_2500??'—')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
+  if(k==='tempo_resposta' && setorAtual==='marketing'){ if(d.mkt_tempo_desc) rows.push(detRow('Descrição', d.mkt_tempo_desc)); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
+  if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc) rows.push(detRow('Descrição', d.mkt_ocor_desc)); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='controle_horas'){
     if(d.horas_previstas) rows.push(detRow('Horas Previstas', d.horas_previstas));
     if(d.horas_executadas) rows.push(detRow('Horas Executadas', d.horas_executadas));
@@ -1387,7 +1473,16 @@ window.salvarLancamento=()=>{
 
   let payload, resumoExtra='';
 
-  if(setorAtual==='comercial') {
+  if(setorAtual==='marketing') {
+    payload={
+      mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
+      mkt_story_plan: numOuNull('l-mkt-story-plan'), mkt_story_exec: numOuNull('l-mkt-story-exec'),
+      mkt_feed_plan:  numOuNull('l-mkt-feed-plan'),  mkt_feed_exec:  numOuNull('l-mkt-feed-exec'),
+      mkt_vis_postagens: numOuNull('l-mkt-vis-postagens'), mkt_vis_2500: numOuNull('l-mkt-vis-2500'),
+      mkt_tempo_qtd: numOuNull('l-mkt-tempo-qtd'), mkt_tempo_desc: strOuNull('l-mkt-tempo-desc'),
+      mkt_ocor_qtd:  numOuNull('l-mkt-ocor-qtd'),  mkt_ocor_desc:  strOuNull('l-mkt-ocor-desc'),
+    };
+  } else if(setorAtual==='comercial') {
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       com_ocorrencias:       numOuNull('l-com-ocorrencias'),
@@ -1575,6 +1670,11 @@ function renderDashTabela(todos, ano) {
 // ── APRESENTAÇÃO PPT ──────────────────────────────────────────
 function detalhePPT(ind,d) {
   const k=ind.key, out=[], nomes=s=>splitNomes(s).join(', ');
+  if(k==='plan_story'){ out.push(['Planejado', String(d.mkt_story_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_story_exec??'—')+' postagens']); return out; }
+  if(k==='plan_feed'){ out.push(['Planejado', String(d.mkt_feed_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_feed_exec??'—')+' postagens']); return out; }
+  if(k==='visualizacoes'){ out.push(['Qtd de Postagens', String(d.mkt_vis_postagens??'—')]); out.push(['Atingiram 2.500', String(d.mkt_vis_2500??'—')]); return out; }
+  if(k==='tempo_resposta' && setorAtual==='marketing'){ if(d.mkt_tempo_desc)out.push(['Descrição', d.mkt_tempo_desc]); return out; }
+  if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc)out.push(['Descrição', d.mkt_ocor_desc]); return out; }
   if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
   else if(k==='satisfacao'){ const sm=getSatMedia(d); if(sm!=null)out.push(['Média da equipe',sm.toFixed(2)+(d.satisfacao_notas?.length?`  (${d.satisfacao_notas.length} avaliações)`:'')]); (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'—')])); }
   else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
@@ -1682,7 +1782,8 @@ window.gerarPPT=async()=>{
       ev.addTable([head,...body],{x:0.4,y:1.35,w:12.5,fontSize:9,rowH:0.26,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
     }
 
-    // ── POR PESSOA ──
+    // ── POR PESSOA (só setores com quebra por pessoa) ──
+    if(setorTemPessoas(setorAtual)){
     const sp=pptx.addSlide(); sp.background={color:WHITE}; header(sp,setorAtual==='comercial'?'Por Vendedora':'Por Consultora');
     const cols = setorAtual==='comercial'
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
@@ -1695,6 +1796,7 @@ window.gerarPPT=async()=>{
       return cells.map((t,i)=>({text:t,options:{color:i?'1E293B':NAVY,bold:i===0,align:i?'center':'left',fill:{color:fill}}}));
     });
     sp.addTable([th,...trs],{x:0.5,y:1.4,w:12.3,fontSize:13,rowH:0.4,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle'});
+    }
 
     // ── PLANOS DE AÇÃO (consolidado) ──
     const planosMes=todosPlanos.filter(p=>p.mes===mes&&p.ano===ano);
@@ -1927,7 +2029,19 @@ window.renderLancamentos=async()=>{
   lista.innerHTML=snap.docs.map(d=>{
     const r=d.data(); const sat=getSatMedia(r);
     let resumo, cols, rows;
-    if(setorAtual==='comercial'){
+    if(setorAtual==='marketing'){
+      const pct=(p,e)=> (Number(p)>0? (Number(e||0)/Number(p)*100).toFixed(1)+'%':'—');
+      resumo=`Story: <strong>${pct(r.mkt_story_plan,r.mkt_story_exec)}</strong> · Feed: <strong>${pct(r.mkt_feed_plan,r.mkt_feed_exec)}</strong> · Visualizações: <strong>${pct(r.mkt_vis_postagens,r.mkt_vis_2500)}</strong><br>Tempo de Resposta: <strong>${r.mkt_tempo_qtd??'—'}</strong> · Ocorrências: <strong>${r.mkt_ocor_qtd??'—'}</strong>`;
+      cols=th('Indicador')+th('Valor');
+      const linhasM=[
+        ['Planejamento Story', pct(r.mkt_story_plan,r.mkt_story_exec)+` (${r.mkt_story_exec??'—'}/${r.mkt_story_plan??'—'})`],
+        ['Planejamento Feed', pct(r.mkt_feed_plan,r.mkt_feed_exec)+` (${r.mkt_feed_exec??'—'}/${r.mkt_feed_plan??'—'})`],
+        ['Visualizações', pct(r.mkt_vis_postagens,r.mkt_vis_2500)+` (${r.mkt_vis_2500??'—'}/${r.mkt_vis_postagens??'—'})`],
+        ['Tempo de Resposta', (r.mkt_tempo_qtd??'—')+(r.mkt_tempo_desc?' — '+r.mkt_tempo_desc:'')],
+        ['Ocorrências', (r.mkt_ocor_qtd??'—')+(r.mkt_ocor_desc?' — '+r.mkt_ocor_desc:'')],
+      ];
+      rows=linhasM.map(([a,b])=>`<tr><td style="color:var(--primary);font-weight:700">${a}</td><td>${b}</td></tr>`).join('');
+    } else if(setorAtual==='comercial'){
       resumo=`Ocorrências: <strong>${r.com_ocorrencias??'—'}</strong> · Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong>`;
       cols=th('Vendedora')+th('Consultoria (R$)')+th('Cursos (insc.)')+th('Palestras (R$)')+th('Cafés');
       rows=equipeDoDoc(r).map(c=>{const cd=r[c.key]||{};return `<tr>
