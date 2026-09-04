@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>IndFalc</title>
+  <title>IndiFal</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1A2F4A">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -278,7 +278,7 @@
 <!-- SPLASH -->
 <div id="splash">
   <img src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
-  <h1>IndFalc</h1>
+  <h1>IndiFal</h1>
   <p>Sistema de Indicadores</p>
   <div id="splash-bar-wrap"><div id="splash-bar"></div></div>
 </div>
@@ -286,7 +286,7 @@
 <!-- LOGIN -->
 <div id="screen-login">
   <img class="logo-login" src="Falcioni.jpg" alt="Falcioni" onerror="this.style.display='none'">
-  <h1>IndFalc</h1>
+  <h1>IndiFal</h1>
   <p class="sub">Sistema de Indicadores de Desempenho</p>
   <div class="setor-grid">
     <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
@@ -305,7 +305,7 @@
 <div id="screen-app">
   <div class="app-header">
     <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
-    <div class="info"><h2>IndFalc</h2><span id="app-setor-label">Consultoria</span></div>
+    <div class="info"><h2>IndiFal</h2><span id="app-setor-label">Consultoria</span></div>
     <div class="mes-sel">
       <select id="sel-mes" onchange="carregarDados()">
         <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
@@ -1714,7 +1714,7 @@ window.gerarPPT=async()=>{
 
     const pptx=new PptxGenJS(); pptx.layout='LAYOUT_WIDE';
     pptx.defineSlideMaster({ title:'FALCI', background:{color:WHITE},
-      objects:[{text:{text:'Falcioni Consultoria · IndFalc',options:{x:0.5,y:7.05,w:8,h:0.3,fontSize:9,color:'94A3B8'}}}] });
+      objects:[{text:{text:'Falcioni Consultoria · IndiFal',options:{x:0.5,y:7.05,w:8,h:0.3,fontSize:9,color:'94A3B8'}}}] });
     // cabeçalho navy padrão
     const header=(sl,titulo)=>{ sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.05,fill:{color:NAVY}});
       sl.addShape(pptx.ShapeType.rect,{x:0,y:1.05,w:13.33,h:0.06,fill:{color:GOLD}});
@@ -1723,7 +1723,7 @@ window.gerarPPT=async()=>{
     // ── CAPA ──
     let s=pptx.addSlide(); s.background={color:NAVY};
     s.addShape(pptx.ShapeType.rect,{x:0,y:3.05,w:5,h:0.07,fill:{color:GOLD}});
-    s.addText('IndFalc',{x:0.6,y:1.9,w:12,h:1,fontSize:56,bold:true,color:GOLD});
+    s.addText('IndiFal',{x:0.6,y:1.9,w:12,h:1,fontSize:56,bold:true,color:GOLD});
     s.addText(`Relatório de Indicadores de Desempenho`,{x:0.6,y:3.25,w:12,h:0.6,fontSize:24,color:WHITE});
     s.addText(`${SETOR_LABEL[setorAtual]}  ·  ${MESES_NOME[mes]} / ${ano}`,{x:0.6,y:4.0,w:12,h:0.6,fontSize:20,color:'AAB4C4'});
     s.addText(`Falcioni Consultoria  ·  gerado em ${hoje}`,{x:0.6,y:6.7,w:12,h:0.4,fontSize:12,color:'6B7A90'});
@@ -1815,7 +1815,7 @@ window.gerarPPT=async()=>{
     const fim=pptx.addSlide(); fim.background={color:NAVY};
     fim.addShape(pptx.ShapeType.rect,{x:0,y:3.6,w:4,h:0.07,fill:{color:GOLD}});
     fim.addText('Obrigado!',{x:0.6,y:2.6,w:12,h:1,fontSize:48,bold:true,color:GOLD});
-    fim.addText('Falcioni Consultoria  ·  IndFalc',{x:0.6,y:3.8,w:12,h:0.5,fontSize:18,color:'AAB4C4'});
+    fim.addText('Falcioni Consultoria  ·  IndiFal',{x:0.6,y:3.8,w:12,h:0.5,fontSize:18,color:'AAB4C4'});
 
     await pptx.writeFile({fileName:`falcikpi_${setorAtual}_${MESES_ABREV[mes]}${ano}.pptx`});
     toast('✅ Apresentação gerada!');
