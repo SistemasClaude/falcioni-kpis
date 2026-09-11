@@ -1351,8 +1351,9 @@ function renderIndicadoresList(d) {
       </div>
       ${detalhe}
       <div class="indicador-plano-wrap">
-        <div class="indicador-plano-label">Plano de Ação</div>
-        ${planos.length?planos.map(renderPlanoCardCompacto).join(''):`<button class="btn-add-plano" onclick="abrirModalPlano('${ind.label.replace(/'/g,"\\'")}')">+ Adicionar Plano de Ação</button>`}
+        <div class="indicador-plano-label">Plano${planos.length>1?'s':''} de Ação${planos.length>1?` (${planos.length})`:''}</div>
+        ${planos.map(renderPlanoCardCompacto).join('')}
+        <button class="btn-add-plano" onclick="abrirModalPlano('${ind.label.replace(/'/g,"\\'")}')">+ Adicionar${planos.length?' outro':''} Plano de Ação</button>
       </div>
     </div>`;
   }).join('');
