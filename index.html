@@ -499,8 +499,7 @@
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">👁️ Visualizações</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
           <div class="form-row" style="margin-top:12px">
-            <div class="form-group"><label>Qtd de Postagens</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 14" min="0"></div>
-            <div class="form-group"><label>Atingiram 2.500 (qtd)</label><input type="number" id="l-mkt-vis-2500" placeholder="Ex: 10" min="0"></div>
+            <div class="form-group"><label>Visualizações (qtd)</label><input type="number" id="l-mkt-vis" placeholder="Ex: 2000" min="0"></div>
           </div>
         </div>
       </div>
@@ -727,7 +726,7 @@ const METAS_EQ_PAD_MARKETING = {
   // Planejamento/Visualizações: metas % da planilha "Base Metas" (70/80/90); Tempo/Ocorrências tipo menor (Ouro 0, resto provisório)
   plan_story:    { label:'Planejamento Story', tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
   plan_feed:     { label:'Planejamento Feed',  tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
-  visualizacoes: { label:'Visualizações',      tipo:'maior', bronze:70, prata:80, ouro:90, unit:'%' },
+  visualizacoes: { label:'Visualizações',      tipo:'maior', bronze:1500, prata:2000, ouro:2500, unit:'' },
   tempo_resposta:{ label:'Tempo de Resposta',  tipo:'menor', bronze:3,  prata:1,  ouro:0,  unit:'' },
   ocorrencias:   { label:'Ocorrências',        tipo:'menor', bronze:3,  prata:1,  ouro:0,  unit:'' },
 };
@@ -827,7 +826,7 @@ const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(pla
 const INDICADORES_MARKETING = [
   { key:'plan_story',    label:'Planejamento Story', getValor:d=>pctExec(d.mkt_story_plan,d.mkt_story_exec), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
   { key:'plan_feed',     label:'Planejamento Feed',  getValor:d=>pctExec(d.mkt_feed_plan,d.mkt_feed_exec),  getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
-  { key:'visualizacoes', label:'Visualizações',      getValor:d=>pctExec(d.mkt_vis_postagens,d.mkt_vis_2500), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
+  { key:'visualizacoes', label:'Visualizações',      getValor:d=>d.mkt_vis??null, getNomes:null, fmt:v=>Number(v).toLocaleString('pt-BR') },
   { key:'tempo_resposta',label:'Tempo de Resposta',  getValor:d=>d.mkt_tempo_qtd, getNomes:null },
   { key:'ocorrencias',   label:'Ocorrências',        getValor:d=>d.mkt_ocor_qtd, getNomes:null },
 ];
@@ -1170,7 +1169,7 @@ function limparFormLancar() {
       setVal(`l-${c.key}-satisfacao`); setVal(`l-${c.key}-conhecimentos`); setVal(`l-${c.key}-conhec-desc`);
     });
   } else if(setorAtual==='marketing') {
-    ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis-postagens','l-mkt-vis-2500','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
+    ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
   } else {
     setVal('l-com-ocorrencias');
     CONSULTORAS.forEach(c=>{
@@ -1205,7 +1204,7 @@ function preencherFormLancar(d) {
   } else if(setorAtual==='marketing') {
     setVal('l-mkt-story-plan',d.mkt_story_plan); setVal('l-mkt-story-exec',d.mkt_story_exec);
     setVal('l-mkt-feed-plan',d.mkt_feed_plan);   setVal('l-mkt-feed-exec',d.mkt_feed_exec);
-    setVal('l-mkt-vis-postagens',d.mkt_vis_postagens); setVal('l-mkt-vis-2500',d.mkt_vis_2500);
+    setVal('l-mkt-vis',d.mkt_vis);
     setVal('l-mkt-tempo-qtd',d.mkt_tempo_qtd); setVal('l-mkt-tempo-desc',d.mkt_tempo_desc);
     setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
   } else {
@@ -1292,7 +1291,7 @@ function detalheIndicador(ind,d) {
   const k=ind.key; const rows=[];
   if(k==='plan_story'){ rows.push(detRow('Planejado', (d.mkt_story_plan??'—')+' postagens')); rows.push(detRow('Executado', (d.mkt_story_exec??'—')+' postagens')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='plan_feed'){ rows.push(detRow('Planejado', (d.mkt_feed_plan??'—')+' postagens')); rows.push(detRow('Executado', (d.mkt_feed_exec??'—')+' postagens')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
-  if(k==='visualizacoes'){ rows.push(detRow('Qtd de Postagens', d.mkt_vis_postagens??'—')); rows.push(detRow('Atingiram 2.500', d.mkt_vis_2500??'—')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
+  if(k==='visualizacoes'){ rows.push(detRow('Visualizações', d.mkt_vis??'—')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='tempo_resposta' && setorAtual==='marketing'){ if(d.mkt_tempo_desc) rows.push(detRow('Descrição', d.mkt_tempo_desc)); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc) rows.push(detRow('Descrição', d.mkt_ocor_desc)); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='controle_horas'){
@@ -1484,7 +1483,7 @@ window.salvarLancamento=()=>{
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       mkt_story_plan: numOuNull('l-mkt-story-plan'), mkt_story_exec: numOuNull('l-mkt-story-exec'),
       mkt_feed_plan:  numOuNull('l-mkt-feed-plan'),  mkt_feed_exec:  numOuNull('l-mkt-feed-exec'),
-      mkt_vis_postagens: numOuNull('l-mkt-vis-postagens'), mkt_vis_2500: numOuNull('l-mkt-vis-2500'),
+      mkt_vis: numOuNull('l-mkt-vis'),
       mkt_tempo_qtd: numOuNull('l-mkt-tempo-qtd'), mkt_tempo_desc: strOuNull('l-mkt-tempo-desc'),
       mkt_ocor_qtd:  numOuNull('l-mkt-ocor-qtd'),  mkt_ocor_desc:  strOuNull('l-mkt-ocor-desc'),
     };
@@ -1678,7 +1677,7 @@ function detalhePPT(ind,d) {
   const k=ind.key, out=[], nomes=s=>splitNomes(s).join(', ');
   if(k==='plan_story'){ out.push(['Planejado', String(d.mkt_story_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_story_exec??'—')+' postagens']); return out; }
   if(k==='plan_feed'){ out.push(['Planejado', String(d.mkt_feed_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_feed_exec??'—')+' postagens']); return out; }
-  if(k==='visualizacoes'){ out.push(['Qtd de Postagens', String(d.mkt_vis_postagens??'—')]); out.push(['Atingiram 2.500', String(d.mkt_vis_2500??'—')]); return out; }
+  if(k==='visualizacoes'){ out.push(['Visualizações', String(d.mkt_vis??'—')]); return out; }
   if(k==='tempo_resposta' && setorAtual==='marketing'){ if(d.mkt_tempo_desc)out.push(['Descrição', d.mkt_tempo_desc]); return out; }
   if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc)out.push(['Descrição', d.mkt_ocor_desc]); return out; }
   if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
@@ -2037,12 +2036,12 @@ window.renderLancamentos=async()=>{
     let resumo, cols, rows;
     if(setorAtual==='marketing'){
       const pct=(p,e)=> (Number(p)>0? (Number(e||0)/Number(p)*100).toFixed(1)+'%':'—');
-      resumo=`Story: <strong>${pct(r.mkt_story_plan,r.mkt_story_exec)}</strong> · Feed: <strong>${pct(r.mkt_feed_plan,r.mkt_feed_exec)}</strong> · Visualizações: <strong>${pct(r.mkt_vis_postagens,r.mkt_vis_2500)}</strong><br>Tempo de Resposta: <strong>${r.mkt_tempo_qtd??'—'}</strong> · Ocorrências: <strong>${r.mkt_ocor_qtd??'—'}</strong>`;
+      resumo=`Story: <strong>${pct(r.mkt_story_plan,r.mkt_story_exec)}</strong> · Feed: <strong>${pct(r.mkt_feed_plan,r.mkt_feed_exec)}</strong> · Visualizações: <strong>${r.mkt_vis??'—'}</strong><br>Tempo de Resposta: <strong>${r.mkt_tempo_qtd??'—'}</strong> · Ocorrências: <strong>${r.mkt_ocor_qtd??'—'}</strong>`;
       cols=th('Indicador')+th('Valor');
       const linhasM=[
         ['Planejamento Story', pct(r.mkt_story_plan,r.mkt_story_exec)+` (${r.mkt_story_exec??'—'}/${r.mkt_story_plan??'—'})`],
         ['Planejamento Feed', pct(r.mkt_feed_plan,r.mkt_feed_exec)+` (${r.mkt_feed_exec??'—'}/${r.mkt_feed_plan??'—'})`],
-        ['Visualizações', pct(r.mkt_vis_postagens,r.mkt_vis_2500)+` (${r.mkt_vis_2500??'—'}/${r.mkt_vis_postagens??'—'})`],
+        ['Visualizações', String(r.mkt_vis??'—')],
         ['Tempo de Resposta', (r.mkt_tempo_qtd??'—')+(r.mkt_tempo_desc?' — '+r.mkt_tempo_desc:'')],
         ['Ocorrências', (r.mkt_ocor_qtd??'—')+(r.mkt_ocor_desc?' — '+r.mkt_ocor_desc:'')],
       ];
