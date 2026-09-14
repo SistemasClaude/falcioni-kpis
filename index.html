@@ -440,12 +440,21 @@
             <div class="form-group"><label>Meta Clientes Atingida (qtd)</label><input type="number" id="l-meta-qtd" placeholder="Ex: 7" min="0"></div>
             <div class="form-group"><label>Total de Clientes Ativos</label><input type="number" id="l-total-cli" placeholder="Ex: 11" min="0"></div>
           </div>
-          <div class="form-group"><label>Clientes que Bateram Meta (nomes)</label><input type="text" id="l-meta-nomes" placeholder="Ex: Barbalha, Colorado, Betinho..."></div>
+          <div class="form-group">
+            <label>Clientes que bateram meta — cliente + tipo de meta</label>
+            <div id="meta-cli-itens"></div>
+            <button type="button" class="btn-add-plano" onclick="addMetaCliItem()" style="margin-top:4px">+ Adicionar cliente</button>
+            <datalist id="meta-tipos"><option value="Faturamento"></option><option value="Call Center"></option><option value="Executados no prazo"></option></datalist>
+          </div>
           <div class="form-row">
             <div class="form-group"><label>Novos — Nomes dos Clientes</label><input type="text" id="l-novos-nomes" placeholder="Ex: Padaria, OFEBAS..."></div>
             <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
           </div>
           <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>Indicações que fecharam (qtd)</label><input type="number" id="l-indicacoes" placeholder="Ex: 1" min="0"></div>
+          </div>
+          <div class="form-group"><label>Indicações — quem indicou quem</label><input type="text" id="l-indicacoes-nomes" placeholder="Ex: Cliente X indicou Cliente Y (fechado)"></div>
           <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
           <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
         </div>
@@ -476,6 +485,14 @@
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">⚠️ Ocorrências (equipe)</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
           <div class="form-group" style="margin-top:12px"><label>Ocorrências no mês (qtd)</label><input type="number" id="l-com-ocorrencias" placeholder="Ex: 0" min="0"></div>
+        </div>
+      </div>
+      <!-- Indicações (equipe) -->
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🤝 Indicações</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-group" style="margin-top:12px"><label>Indicações que fecharam (qtd)</label><input type="number" id="l-com-indicacoes" placeholder="Ex: 1" min="0"></div>
+          <div class="form-group"><label>Quem indicou quem</label><input type="text" id="l-com-indicacoes-nomes" placeholder="Ex: Cliente X indicou Cliente Y (fechado)"></div>
         </div>
       </div>
     </div>
@@ -641,7 +658,10 @@
     <div class="form-group"><label>O que?</label><textarea id="p-oque" rows="2" placeholder="Descreva a ação..."></textarea></div>
     <div class="form-row">
       <div class="form-group"><label>Quem?</label><input type="text" id="p-quem" placeholder="Ex: Consultoras"></div>
-      <div class="form-group"><label>Quando?</label><input type="text" id="p-quando" placeholder="Ex: Semanal"></div>
+      <div class="form-group"><label>Quando?</label>
+        <input type="text" id="p-quando" placeholder="Ex: Semanal ou uma data">
+        <input type="date" id="p-quando-dt" onchange="aplicarDataQuando('p-quando','p-quando-dt')" style="margin-top:6px;width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
@@ -706,6 +726,7 @@ const METAS_EQ_PAD_CONSULTORIA = {
   conhec_eq:      { label:'Conh. Equipe',      tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
   // Provisórios — ajustar em Config → Metas Equipe
   clientes_novos:       { label:'Clientes Novos',       tipo:'maior', bronze:1, prata:2, ouro:3, unit:'' },
+  indicacoes:           { label:'Indicações',           tipo:'maior', bronze:1, prata:2, ouro:3, unit:'' },
   clientes_finalizados: { label:'Clientes Finalizados', tipo:'menor', bronze:2, prata:1, ouro:0, unit:'' },
   clientes_excederam:   { label:'Horas Excedentes',     tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
   clientes_pendentes:   { label:'Horas Pendentes',      tipo:'menor', bronze:6, prata:3, ouro:0, unit:'' },
@@ -719,6 +740,7 @@ const METAS_EQ_PAD_COMERCIAL = {
   venda_palestras:   { label:'Venda Palestras',          tipo:'maior', bronze:7500, prata:10000, ouro:15000, unit:'' },
   cafes:             { label:'Acompanhamento de Cafés',  tipo:'maior', bronze:4,    prata:8,     ouro:12,    unit:'' },
   satisfacao:        { label:'Pesquisa de Satisfação',   tipo:'maior', bronze:8,    prata:9,     ouro:10,    unit:'' },
+  indicacoes:        { label:'Indicações',               tipo:'maior', bronze:1,    prata:2,     ouro:3,     unit:'' },
   ocorrencias:       { label:'Ocorrências',              tipo:'menor', bronze:3,    prata:1,     ouro:0,     unit:'' },
 };
 const METAS_IND_PAD_MARKETING = {}; // Marketing é só de equipe (sem metas por pessoa)
@@ -795,6 +817,7 @@ const INDICADORES_CONSULTORIA = [
   { key:'clientes_iniciaram',   label:'Clientes Iniciaram',   getValor:d=>d.clientes_iniciaram, getNomes:null },
   { key:'clientes_novos',       label:'Clientes Novos',       getValor:d=>d.clientes_novos, getNomes:d=>d.clientes_novos_nomes },
   { key:'clientes_finalizados', label:'Clientes Finalizados', getValor:d=>d.clientes_finalizados, getNomes:d=>d.clientes_finalizados_nomes },
+  { key:'indicacoes',           label:'Indicações',           getValor:d=>d.indicacoes, getNomes:d=>d.indicacoes_nomes },
   // Controle de Horas + os dois indicadores de horas correlacionados logo abaixo
   { key:'controle_horas',       label:'Controle de Horas',    getValor:d=>d.controle_horas_pct, getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%`,
     getSub:d=>(d.horas_previstas||d.horas_executadas)?`Previstas: ${d.horas_previstas||'—'} · Executadas: ${d.horas_executadas||'—'}`:null },
@@ -820,6 +843,7 @@ const INDICADORES_COMERCIAL = [
   { key:'venda_palestras',   label:'Venda Palestras',         getValor:d=>somaVend(d,'venda_palestras','com_venda_palestras'), getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
   { key:'cafes',             label:'Acompanhamento de Cafés', getValor:d=>somaVend(d,'cafes','com_cafes'), getNomes:null },
   { key:'satisfacao',        label:'Pesquisa de Satisfação',  getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
+  { key:'indicacoes',        label:'Indicações',              getValor:d=>d.indicacoes, getNomes:d=>d.indicacoes_nomes },
   { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
 ];
 const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(plan)*100).toFixed(1)) : null);
@@ -855,6 +879,37 @@ function sincronizarEquipe(mes, ano) {
 function preencherDropdownIndicadores(){
   const sel=document.getElementById('p-indicador'); if(!sel) return;
   sel.innerHTML=INDICADORES.map(i=>`<option>${i.label}</option>`).join('')+'<option>Outro</option>';
+}
+
+// Converte a data escolhida (yyyy-mm-dd) em dd/mm/aaaa e joga no campo de texto "Quando".
+window.aplicarDataQuando=(txtId,dtId)=>{
+  const v=document.getElementById(dtId)?.value; if(!v) return;
+  const [a,m,d]=v.split('-');
+  const el=document.getElementById(txtId); if(el) el.value=`${d}/${m}/${a}`;
+};
+
+// ── META CLIENTES: lista cliente + tipo de meta ────────────────
+window.addMetaCliItem=(cliente='',tipo='')=>{
+  const wrap=document.getElementById('meta-cli-itens'); if(!wrap) return;
+  const esc=s=>String(s??'').replace(/"/g,'&quot;');
+  const stInput='padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none';
+  const row=document.createElement('div');
+  row.className='mci-row';
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';
+  row.innerHTML=`<input type="text" class="mci-cli" placeholder="Cliente" value="${esc(cliente)}" style="flex:1;${stInput}">
+    <input type="text" class="mci-tipo" list="meta-tipos" placeholder="Tipo de meta" value="${esc(tipo)}" style="flex:1;${stInput}">
+    <button type="button" class="btn-del-plano" onclick="this.closest('.mci-row').remove()">🗑️</button>`;
+  wrap.appendChild(row);
+};
+function lerMetaCliItens(){
+  return [...document.querySelectorAll('#meta-cli-itens .mci-row')]
+    .map(r=>({cliente:r.querySelector('.mci-cli').value.trim(), tipo:r.querySelector('.mci-tipo').value.trim()}))
+    .filter(x=>x.cliente);
+}
+function setMetaCliItens(itens){
+  const wrap=document.getElementById('meta-cli-itens'); if(!wrap) return;
+  wrap.innerHTML='';
+  (itens||[]).forEach(x=>addMetaCliItem(x.cliente,x.tipo));
 }
 
 // ── NOMES DE COLEÇÃO/DOC POR SETOR ─────────────────────────────
@@ -1161,7 +1216,8 @@ function limparFormLancar() {
   if(ehConsultoria) {
     ['l-horas-prev','l-horas-exec','l-iniciaram','l-clientes','l-novos-nomes','l-finalizados','l-finalizados-nomes',
      'l-excederam','l-excederam-nomes','l-pendentes','l-pendentes-nomes',
-     'l-meta-qtd','l-total-cli','l-meta-nomes','dt-consultoria'].forEach(id=>setVal(id));
+     'l-meta-qtd','l-total-cli','l-indicacoes','l-indicacoes-nomes','dt-consultoria'].forEach(id=>setVal(id));
+    setMetaCliItens([]);
     document.getElementById('controle-horas-live').innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';
     CONSULTORAS.forEach(c=>{
       setVal(`dt-${c.key}`);
@@ -1171,7 +1227,7 @@ function limparFormLancar() {
   } else if(setorAtual==='marketing') {
     ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
   } else {
-    setVal('l-com-ocorrencias');
+    setVal('l-com-ocorrencias'); setVal('l-com-indicacoes'); setVal('l-com-indicacoes-nomes');
     CONSULTORAS.forEach(c=>{
       ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
     });
@@ -1191,7 +1247,9 @@ function preencherFormLancar(d) {
     setVal('l-finalizados',d.clientes_finalizados); setVal('l-finalizados-nomes',d.clientes_finalizados_nomes);
     setVal('l-excederam',d.clientes_excederam); setVal('l-excederam-nomes',d.clientes_excederam_nomes);
     setVal('l-pendentes',d.clientes_pendentes); setVal('l-pendentes-nomes',d.clientes_pendentes_nomes);
-    setVal('l-meta-qtd',d.meta_clientes_qtd); setVal('l-total-cli',d.total_clientes); setVal('l-meta-nomes',d.meta_clientes_nomes);
+    setVal('l-meta-qtd',d.meta_clientes_qtd); setVal('l-total-cli',d.total_clientes);
+    setMetaCliItens((Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length)?d.meta_clientes_itens:splitNomes(d.meta_clientes_nomes).map(n=>({cliente:n,tipo:''})));
+    setVal('l-indicacoes',d.indicacoes); setVal('l-indicacoes-nomes',d.indicacoes_nomes);
     setVal('dt-consultoria',d.destaque_consultoria);
     atualizarControleHoras();
     CONSULTORAS.forEach(c=>{
@@ -1209,6 +1267,7 @@ function preencherFormLancar(d) {
     setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
   } else {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
+    setVal('l-com-indicacoes',d.indicacoes); setVal('l-com-indicacoes-nomes',d.indicacoes_nomes);
     CONSULTORAS.forEach(c=>{
       const cd=d[c.key]||{};
       ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
@@ -1306,7 +1365,10 @@ function detalheIndicador(ind,d) {
     }
   } else if(k==='meta_clientes'){
     if(d.meta_clientes_qtd&&d.total_clientes) rows.push(detRow('Atingimento', `${d.meta_clientes_qtd} de ${d.total_clientes} clientes`));
-    const r=detNomes('Clientes que bateram a meta', d.meta_clientes_nomes); if(r) rows.push(r);
+    if(Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length){
+      rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Clientes que bateram a meta</span><div class="ind-chips">${d.meta_clientes_itens.map(x=>`<span class="ind-chip">${x.cliente}${x.tipo?` — ${x.tipo}`:''}</span>`).join('')}</div></div>`);
+    } else { const r=detNomes('Clientes que bateram a meta', d.meta_clientes_nomes); if(r) rows.push(r); }
+  } else if(k==='indicacoes'){ const r=detNomes('Indicações que fecharam', d.indicacoes_nomes); if(r) rows.push(r);
   } else if(k==='clientes_novos'){ const r=detNomes('Novos clientes', d.clientes_novos_nomes); if(r) rows.push(r);
   } else if(k==='clientes_finalizados'){ const r=detNomes('Clientes finalizados', d.clientes_finalizados_nomes); if(r) rows.push(r);
   } else if(k==='clientes_excederam'){ const r=detNomes('Clientes que excederam horas', d.clientes_excederam_nomes); if(r) rows.push(r);
@@ -1491,6 +1553,8 @@ window.salvarLancamento=()=>{
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       com_ocorrencias:       numOuNull('l-com-ocorrencias'),
+      indicacoes:            numOuNull('l-com-indicacoes'),
+      indicacoes_nomes:      strOuNull('l-com-indicacoes-nomes'),
       cafe_link_geral:       cafeLinkComercial||null,
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
@@ -1539,7 +1603,10 @@ window.salvarLancamento=()=>{
       meta_clientes_qtd: metaQtd,
       total_clientes:    totalCli,
       meta_clientes_pct: metaPct,
-      meta_clientes_nomes: strOuNull('l-meta-nomes'),
+      meta_clientes_itens: lerMetaCliItens(),
+      meta_clientes_nomes: lerMetaCliItens().map(x=>x.cliente).join(', ')||null,
+      indicacoes:        numOuNull('l-indicacoes'),
+      indicacoes_nomes:  strOuNull('l-indicacoes-nomes'),
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
       satisfacao_media:  satMedia,
@@ -1682,7 +1749,8 @@ function detalhePPT(ind,d) {
   if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc)out.push(['Descrição', d.mkt_ocor_desc]); return out; }
   if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
   else if(k==='satisfacao'){ const sm=getSatMedia(d); if(sm!=null)out.push(['Média da equipe',sm.toFixed(2)+(d.satisfacao_notas?.length?`  (${d.satisfacao_notas.length} avaliações)`:'')]); (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'—')])); }
-  else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
+  else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length)out.push(['Bateram a meta', d.meta_clientes_itens.map(x=>x.cliente+(x.tipo?` (${x.tipo})`:'')).join(', ')]); else if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
+  else if(k==='indicacoes'){ if(d.indicacoes_nomes)out.push(['Indicações que fecharam',nomes(d.indicacoes_nomes)]); }
   else if(k==='clientes_iniciaram'){ if(d.clientes_iniciaram!=null)out.push(['Clientes atendidos no mês',String(d.clientes_iniciaram)]); }
   else if(k==='clientes_novos'&&d.clientes_novos_nomes)out.push(['Novos clientes',nomes(d.clientes_novos_nomes)]);
   else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
@@ -1842,6 +1910,7 @@ function carregarAcompanhamento(){
   renderAcompanhamento();
 }
 function inputAcomp(id,label,val,ph){ return `<div class="form-group" style="margin-bottom:8px"><label style="font-size:.72rem">${label}</label><input id="${id}" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${ph||''}" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none"></div>`; }
+function inputAcompQuando(id,val){ const dt=id+'-dt'; const st='width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none'; return `<div class="form-group" style="margin-bottom:8px"><label style="font-size:.72rem">Quando?</label><input id="${id}" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="Ex: Semanal ou uma data" style="${st}"><input type="date" id="${dt}" onchange="aplicarDataQuando('${id}','${dt}')" style="margin-top:6px;${st}"></div>`; }
 function cardAcomp(p){
   const s=statusPlano(p);
   const btns=['executado','parcial','nao_executado','pendente'].map(st=>
@@ -1857,7 +1926,7 @@ function cardAcomp(p){
     </div>
     <div class="form-row" style="margin-top:8px">
       ${inputAcomp('acomp-quem-'+p.id,'Quem?',p.quem,'Ex: Consultoras')}
-      ${inputAcomp('acomp-quando-'+p.id,'Quando?',p.quando,'Ex: Semanal')}
+      ${inputAcompQuando('acomp-quando-'+p.id,p.quando)}
     </div>
     <div style="border-top:1px dashed var(--border);margin-top:6px;padding-top:10px">
       <label style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700">Foi executado?</label>
@@ -1937,7 +2006,7 @@ let editandoPlanoId=null;
 window.abrirModalPlano=(indicadorLabel)=>{
   editandoPlanoId=null;
   document.querySelector('#modal-plano h3').textContent='📌 Novo Plano de Ação';
-  ['p-oque','p-quem','p-quando'].forEach(id=>document.getElementById(id).value='');
+  ['p-oque','p-quem','p-quando','p-quando-dt'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
   document.getElementById('p-mes').value = document.getElementById('sel-mes').value;
   document.getElementById('p-ano').value = document.getElementById('sel-ano').value;
   document.getElementById('p-indicador').value = indicadorLabel||'';
@@ -1956,6 +2025,7 @@ window.editarPlano=(id)=>{
   document.getElementById('p-oque').value      = p.o_que||'';
   document.getElementById('p-quem').value      = p.quem||'';
   document.getElementById('p-quando').value    = p.quando||'';
+  const pqd=document.getElementById('p-quando-dt'); if(pqd) pqd.value='';
   document.getElementById('modal-plano').classList.add('open');
 };
 
