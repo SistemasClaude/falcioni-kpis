@@ -1168,11 +1168,8 @@ function buildDestaquesForm() {
     <div class="form-group">
       <label>${c.nome}</label>
       <input type="text" id="dt-${c.key}" placeholder="Destaque do mês (opcional)">
-      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
-        <input type="file" accept="image/*" id="dt-foto-${c.key}" onchange="onDestaquePhoto('${c.key}',this)" style="font-size:.8rem;flex:1;min-width:150px">
-        <button type="button" id="dt-foto-rm-${c.key}" onclick="removerDestaqueFoto('${c.key}')" class="btn-del-plano" style="display:none">🗑️ foto</button>
-      </div>
-      <img id="dt-foto-prev-${c.key}" alt="" style="display:none;max-width:160px;border-radius:8px;margin-top:6px;border:1px solid var(--border)">
+      <input type="file" accept="image/*" multiple id="dt-foto-${c.key}" onchange="onDestaquePhoto('${c.key}',this)" style="font-size:.8rem;width:100%;margin-top:6px">
+      <div id="dt-fotos-${c.key}" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
     </div>`).join('');
 }
 // Comprime a imagem (lado máx. 700px, JPEG) para caber no Firestore e exibir no app.
@@ -1191,20 +1188,28 @@ function comprimirImagem(file, maxLado=700, q=0.65){
   });
 }
 window.destaqueFotos = window.destaqueFotos || {};
+// Miniaturas (lado a lado) das fotos já carregadas de uma consultora, com botão remover.
+function renderDestaqueThumbs(key){
+  const wrap=document.getElementById('dt-fotos-'+key); if(!wrap) return;
+  const arr=(window.destaqueFotos&&window.destaqueFotos[key])||[];
+  wrap.innerHTML=arr.map((b64,i)=>`<div style="position:relative;display:inline-block">
+      <img src="${b64}" alt="" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+      <button type="button" onclick="removerDestaqueFotoIdx('${key}',${i})" title="Remover foto" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#c0392b;color:#fff;cursor:pointer;font-size:.8rem;line-height:1;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`).join('');
+}
 window.onDestaquePhoto = async (key,input)=>{
-  const f=input.files&&input.files[0]; if(!f) return;
+  const files=[...(input.files||[])]; if(!files.length) return;
+  window.destaqueFotos=window.destaqueFotos||{};
+  window.destaqueFotos[key]=window.destaqueFotos[key]||[];
   try{
-    const b64=await comprimirImagem(f);
-    window.destaqueFotos[key]=b64;
-    const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=b64; prev.style.display='block'; }
-    const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display='inline-block';
+    for(const f of files){ const b64=await comprimirImagem(f); window.destaqueFotos[key].push(b64); }
+    renderDestaqueThumbs(key);
   }catch(e){ toast('⚠️ Não consegui carregar a foto'); }
+  input.value=''; // permite escolher mais fotos depois
 };
-window.removerDestaqueFoto = (key)=>{
-  delete window.destaqueFotos[key];
-  const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=''; prev.style.display='none'; }
-  const inp=document.getElementById('dt-foto-'+key); if(inp) inp.value='';
-  const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display='none';
+window.removerDestaqueFotoIdx = (key,idx)=>{
+  const arr=window.destaqueFotos&&window.destaqueFotos[key]; if(!arr) return;
+  arr.splice(idx,1); renderDestaqueThumbs(key);
 };
 window.abrirFotoDestaque=(src)=>{
   const ov=document.createElement('div');
@@ -1213,12 +1218,11 @@ window.abrirFotoDestaque=(src)=>{
   const img=document.createElement('img'); img.src=src; img.style.cssText='max-width:100%;max-height:100%;border-radius:10px';
   ov.appendChild(img); document.body.appendChild(ov);
 };
-function setDestaqueFoto(key,b64){
+function setDestaqueFotos(key,arr){
   window.destaqueFotos=window.destaqueFotos||{};
-  if(b64){ window.destaqueFotos[key]=b64; } else { delete window.destaqueFotos[key]; }
-  const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=b64||''; prev.style.display=b64?'block':'none'; }
-  const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display=b64?'inline-block':'none';
-  const inp=document.getElementById('dt-foto-'+key); if(inp&&!b64) inp.value='';
+  window.destaqueFotos[key]=Array.isArray(arr)?arr.slice():[];
+  renderDestaqueThumbs(key);
+  const inp=document.getElementById('dt-foto-'+key); if(inp) inp.value='';
 }
 function buildComercialVendSections() {
   document.getElementById('comercial-vend-sections').innerHTML=CONSULTORAS.map(c=>`
@@ -1313,7 +1317,7 @@ function limparFormLancar() {
     document.getElementById('controle-horas-live').innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';
     window.destaqueFotos={};
     CONSULTORAS.forEach(c=>{
-      setVal(`dt-${c.key}`); setDestaqueFoto(c.key,null);
+      setVal(`dt-${c.key}`); setDestaqueFotos(c.key,[]);
       setVal(`l-${c.key}-vendas`); setVal(`l-${c.key}-vendas-desc`); setVal(`l-${c.key}-postagens`);
       setVal(`l-${c.key}-satisfacao`); setVal(`l-${c.key}-conhecimentos`); setVal(`l-${c.key}-conhec-desc`);
       setVal(`l-${c.key}-ajustes_ponto`);
@@ -1354,7 +1358,7 @@ function preencherFormLancar(d) {
       setVal(`l-${c.key}-ajustes_ponto`,cd.ajustes_ponto);
     });
     window.destaqueFotos={};
-    (d.destaques||[]).forEach(dt=>{ setVal(`dt-${dt.consultora}`,dt.texto); setDestaqueFoto(dt.consultora, dt.foto||null); });
+    (d.destaques||[]).forEach(dt=>{ setVal(`dt-${dt.consultora}`,dt.texto); setDestaqueFotos(dt.consultora, dt.fotos || (dt.foto?[dt.foto]:[])); });
   } else if(setorAtual==='marketing') {
     setVal('l-mkt-story-plan',d.mkt_story_plan); setVal('l-mkt-story-exec',d.mkt_story_exec);
     setVal('l-mkt-feed-plan',d.mkt_feed_plan);   setVal('l-mkt-feed-exec',d.mkt_feed_exec);
@@ -1620,12 +1624,14 @@ function renderDestaques(d) {
 
   html+=destaques.map(dt=>{
     const c=equipeDoDoc(d).find(x=>x.key===dt.consultora)||{ini:'★',nome:dt.consultora||'Consultora'};
+    const fotos = dt.fotos || (dt.foto?[dt.foto]:[]);
+    const fotosHtml = fotos.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${fotos.map(f=>`<img src="${f}" alt="Foto ${c.nome}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque(this.src)">`).join('')}</div>` : '';
     return `<div class="destaque-item">
       <div class="destaque-ini">${c.ini}</div>
       <div style="flex:1">
         ${dt.texto?`<div class="destaque-text">${dt.texto}</div>`:''}
         <div class="destaque-nome">${c.nome}</div>
-        ${dt.foto?`<img src="${dt.foto}" alt="Foto ${c.nome}" style="max-width:220px;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque('${dt.foto}')">`:''}
+        ${fotosHtml}
       </div>
     </div>`;
   }).join('');
@@ -1681,7 +1687,7 @@ window.salvarLancamento=()=>{
     const metaQtd=numOuNull('l-meta-qtd');
     const totalCli=numOuNull('l-total-cli');
     const metaPct=metaQtd&&totalCli?Math.round(metaQtd/totalCli*100):null;
-    const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim(),foto:(window.destaqueFotos&&window.destaqueFotos[c.key])||null})).filter(d=>d.texto||d.foto);
+    const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim(),fotos:(window.destaqueFotos&&window.destaqueFotos[c.key])||[]})).filter(d=>d.texto||d.fotos.length);
     const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
 
     const horasPrevStr=strOuNull('l-horas-prev');
