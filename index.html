@@ -451,10 +451,11 @@
             <div class="form-group"><label>Finalizados (qtd)</label><input type="number" id="l-finalizados" placeholder="0" min="0"></div>
           </div>
           <div class="form-group"><label>Finalizados — Nomes</label><input type="text" id="l-finalizados-nomes" placeholder="Ex: Clínica de Olhos, Araruna..."></div>
-          <div class="form-row">
-            <div class="form-group"><label>Indicações que fecharam (qtd)</label><input type="number" id="l-indicacoes" placeholder="Ex: 1" min="0"></div>
+          <div class="form-group">
+            <label>Indicações — cliente indicou → cliente indicado → fechou?</label>
+            <div id="indic-itens"></div>
+            <button type="button" class="btn-add-plano" onclick="addIndicItem('indic-itens')" style="margin-top:4px">+ Adicionar indicação</button>
           </div>
-          <div class="form-group"><label>Indicações — quem indicou quem</label><input type="text" id="l-indicacoes-nomes" placeholder="Ex: Cliente X indicou Cliente Y (fechado)"></div>
           <div class="form-group"><label>Horas Excedentes — Nomes</label><input type="text" id="l-excederam-nomes" placeholder="Ex: Albano, Betinho, Colorado..."></div>
           <div class="form-group"><label>Horas Pendentes — Nomes</label><input type="text" id="l-pendentes-nomes" placeholder="Ex: PJR, Dr. Pedro, Expack..."></div>
         </div>
@@ -491,8 +492,11 @@
       <div class="lanc-section open">
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🤝 Indicações</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
-          <div class="form-group" style="margin-top:12px"><label>Indicações que fecharam (qtd)</label><input type="number" id="l-com-indicacoes" placeholder="Ex: 1" min="0"></div>
-          <div class="form-group"><label>Quem indicou quem</label><input type="text" id="l-com-indicacoes-nomes" placeholder="Ex: Cliente X indicou Cliente Y (fechado)"></div>
+          <div class="form-group" style="margin-top:12px">
+            <label>Indicações — cliente indicou → cliente indicado → fechou?</label>
+            <div id="com-indic-itens"></div>
+            <button type="button" class="btn-add-plano" onclick="addIndicItem('com-indic-itens')" style="margin-top:4px">+ Adicionar indicação</button>
+          </div>
         </div>
       </div>
     </div>
@@ -714,6 +718,7 @@ const METAS_IND_PAD_CONSULTORIA = {
   postagens:     { label:'Postagens',           tipo:'maior', bronze:8, prata:10,ouro:12, unit:'' },
   conhecimentos: { label:'Novos Conhecimentos', tipo:'maior', bronze:1, prata:2, ouro:3,  unit:'' },
   satisfacao:    { label:'Satisfação (individual)', tipo:'maior', bronze:8, prata:9, ouro:10, unit:'' },
+  ajustes_ponto: { label:'Ajustes de Ponto', tipo:'menor', bronze:3, prata:1, ouro:0, unit:'' },
 };
 const METAS_IND_PAD_COMERCIAL = {}; // sem metas individuais nesta etapa
 
@@ -724,6 +729,7 @@ const METAS_EQ_PAD_CONSULTORIA = {
   vendas_eq:      { label:'Vendas Equipe',     tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
   postagens_eq:   { label:'Postagens Equipe',  tipo:'maior', bronze:24, prata:30, ouro:36,  unit:''  },
   conhec_eq:      { label:'Conh. Equipe',      tipo:'maior', bronze:3,  prata:6,  ouro:9,   unit:''  },
+  ajustes_ponto_eq:{ label:'Ajuste de Ponto',  tipo:'menor', bronze:6,  prata:3,  ouro:0,   unit:''  },
   // Provisórios — ajustar em Config → Metas Equipe
   clientes_novos:       { label:'Clientes Novos',       tipo:'maior', bronze:1, prata:2, ouro:3, unit:'' },
   indicacoes:           { label:'Indicações',           tipo:'maior', bronze:1, prata:2, ouro:3, unit:'' },
@@ -817,7 +823,7 @@ const INDICADORES_CONSULTORIA = [
   { key:'clientes_iniciaram',   label:'Clientes Iniciaram',   getValor:d=>d.clientes_iniciaram, getNomes:null },
   { key:'clientes_novos',       label:'Clientes Novos',       getValor:d=>d.clientes_novos, getNomes:d=>d.clientes_novos_nomes },
   { key:'clientes_finalizados', label:'Clientes Finalizados', getValor:d=>d.clientes_finalizados, getNomes:d=>d.clientes_finalizados_nomes },
-  { key:'indicacoes',           label:'Indicações',           getValor:d=>d.indicacoes, getNomes:d=>d.indicacoes_nomes },
+  { key:'indicacoes',           label:'Indicações',           getValor:d=>indicFechadas(d), getNomes:null },
   // Controle de Horas + os dois indicadores de horas correlacionados logo abaixo
   { key:'controle_horas',       label:'Controle de Horas',    getValor:d=>d.controle_horas_pct, getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%`,
     getSub:d=>(d.horas_previstas||d.horas_executadas)?`Previstas: ${d.horas_previstas||'—'} · Executadas: ${d.horas_executadas||'—'}`:null },
@@ -830,6 +836,7 @@ const INDICADORES_CONSULTORIA = [
   { key:'vendas_eq',            label:'Vendas Equipe',        getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.vendas)||0),0), getNomes:null },
   { key:'postagens_eq',         label:'Postagens Equipe',     getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.postagens)||0),0), getNomes:null },
   { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
+  { key:'ajustes_ponto_eq',     label:'Ajuste de Ponto',      getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.ajustes_ponto)||0),0), getNomes:null },
 ];
 // Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
 function somaVend(d, campo, totalFallback){
@@ -843,10 +850,15 @@ const INDICADORES_COMERCIAL = [
   { key:'venda_palestras',   label:'Venda Palestras',         getValor:d=>somaVend(d,'venda_palestras','com_venda_palestras'), getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
   { key:'cafes',             label:'Acompanhamento de Cafés', getValor:d=>somaVend(d,'cafes','com_cafes'), getNomes:null },
   { key:'satisfacao',        label:'Pesquisa de Satisfação',  getValor:d=>getSatMedia(d), getNomes:null, fmt:v=>Number(v).toFixed(2) },
-  { key:'indicacoes',        label:'Indicações',              getValor:d=>d.indicacoes, getNomes:d=>d.indicacoes_nomes },
+  { key:'indicacoes',        label:'Indicações',              getValor:d=>indicFechadas(d), getNomes:null },
   { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
 ];
 const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(plan)*100).toFixed(1)) : null);
+// Indicações que fecharam: conta os itens marcados como "fechou"; cai pro campo antigo (qtd) em meses legados.
+function indicFechadas(d){
+  if(Array.isArray(d.indicacoes_itens) && d.indicacoes_itens.length) return d.indicacoes_itens.filter(x=>x&&x.fechou).length;
+  return (d.indicacoes ?? null);
+}
 const INDICADORES_MARKETING = [
   { key:'plan_story',    label:'Planejamento Story', getValor:d=>pctExec(d.mkt_story_plan,d.mkt_story_exec), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
   { key:'plan_feed',     label:'Planejamento Feed',  getValor:d=>pctExec(d.mkt_feed_plan,d.mkt_feed_exec),  getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
@@ -910,6 +922,33 @@ function setMetaCliItens(itens){
   const wrap=document.getElementById('meta-cli-itens'); if(!wrap) return;
   wrap.innerHTML='';
   (itens||[]).forEach(x=>addMetaCliItem(x.cliente,x.tipo));
+}
+
+// ── INDICAÇÕES: cliente indicou → cliente indicado → fechou? ───
+window.addIndicItem=(wrapId,indicou='',indicado='',fechou=false)=>{
+  const wrap=document.getElementById(wrapId); if(!wrap) return;
+  const esc=s=>String(s??'').replace(/"/g,'&quot;');
+  const st='padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none';
+  const row=document.createElement('div');
+  row.className='indic-row';
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center;flex-wrap:wrap';
+  row.innerHTML=`<input type="text" class="ind-quem" placeholder="Cliente que indicou" value="${esc(indicou)}" style="flex:1;min-width:120px;${st}">
+    <input type="text" class="ind-indicado" placeholder="Cliente indicado" value="${esc(indicado)}" style="flex:1;min-width:120px;${st}">
+    <select class="ind-fechou" style="${st}"><option value="nao"${fechou?'':' selected'}>Não fechou</option><option value="sim"${fechou?' selected':''}>Fechou ✅</option></select>
+    <button type="button" class="btn-del-plano" onclick="this.closest('.indic-row').remove()">🗑️</button>`;
+  wrap.appendChild(row);
+};
+function lerIndicItens(wrapId){
+  return [...document.querySelectorAll('#'+wrapId+' .indic-row')].map(r=>({
+    indicou:r.querySelector('.ind-quem').value.trim(),
+    indicado:r.querySelector('.ind-indicado').value.trim(),
+    fechou:r.querySelector('.ind-fechou').value==='sim'
+  })).filter(x=>x.indicou||x.indicado);
+}
+function setIndicItens(wrapId,itens){
+  const wrap=document.getElementById(wrapId); if(!wrap) return;
+  wrap.innerHTML='';
+  (itens||[]).forEach(x=>addIndicItem(wrapId,x.indicou,x.indicado,x.fechou));
 }
 
 // ── NOMES DE COLEÇÃO/DOC POR SETOR ─────────────────────────────
@@ -1118,6 +1157,9 @@ function buildConsultSections() {
           <div class="form-group"><label>Novos Conhecimentos</label><input type="number" id="l-${c.key}-conhecimentos" placeholder="0" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="l-${c.key}-conhec-desc" placeholder="Ex: Power BI"></div>
         </div>
+        <div class="form-row">
+          <div class="form-group"><label>Ajustes de Ponto (qtd.)</label><input type="number" id="l-${c.key}-ajustes_ponto" placeholder="0" min="0"></div>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1126,7 +1168,57 @@ function buildDestaquesForm() {
     <div class="form-group">
       <label>${c.nome}</label>
       <input type="text" id="dt-${c.key}" placeholder="Destaque do mês (opcional)">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <input type="file" accept="image/*" id="dt-foto-${c.key}" onchange="onDestaquePhoto('${c.key}',this)" style="font-size:.8rem;flex:1;min-width:150px">
+        <button type="button" id="dt-foto-rm-${c.key}" onclick="removerDestaqueFoto('${c.key}')" class="btn-del-plano" style="display:none">🗑️ foto</button>
+      </div>
+      <img id="dt-foto-prev-${c.key}" alt="" style="display:none;max-width:160px;border-radius:8px;margin-top:6px;border:1px solid var(--border)">
     </div>`).join('');
+}
+// Comprime a imagem (lado máx. 700px, JPEG) para caber no Firestore e exibir no app.
+function comprimirImagem(file, maxLado=700, q=0.65){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{ const img=new Image();
+      img.onload=()=>{ let w=img.width,h=img.height;
+        if(w>h && w>maxLado){ h=Math.round(h*maxLado/w); w=maxLado; }
+        else if(h>=w && h>maxLado){ w=Math.round(w*maxLado/h); h=maxLado; }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg',q)); };
+      img.onerror=reject; img.src=e.target.result; };
+    reader.onerror=reject; reader.readAsDataURL(file);
+  });
+}
+window.destaqueFotos = window.destaqueFotos || {};
+window.onDestaquePhoto = async (key,input)=>{
+  const f=input.files&&input.files[0]; if(!f) return;
+  try{
+    const b64=await comprimirImagem(f);
+    window.destaqueFotos[key]=b64;
+    const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=b64; prev.style.display='block'; }
+    const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display='inline-block';
+  }catch(e){ toast('⚠️ Não consegui carregar a foto'); }
+};
+window.removerDestaqueFoto = (key)=>{
+  delete window.destaqueFotos[key];
+  const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=''; prev.style.display='none'; }
+  const inp=document.getElementById('dt-foto-'+key); if(inp) inp.value='';
+  const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display='none';
+};
+window.abrirFotoDestaque=(src)=>{
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px';
+  ov.onclick=()=>ov.remove();
+  const img=document.createElement('img'); img.src=src; img.style.cssText='max-width:100%;max-height:100%;border-radius:10px';
+  ov.appendChild(img); document.body.appendChild(ov);
+};
+function setDestaqueFoto(key,b64){
+  window.destaqueFotos=window.destaqueFotos||{};
+  if(b64){ window.destaqueFotos[key]=b64; } else { delete window.destaqueFotos[key]; }
+  const prev=document.getElementById('dt-foto-prev-'+key); if(prev){ prev.src=b64||''; prev.style.display=b64?'block':'none'; }
+  const rm=document.getElementById('dt-foto-rm-'+key); if(rm) rm.style.display=b64?'inline-block':'none';
+  const inp=document.getElementById('dt-foto-'+key); if(inp&&!b64) inp.value='';
 }
 function buildComercialVendSections() {
   document.getElementById('comercial-vend-sections').innerHTML=CONSULTORAS.map(c=>`
@@ -1216,18 +1308,20 @@ function limparFormLancar() {
   if(ehConsultoria) {
     ['l-horas-prev','l-horas-exec','l-iniciaram','l-clientes','l-novos-nomes','l-finalizados','l-finalizados-nomes',
      'l-excederam','l-excederam-nomes','l-pendentes','l-pendentes-nomes',
-     'l-meta-qtd','l-total-cli','l-indicacoes','l-indicacoes-nomes','dt-consultoria'].forEach(id=>setVal(id));
-    setMetaCliItens([]);
+     'l-meta-qtd','l-total-cli','dt-consultoria'].forEach(id=>setVal(id));
+    setMetaCliItens([]); setIndicItens('indic-itens',[]);
     document.getElementById('controle-horas-live').innerHTML='Preencha previstas e executadas pra calcular o Controle de Horas';
+    window.destaqueFotos={};
     CONSULTORAS.forEach(c=>{
-      setVal(`dt-${c.key}`);
+      setVal(`dt-${c.key}`); setDestaqueFoto(c.key,null);
       setVal(`l-${c.key}-vendas`); setVal(`l-${c.key}-vendas-desc`); setVal(`l-${c.key}-postagens`);
       setVal(`l-${c.key}-satisfacao`); setVal(`l-${c.key}-conhecimentos`); setVal(`l-${c.key}-conhec-desc`);
+      setVal(`l-${c.key}-ajustes_ponto`);
     });
   } else if(setorAtual==='marketing') {
     ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
   } else {
-    setVal('l-com-ocorrencias'); setVal('l-com-indicacoes'); setVal('l-com-indicacoes-nomes');
+    setVal('l-com-ocorrencias'); setIndicItens('com-indic-itens',[]);
     CONSULTORAS.forEach(c=>{
       ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
     });
@@ -1249,7 +1343,7 @@ function preencherFormLancar(d) {
     setVal('l-pendentes',d.clientes_pendentes); setVal('l-pendentes-nomes',d.clientes_pendentes_nomes);
     setVal('l-meta-qtd',d.meta_clientes_qtd); setVal('l-total-cli',d.total_clientes);
     setMetaCliItens((Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length)?d.meta_clientes_itens:splitNomes(d.meta_clientes_nomes).map(n=>({cliente:n,tipo:''})));
-    setVal('l-indicacoes',d.indicacoes); setVal('l-indicacoes-nomes',d.indicacoes_nomes);
+    setIndicItens('indic-itens', (Array.isArray(d.indicacoes_itens)&&d.indicacoes_itens.length)?d.indicacoes_itens:(d.indicacoes_nomes?[{indicou:d.indicacoes_nomes,indicado:'',fechou:(d.indicacoes>0)}]:[]));
     setVal('dt-consultoria',d.destaque_consultoria);
     atualizarControleHoras();
     CONSULTORAS.forEach(c=>{
@@ -1257,8 +1351,10 @@ function preencherFormLancar(d) {
       setVal(`l-${c.key}-vendas`,cd.vendas); setVal(`l-${c.key}-vendas-desc`,cd.vendas_desc);
       setVal(`l-${c.key}-postagens`,cd.postagens); setVal(`l-${c.key}-satisfacao`,cd.satisfacao);
       setVal(`l-${c.key}-conhecimentos`,cd.conhecimentos); setVal(`l-${c.key}-conhec-desc`,cd.conhec_desc);
+      setVal(`l-${c.key}-ajustes_ponto`,cd.ajustes_ponto);
     });
-    (d.destaques||[]).forEach(dt=>setVal(`dt-${dt.consultora}`,dt.texto));
+    window.destaqueFotos={};
+    (d.destaques||[]).forEach(dt=>{ setVal(`dt-${dt.consultora}`,dt.texto); setDestaqueFoto(dt.consultora, dt.foto||null); });
   } else if(setorAtual==='marketing') {
     setVal('l-mkt-story-plan',d.mkt_story_plan); setVal('l-mkt-story-exec',d.mkt_story_exec);
     setVal('l-mkt-feed-plan',d.mkt_feed_plan);   setVal('l-mkt-feed-exec',d.mkt_feed_exec);
@@ -1267,7 +1363,7 @@ function preencherFormLancar(d) {
     setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
   } else {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
-    setVal('l-com-indicacoes',d.indicacoes); setVal('l-com-indicacoes-nomes',d.indicacoes_nomes);
+    setIndicItens('com-indic-itens', (Array.isArray(d.indicacoes_itens)&&d.indicacoes_itens.length)?d.indicacoes_itens:(d.indicacoes_nomes?[{indicou:d.indicacoes_nomes,indicado:'',fechou:(d.indicacoes>0)}]:[]));
     CONSULTORAS.forEach(c=>{
       const cd=d[c.key]||{};
       ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
@@ -1368,14 +1464,17 @@ function detalheIndicador(ind,d) {
     if(Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length){
       rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Clientes que bateram a meta</span><div class="ind-chips">${d.meta_clientes_itens.map(x=>`<span class="ind-chip">${x.cliente}${x.tipo?` — ${x.tipo}`:''}</span>`).join('')}</div></div>`);
     } else { const r=detNomes('Clientes que bateram a meta', d.meta_clientes_nomes); if(r) rows.push(r); }
-  } else if(k==='indicacoes'){ const r=detNomes('Indicações que fecharam', d.indicacoes_nomes); if(r) rows.push(r);
+  } else if(k==='indicacoes'){
+    if(Array.isArray(d.indicacoes_itens)&&d.indicacoes_itens.length){
+      rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Indicações</span><div class="ind-chips">${d.indicacoes_itens.map(x=>`<span class="ind-chip">${x.indicou||'?'} → ${x.indicado||'?'} ${x.fechou?'✅ fechou':'⏳ não fechou'}</span>`).join('')}</div></div>`);
+    } else { const r=detNomes('Indicações que fecharam', d.indicacoes_nomes); if(r) rows.push(r); }
   } else if(k==='clientes_novos'){ const r=detNomes('Novos clientes', d.clientes_novos_nomes); if(r) rows.push(r);
   } else if(k==='clientes_finalizados'){ const r=detNomes('Clientes finalizados', d.clientes_finalizados_nomes); if(r) rows.push(r);
   } else if(k==='clientes_excederam'){ const r=detNomes('Clientes que excederam horas', d.clientes_excederam_nomes); if(r) rows.push(r);
   } else if(k==='clientes_pendentes'){ const r=detNomes('Clientes com horas pendentes', d.clientes_pendentes_nomes); if(r) rows.push(r);
-  } else if(['vendas_eq','postagens_eq','conhec_eq'].includes(k)){
+  } else if(['vendas_eq','postagens_eq','conhec_eq','ajustes_ponto_eq'].includes(k)){
     const equipe=equipeDoDoc(d);
-    const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos'}[k];
+    const campo={vendas_eq:'vendas',postagens_eq:'postagens',conhec_eq:'conhecimentos',ajustes_ponto_eq:'ajustes_ponto'}[k];
     const linhas=equipe.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
     if(equipe.length) rows.push(detRow('Por consultora', linhas));
   } else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){
@@ -1492,6 +1591,7 @@ function renderConsultGrid(d) {
         {label:'Postagens',val:cd.postagens??'—',meta:METAS_IND.postagens},
         {label:'Conhecimentos',val:cd.conhecimentos??'—',meta:METAS_IND.conhecimentos},
         {label:'Satisfação',val:cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—',meta:METAS_IND.satisfacao},
+        {label:'Ajustes de Ponto',val:cd.ajustes_ponto??'—',meta:METAS_IND.ajustes_ponto},
       ];};
 
   document.getElementById('consult-grid').innerHTML=equipeDoDoc(d).map(c=>`
@@ -1522,7 +1622,11 @@ function renderDestaques(d) {
     const c=equipeDoDoc(d).find(x=>x.key===dt.consultora)||{ini:'★',nome:dt.consultora||'Consultora'};
     return `<div class="destaque-item">
       <div class="destaque-ini">${c.ini}</div>
-      <div><div class="destaque-text">${dt.texto}</div><div class="destaque-nome">${c.nome}</div></div>
+      <div style="flex:1">
+        ${dt.texto?`<div class="destaque-text">${dt.texto}</div>`:''}
+        <div class="destaque-nome">${c.nome}</div>
+        ${dt.foto?`<img src="${dt.foto}" alt="Foto ${c.nome}" style="max-width:220px;width:100%;border-radius:10px;margin-top:8px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque('${dt.foto}')">`:''}
+      </div>
     </div>`;
   }).join('');
 
@@ -1553,8 +1657,8 @@ window.salvarLancamento=()=>{
     payload={
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       com_ocorrencias:       numOuNull('l-com-ocorrencias'),
-      indicacoes:            numOuNull('l-com-indicacoes'),
-      indicacoes_nomes:      strOuNull('l-com-indicacoes-nomes'),
+      indicacoes_itens:      lerIndicItens('com-indic-itens'),
+      indicacoes:            lerIndicItens('com-indic-itens').length ? lerIndicItens('com-indic-itens').filter(x=>x.fechou).length : null,
       cafe_link_geral:       cafeLinkComercial||null,
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
@@ -1577,7 +1681,7 @@ window.salvarLancamento=()=>{
     const metaQtd=numOuNull('l-meta-qtd');
     const totalCli=numOuNull('l-total-cli');
     const metaPct=metaQtd&&totalCli?Math.round(metaQtd/totalCli*100):null;
-    const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim()})).filter(d=>d.texto);
+    const destaques=CONSULTORAS.map(c=>({consultora:c.key,texto:(document.getElementById(`dt-${c.key}`)?.value||'').trim(),foto:(window.destaqueFotos&&window.destaqueFotos[c.key])||null})).filter(d=>d.texto||d.foto);
     const destaque_consultoria=(document.getElementById('dt-consultoria')?.value||'').trim();
 
     const horasPrevStr=strOuNull('l-horas-prev');
@@ -1605,8 +1709,8 @@ window.salvarLancamento=()=>{
       meta_clientes_pct: metaPct,
       meta_clientes_itens: lerMetaCliItens(),
       meta_clientes_nomes: lerMetaCliItens().map(x=>x.cliente).join(', ')||null,
-      indicacoes:        numOuNull('l-indicacoes'),
-      indicacoes_nomes:  strOuNull('l-indicacoes-nomes'),
+      indicacoes_itens:  lerIndicItens('indic-itens'),
+      indicacoes:        lerIndicItens('indic-itens').length ? lerIndicItens('indic-itens').filter(x=>x.fechou).length : null,
       satisfacao_notas:  vals,
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
       satisfacao_media:  satMedia,
@@ -1619,6 +1723,7 @@ window.salvarLancamento=()=>{
         postagens:numOuNull(`l-${c.key}-postagens`),
         satisfacao:numOuNull(`l-${c.key}-satisfacao`),
         conhecimentos:numOuNull(`l-${c.key}-conhecimentos`),conhec_desc:document.getElementById(`l-${c.key}-conhec-desc`)?.value||'',
+        ajustes_ponto:numOuNull(`l-${c.key}-ajustes_ponto`),
       };
     });
     resumoExtra=`\nDestaques: ${destaques.length}`;
@@ -1750,7 +1855,7 @@ function detalhePPT(ind,d) {
   if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
   else if(k==='satisfacao'){ const sm=getSatMedia(d); if(sm!=null)out.push(['Média da equipe',sm.toFixed(2)+(d.satisfacao_notas?.length?`  (${d.satisfacao_notas.length} avaliações)`:'')]); (d.satisfacao_clientes||[]).filter(r=>r&&(r.cliente||r.nota!=null)).forEach(r=>out.push([`Nota ${r.nota??'—'}`, (r.cliente||'—')])); }
   else if(k==='meta_clientes'){ if(d.meta_clientes_qtd&&d.total_clientes)out.push(['Atingimento',`${d.meta_clientes_qtd} de ${d.total_clientes} clientes`]); if(Array.isArray(d.meta_clientes_itens)&&d.meta_clientes_itens.length)out.push(['Bateram a meta', d.meta_clientes_itens.map(x=>x.cliente+(x.tipo?` (${x.tipo})`:'')).join(', ')]); else if(d.meta_clientes_nomes)out.push(['Bateram a meta',nomes(d.meta_clientes_nomes)]); }
-  else if(k==='indicacoes'){ if(d.indicacoes_nomes)out.push(['Indicações que fecharam',nomes(d.indicacoes_nomes)]); }
+  else if(k==='indicacoes'){ if(Array.isArray(d.indicacoes_itens)&&d.indicacoes_itens.length)out.push(['Indicações', d.indicacoes_itens.map(x=>`${x.indicou||'?'} → ${x.indicado||'?'} (${x.fechou?'fechou':'não fechou'})`).join('; ')]); else if(d.indicacoes_nomes)out.push(['Indicações que fecharam',nomes(d.indicacoes_nomes)]); }
   else if(k==='clientes_iniciaram'){ if(d.clientes_iniciaram!=null)out.push(['Clientes atendidos no mês',String(d.clientes_iniciaram)]); }
   else if(k==='clientes_novos'&&d.clientes_novos_nomes)out.push(['Novos clientes',nomes(d.clientes_novos_nomes)]);
   else if(k==='clientes_finalizados'&&d.clientes_finalizados_nomes)out.push(['Finalizados',nomes(d.clientes_finalizados_nomes)]);
@@ -1860,12 +1965,12 @@ window.gerarPPT=async()=>{
     const sp=pptx.addSlide(); sp.background={color:WHITE}; header(sp,setorAtual==='comercial'?'Por Vendedora':'Por Consultora');
     const cols = setorAtual==='comercial'
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
-      : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação'];
+      : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação','Ajustes Ponto'];
     const th=cols.map((c,i)=>({text:c,options:{bold:true,color:WHITE,fill:{color:NAVY},align:i?'center':'left'}}));
     const trs=equipeDoDoc(d).map((c,idx)=>{ const cd=d[c.key]||{}; const fill=idx%2?'FFFFFF':'F8FAFC';
       const cells = setorAtual==='comercial'
         ? [c.nome, `R$ ${Number(cd.venda_consultoria||0).toLocaleString('pt-BR')}`, String(Number(cd.cursos_inscritos||0)), `R$ ${Number(cd.venda_palestras||0).toLocaleString('pt-BR')}`, String(Number(cd.cafes||0))]
-        : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0)), cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—'];
+        : [c.nome, String(Number(cd.vendas||0)), String(Number(cd.postagens||0)), String(Number(cd.conhecimentos||0)), cd.satisfacao!=null?Number(cd.satisfacao).toFixed(1):'—', String(Number(cd.ajustes_ponto||0))];
       return cells.map((t,i)=>({text:t,options:{color:i?'1E293B':NAVY,bold:i===0,align:i?'center':'left',fill:{color:fill}}}));
     });
     sp.addTable([th,...trs],{x:0.5,y:1.4,w:12.3,fontSize:13,rowH:0.4,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle'});
@@ -2135,12 +2240,13 @@ window.renderLancamentos=async()=>{
         Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong> ·
         Meta Clientes: <strong>${metaPct!==null?metaPct+'%':'—'}</strong>
         ${r.destaques?.length?`· <span style="color:var(--gold)">⭐ ${r.destaques.length} destaque(s)</span>`:''}`;
-      cols=th('Consultora')+th('Vendas')+th('Postagens')+th('Conhecimentos');
+      cols=th('Consultora')+th('Vendas')+th('Postagens')+th('Conhecimentos')+th('Ajustes Ponto');
       rows=equipeDoDoc(r).map(c=>{const cd=r[c.key]||{};return `<tr>
         <td style="color:var(--primary);font-weight:700">${c.nome}</td>
         <td>${cd.vendas??'—'}${cd.vendas_desc?' — '+cd.vendas_desc:''}</td>
         <td>${cd.postagens??'—'}</td>
         <td>${cd.conhecimentos??'—'}${cd.conhec_desc?' — '+cd.conhec_desc:''}</td>
+        <td>${cd.ajustes_ponto??'—'}</td>
       </tr>`;}).join('');
     }
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;padding:14px">
