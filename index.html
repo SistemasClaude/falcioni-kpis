@@ -357,6 +357,11 @@
           </div>
         </div>
       </div>
+
+      <div id="marketing-artes-wrap" style="display:none">
+        <p class="section-title" style="margin-top:16px">🎨 Artes do Mês</p>
+        <div id="marketing-artes-lista" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      </div>
     </div>
     <div id="painel-empty" class="empty" style="display:none">
       <div class="e-icon">📋</div>
@@ -536,6 +541,16 @@
         <div class="lanc-section-body">
           <div class="form-group" style="margin-top:12px"><label>Ocorrências no mês (qtd)</label><input type="number" id="l-mkt-ocor-qtd" placeholder="Ex: 0" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="l-mkt-ocor-desc" placeholder="Ex: Sem ocorrência"></div>
+        </div>
+      </div>
+      <div class="lanc-section open">
+        <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">🎨 Arte / Imagem do Mês</span><span class="lsh-chev">▼</span></div>
+        <div class="lanc-section-body">
+          <div class="form-group" style="margin-top:12px">
+            <label>Imagens (artes, prints, exemplos) — pode adicionar várias</label>
+            <input type="file" accept="image/*" multiple id="dt-foto-mktarte" onchange="onDestaquePhoto('mktarte',this)" style="font-size:.8rem;width:100%;margin-top:6px">
+            <div id="dt-fotos-mktarte" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -838,11 +853,12 @@ const INDICADORES_CONSULTORIA = [
   { key:'conhec_eq',            label:'Conh. Equipe',         getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.conhecimentos)||0),0), getNomes:null },
   { key:'ajustes_ponto_eq',     label:'Ajuste de Ponto',      getValor:d=>equipeDoDoc(d).reduce((s,c)=>s+(Number(d[c.key]?.ajustes_ponto)||0),0), getNomes:null },
 ];
-// Soma por vendedora, com fallback pro campo de total antigo (com_*) caso exista.
+// Venda Geral (equipe) tem prioridade: se o total com_* foi lançado, usa ele;
+// senão soma por vendedora (meses históricos, antes de passarem a negociar juntas).
 function somaVend(d, campo, totalFallback){
+  if(d[totalFallback]!==undefined && d[totalFallback]!==null && d[totalFallback]!=='') return d[totalFallback];
   const s=equipeDoDoc(d).reduce((acc,c)=>acc+(Number(d[c.key]?.[campo])||0),0);
-  if(s>0) return s;
-  return (d[totalFallback]!==undefined && d[totalFallback]!==null) ? d[totalFallback] : (s||null);
+  return s>0 ? s : null;
 }
 const INDICADORES_COMERCIAL = [
   { key:'venda_consultoria', label:'Venda Consultoria',       getValor:d=>somaVend(d,'venda_consultoria','com_venda_consultoria'), getNomes:null, fmt:v=>`R$ ${Number(v).toLocaleString('pt-BR')}` },
@@ -1025,7 +1041,8 @@ async function entrarApp() {
   const ehComercial   = setorAtual==='comercial';
   const ehMarketing   = setorAtual==='marketing';
   const temPessoas    = setorTemPessoas(setorAtual);
-  document.getElementById('consultora-destaques-wrap').style.display = temPessoas?'':'none';
+  document.getElementById('consultora-destaques-wrap').style.display = ehConsultoria?'':'none';
+  { const mw=document.getElementById('marketing-artes-wrap'); if(mw) mw.style.display = ehMarketing?'':'none'; }
   document.getElementById('grade-pessoa-titulo').textContent = ehComercial?'Indicadores por Vendedora':'Indicadores por Consultora';
   document.getElementById('lancar-consultoria-fields').style.display = ehConsultoria?'':'none';
   document.getElementById('lancar-comercial-fields').style.display = ehComercial?'':'none';
@@ -1224,35 +1241,41 @@ function setDestaqueFotos(key,arr){
   renderDestaqueThumbs(key);
   const inp=document.getElementById('dt-foto-'+key); if(inp) inp.value='';
 }
+// Artes/imagens do mês (Marketing) exibidas no Painel — clique amplia (ótimo p/ apresentação).
+function renderArtesMarketing(d){
+  const lista=document.getElementById('marketing-artes-lista'); if(!lista) return;
+  const artes=(d&&Array.isArray(d.mkt_artes))?d.mkt_artes:[];
+  lista.innerHTML = artes.length
+    ? artes.map(f=>`<img src="${f}" alt="Arte do mês" style="width:150px;height:150px;object-fit:cover;border-radius:10px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque(this.src)">`).join('')
+    : '<p style="color:var(--muted);font-size:.85rem">Nenhuma arte enviada para este mês.</p>';
+}
 function buildComercialVendSections() {
-  document.getElementById('comercial-vend-sections').innerHTML=CONSULTORAS.map(c=>`
-    <div class="lanc-section open" id="lv-${c.key}">
+  // Comercial agora é lançamento único da equipe (Venda Geral), sem separar por vendedora.
+  document.getElementById('comercial-vend-sections').innerHTML=`
+    <div class="lanc-section open">
       <div class="lanc-section-header" onclick="toggleSection(this)">
-        <span class="lsh-title">
-          <span style="width:30px;height:30px;border-radius:50%;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:var(--gold)">${c.ini}</span>
-          ${c.nome}
-        </span><span class="lsh-chev">▼</span>
+        <span class="lsh-title">💼 Venda Geral (Falcioni)</span><span class="lsh-chev">▼</span>
       </div>
       <div class="lanc-section-body">
         <div class="form-row" style="margin-top:12px">
-          <div class="form-group"><label>Venda Consultoria (R$)</label><input type="number" id="lc-${c.key}-venda_consultoria" placeholder="Ex: 5500" min="0" step="0.01"></div>
-          <div class="form-group"><label>Descrição</label><input type="text" id="lc-${c.key}-venda_consultoria_desc" placeholder="Ex: Clínica X"></div>
+          <div class="form-group"><label>Venda Consultoria (R$)</label><input type="number" id="l-com-venda_consultoria" placeholder="Ex: 5500" min="0" step="0.01"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-com-venda_consultoria_desc" placeholder="Ex: Clínica X"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Venda Palestras (R$)</label><input type="number" id="lc-${c.key}-venda_palestras" placeholder="Ex: 1000" min="0" step="0.01"></div>
-          <div class="form-group"><label>Descrição</label><input type="text" id="lc-${c.key}-venda_palestras_desc" placeholder="Ex: Palestra IA"></div>
+          <div class="form-group"><label>Venda Palestras (R$)</label><input type="number" id="l-com-venda_palestras" placeholder="Ex: 1000" min="0" step="0.01"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-com-venda_palestras_desc" placeholder="Ex: Palestra IA"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Cursos — Inscritos (qtd)</label><input type="number" id="lc-${c.key}-cursos_inscritos" placeholder="Ex: 15" min="0"></div>
-          <div class="form-group"><label>Cursos (R$)</label><input type="number" id="lc-${c.key}-cursos_valor" placeholder="Ex: 3500" min="0" step="0.01"></div>
+          <div class="form-group"><label>Cursos — Inscritos (qtd)</label><input type="number" id="l-com-cursos_inscritos" placeholder="Ex: 15" min="0"></div>
+          <div class="form-group"><label>Cursos (R$)</label><input type="number" id="l-com-cursos_valor" placeholder="Ex: 3500" min="0" step="0.01"></div>
         </div>
-        <div class="form-group"><label>Cursos — Descrição</label><input type="text" id="lc-${c.key}-cursos_desc" placeholder="Ex: Curso Power BI"></div>
+        <div class="form-group"><label>Cursos — Descrição</label><input type="text" id="l-com-cursos_desc" placeholder="Ex: Curso Power BI"></div>
         <div class="form-row">
-          <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="lc-${c.key}-cafes" placeholder="Ex: 4" min="0"></div>
-          <div class="form-group"><label>Descrição</label><input type="text" id="lc-${c.key}-cafes_desc" placeholder="Ex: Café com cliente Y"></div>
+          <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="l-com-cafes" placeholder="Ex: 4" min="0"></div>
+          <div class="form-group"><label>Descrição</label><input type="text" id="l-com-cafes_desc" placeholder="Ex: Café com cliente Y"></div>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
 }
 window.toggleSection=h=>h.closest('.lanc-section').classList.toggle('open');
 
@@ -1324,11 +1347,10 @@ function limparFormLancar() {
     });
   } else if(setorAtual==='marketing') {
     ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
+    window.destaqueFotos={}; setDestaqueFotos('mktarte',[]);
   } else {
     setVal('l-com-ocorrencias'); setIndicItens('com-indic-itens',[]);
-    CONSULTORAS.forEach(c=>{
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`));
-    });
+    ['l-com-venda_consultoria','l-com-venda_consultoria_desc','l-com-venda_palestras','l-com-venda_palestras_desc','l-com-cursos_inscritos','l-com-cursos_valor','l-com-cursos_desc','l-com-cafes','l-com-cafes_desc'].forEach(id=>setVal(id));
   }
   satNotas=[]; satIdCounter=0;
   document.getElementById('sat-lista').innerHTML='';
@@ -1365,13 +1387,25 @@ function preencherFormLancar(d) {
     setVal('l-mkt-vis',d.mkt_vis);
     setVal('l-mkt-tempo-qtd',d.mkt_tempo_qtd); setVal('l-mkt-tempo-desc',d.mkt_tempo_desc);
     setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
+    window.destaqueFotos={}; setDestaqueFotos('mktarte', d.mkt_artes||[]);
   } else {
     setVal('l-com-ocorrencias',d.com_ocorrencias);
     setIndicItens('com-indic-itens', (Array.isArray(d.indicacoes_itens)&&d.indicacoes_itens.length)?d.indicacoes_itens:(d.indicacoes_nomes?[{indicou:d.indicacoes_nomes,indicado:'',fechou:(d.indicacoes>0)}]:[]));
-    CONSULTORAS.forEach(c=>{
-      const cd=d[c.key]||{};
-      ['venda_consultoria','venda_consultoria_desc','venda_palestras','venda_palestras_desc','cursos_inscritos','cursos_valor','cursos_desc','cafes','cafes_desc'].forEach(campo=>setVal(`lc-${c.key}-${campo}`,cd[campo]));
-    });
+    // Mês novo usa o total com_*; mês antigo (por vendedora) é pré-somado para não perder nada ao reeditar.
+    const eq=equipeDoDoc(d);
+    const somaCampo=campo=>eq.reduce((s,c)=>s+(Number(d[c.key]?.[campo])||0),0);
+    const firstDesc=campo=>{ for(const c of eq){ const v=(d[c.key]?.[campo]||'').trim(); if(v) return v; } return ''; };
+    const getTot=(comF,campo)=>(d[comF]!=null&&d[comF]!=='')?d[comF]:(somaCampo(campo)||'');
+    const getDsc=(comF,campo)=>(d[comF]!=null&&d[comF]!=='')?d[comF]:firstDesc(campo);
+    setVal('l-com-venda_consultoria', getTot('com_venda_consultoria','venda_consultoria'));
+    setVal('l-com-venda_consultoria_desc', getDsc('com_venda_consultoria_desc','venda_consultoria_desc'));
+    setVal('l-com-venda_palestras', getTot('com_venda_palestras','venda_palestras'));
+    setVal('l-com-venda_palestras_desc', getDsc('com_venda_palestras_desc','venda_palestras_desc'));
+    setVal('l-com-cursos_inscritos', getTot('com_cursos_inscritos','cursos_inscritos'));
+    setVal('l-com-cursos_valor', getTot('com_cursos_valor','cursos_valor'));
+    setVal('l-com-cursos_desc', getDsc('com_cursos_desc','cursos_desc'));
+    setVal('l-com-cafes', getTot('com_cafes','cafes'));
+    setVal('l-com-cafes_desc', getDsc('com_cafes_desc','cafes_desc'));
   }
   // Reconstrói a lista de notas de satisfação (nomeadas + anônimas, a partir do que foi salvo)
   const clientes=(d.satisfacao_clientes||[]).map(c=>({nota:c.nota,cliente:c.cliente}));
@@ -1429,8 +1463,9 @@ window.carregarDados=async()=>{
   const d=docs[0];
   document.getElementById('painel-body').style.display='block';
   renderIndicadoresList(d);
-  if(setorTemPessoas(setorAtual)) renderConsultGrid(d);
+  if(setorAtual==='consultoria') renderConsultGrid(d);
   if(setorAtual==='consultoria'){ renderDestaques(d); }
+  if(setorAtual==='marketing') renderArtesMarketing(d);
 };
 let ultimoLancamento=null;
 
@@ -1482,14 +1517,21 @@ function detalheIndicador(ind,d) {
     const linhas=equipe.map(c=>`${c.nome}: <strong>${Number(d[c.key]?.[campo])||0}</strong>`).join(' &nbsp;·&nbsp; ');
     if(equipe.length) rows.push(detRow('Por consultora', linhas));
   } else if(['venda_consultoria','venda_cursos','venda_palestras','cafes'].includes(k)){
-    const equipe=equipeDoDoc(d);
-    const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k];
-    const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k];
-    const ehRS=(k==='venda_consultoria'||k==='venda_palestras');
-    const fmtP=v=>ehRS?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:Number(v||0);
-    const linhas=equipe.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}`;}).join('<br>');
-    if(equipe.length) rows.push(detRow('Por vendedora', linhas));
-    if(k==='venda_cursos'){ const val=equipe.reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${val.toLocaleString('pt-BR')}`)); }
+    const totalField={venda_consultoria:'com_venda_consultoria',venda_cursos:'com_cursos_inscritos',venda_palestras:'com_venda_palestras',cafes:'com_cafes'}[k];
+    const comDesc={venda_consultoria:'com_venda_consultoria_desc',venda_cursos:'com_cursos_desc',venda_palestras:'com_venda_palestras_desc',cafes:'com_cafes_desc'}[k];
+    const temTotal = d[totalField]!==undefined && d[totalField]!==null && d[totalField]!=='';
+    if(temTotal){
+      const desc=(d[comDesc]||'').trim(); if(desc) rows.push(detRow('Descrição', desc));
+    } else {
+      const equipe=equipeDoDoc(d);
+      const campo={venda_consultoria:'venda_consultoria',venda_cursos:'cursos_inscritos',venda_palestras:'venda_palestras',cafes:'cafes'}[k];
+      const campoDesc={venda_consultoria:'venda_consultoria_desc',venda_cursos:'cursos_desc',venda_palestras:'venda_palestras_desc',cafes:'cafes_desc'}[k];
+      const ehRS=(k==='venda_consultoria'||k==='venda_palestras');
+      const fmtP=v=>ehRS?`R$ ${Number(v||0).toLocaleString('pt-BR')}`:Number(v||0);
+      const linhas=equipe.map(c=>{const desc=(d[c.key]?.[campoDesc]||'').trim();return `${c.nome}: <strong>${fmtP(d[c.key]?.[campo])}</strong>${desc?` <span style="color:var(--muted)">(${desc})</span>`:''}`;}).join('<br>');
+      if(equipe.length) rows.push(detRow('Por vendedora', linhas));
+    }
+    if(k==='venda_cursos'){ const val=(d.com_cursos_valor!=null&&d.com_cursos_valor!=='')?Number(d.com_cursos_valor):equipeDoDoc(d).reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${Number(val).toLocaleString('pt-BR')}`)); }
     if(k==='cafes'){ const lk=cafeLinkDoDoc(d); if(lk) rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Planilha de Cafés</span>${chipLink(lk)}</div>`); }
   }
   return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:'';
@@ -1658,6 +1700,7 @@ window.salvarLancamento=()=>{
       mkt_vis: numOuNull('l-mkt-vis'),
       mkt_tempo_qtd: numOuNull('l-mkt-tempo-qtd'), mkt_tempo_desc: strOuNull('l-mkt-tempo-desc'),
       mkt_ocor_qtd:  numOuNull('l-mkt-ocor-qtd'),  mkt_ocor_desc:  strOuNull('l-mkt-ocor-desc'),
+      mkt_artes: (window.destaqueFotos&&window.destaqueFotos.mktarte)||[],
     };
   } else if(setorAtual==='comercial') {
     payload={
@@ -1670,18 +1713,16 @@ window.salvarLancamento=()=>{
       satisfacao_clientes:satNotas.filter(s=>s.cliente).map(s=>({nota:s.nota,cliente:s.cliente})),
       satisfacao_media:  satMedia,
     };
-    CONSULTORAS.forEach(c=>{
-      payload[c.key]={
-        venda_consultoria:      numOuNull(`lc-${c.key}-venda_consultoria`),
-        venda_consultoria_desc: strOuNull(`lc-${c.key}-venda_consultoria_desc`),
-        venda_palestras:        numOuNull(`lc-${c.key}-venda_palestras`),
-        venda_palestras_desc:   strOuNull(`lc-${c.key}-venda_palestras_desc`),
-        cursos_inscritos:       numOuNull(`lc-${c.key}-cursos_inscritos`),
-        cursos_valor:           numOuNull(`lc-${c.key}-cursos_valor`),
-        cursos_desc:            strOuNull(`lc-${c.key}-cursos_desc`),
-        cafes:                  numOuNull(`lc-${c.key}-cafes`),
-        cafes_desc:             strOuNull(`lc-${c.key}-cafes_desc`),
-      };
+    Object.assign(payload,{
+      com_venda_consultoria:      numOuNull('l-com-venda_consultoria'),
+      com_venda_consultoria_desc: strOuNull('l-com-venda_consultoria_desc'),
+      com_venda_palestras:        numOuNull('l-com-venda_palestras'),
+      com_venda_palestras_desc:   strOuNull('l-com-venda_palestras_desc'),
+      com_cursos_inscritos:       numOuNull('l-com-cursos_inscritos'),
+      com_cursos_valor:           numOuNull('l-com-cursos_valor'),
+      com_cursos_desc:            strOuNull('l-com-cursos_desc'),
+      com_cafes:                  numOuNull('l-com-cafes'),
+      com_cafes_desc:             strOuNull('l-com-cafes_desc'),
     });
   } else {
     const metaQtd=numOuNull('l-meta-qtd');
@@ -1966,9 +2007,9 @@ window.gerarPPT=async()=>{
       ev.addTable([head,...body],{x:0.4,y:1.35,w:12.5,fontSize:9,rowH:0.26,border:{type:'solid',color:'E2E8F0',pt:0.5},valign:'middle',autoPage:true,autoPageCharWeight:-0.3});
     }
 
-    // ── POR PESSOA (só setores com quebra por pessoa) ──
-    if(setorTemPessoas(setorAtual)){
-    const sp=pptx.addSlide(); sp.background={color:WHITE}; header(sp,setorAtual==='comercial'?'Por Vendedora':'Por Consultora');
+    // ── POR PESSOA (só Consultoria — Comercial agora é Venda Geral) ──
+    if(setorAtual==='consultoria'){
+    const sp=pptx.addSlide(); sp.background={color:WHITE}; header(sp,'Por Consultora');
     const cols = setorAtual==='comercial'
       ? ['Vendedora','Venda Consult. (R$)','Cursos (insc.)','Palestras (R$)','Cafés']
       : ['Consultora','Vendas','Postagens','Conhecimentos','Satisfação','Ajustes Ponto'];
@@ -2229,14 +2270,17 @@ window.renderLancamentos=async()=>{
       rows=linhasM.map(([a,b])=>`<tr><td style="color:var(--primary);font-weight:700">${a}</td><td>${b}</td></tr>`).join('');
     } else if(setorAtual==='comercial'){
       resumo=`Ocorrências: <strong>${r.com_ocorrencias??'—'}</strong> · Satisfação: <strong>${sat!==null?sat.toFixed(2):'—'}</strong>`;
-      cols=th('Vendedora')+th('Consultoria (R$)')+th('Cursos (insc.)')+th('Palestras (R$)')+th('Cafés');
-      rows=equipeDoDoc(r).map(c=>{const cd=r[c.key]||{};return `<tr>
-        <td style="color:var(--primary);font-weight:700">${c.nome}</td>
-        <td>${cd.venda_consultoria!=null?'R$ '+Number(cd.venda_consultoria).toLocaleString('pt-BR'):'—'}</td>
-        <td>${cd.cursos_inscritos??'—'}</td>
-        <td>${cd.venda_palestras!=null?'R$ '+Number(cd.venda_palestras).toLocaleString('pt-BR'):'—'}</td>
-        <td>${cd.cafes??'—'}</td>
-      </tr>`;}).join('');
+      cols=th('Venda Consult. (R$)')+th('Cursos (insc.)')+th('Palestras (R$)')+th('Cafés');
+      const vc=somaVend(r,'venda_consultoria','com_venda_consultoria');
+      const ci=somaVend(r,'cursos_inscritos','com_cursos_inscritos');
+      const vp=somaVend(r,'venda_palestras','com_venda_palestras');
+      const cf=somaVend(r,'cafes','com_cafes');
+      rows=`<tr>
+        <td>${vc!=null?'R$ '+Number(vc).toLocaleString('pt-BR'):'—'}</td>
+        <td>${ci??'—'}</td>
+        <td>${vp!=null?'R$ '+Number(vp).toLocaleString('pt-BR'):'—'}</td>
+        <td>${cf??'—'}</td>
+      </tr>`;
     } else {
       const metaPct=r.meta_clientes_pct??(r.meta_clientes_qtd&&r.total_clientes?Math.round(r.meta_clientes_qtd/r.total_clientes*100):null);
       resumo=`Horas: <strong>${r.controle_horas_pct!==null&&r.controle_horas_pct!==undefined?Number(r.controle_horas_pct).toFixed(1)+'%':'—'}</strong> ·
