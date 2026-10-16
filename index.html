@@ -521,9 +521,10 @@
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">👁️ Visualizações</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
           <div class="form-row" style="margin-top:12px">
-            <div class="form-group"><label>Qtd de postagens</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 11" min="0"></div>
-            <div class="form-group"><label>Postagens que atingiram a meta (≥ 1.500 views)</label><input type="number" id="l-mkt-vis-entregou" placeholder="Ex: 3" min="0"></div>
+            <div class="form-group"><label>Qtd de postagens</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 11" min="0" oninput="atualizarVisLive()"></div>
+            <div class="form-group"><label>Postagens que atingiram a meta (≥ 1.500 views)</label><input type="number" id="l-mkt-vis-entregou" placeholder="Ex: 3" min="0" oninput="atualizarVisLive()"></div>
           </div>
+          <div class="sat-media-live" id="mkt-vis-live" style="margin-top:4px">Preencha as postagens para ver o % de alcance da meta</div>
           <div class="form-group">
             <label>🎨 Artes / imagens do mês (pode adicionar várias)</label>
             <input type="file" accept="image/*" multiple id="dt-foto-mktarte" onchange="onDestaquePhoto('mktarte',this)" style="font-size:.8rem;width:100%;margin-top:6px">
@@ -906,6 +907,16 @@ window.aplicarDataQuando=(txtId,dtId)=>{
   const v=document.getElementById(dtId)?.value; if(!v) return;
   const [a,m,d]=v.split('-');
   const el=document.getElementById(txtId); if(el) el.value=`${d}/${m}/${a}`;
+};
+// Mostra ao vivo o % de alcance da meta de visualizações (entregou / postagens).
+window.atualizarVisLive=()=>{
+  const el=document.getElementById('mkt-vis-live'); if(!el) return;
+  const pEl=document.getElementById('l-mkt-vis-postagens'), eEl=document.getElementById('l-mkt-vis-entregou');
+  const p=Number(pEl?.value||0), e=Number(eEl?.value||0);
+  if(!p){ el.innerHTML='Preencha as postagens para ver o % de alcance da meta'; return; }
+  const pctv=Number((e/p*100).toFixed(1));
+  const n=avaliar(pctv, METAS_EQ.visualizacoes);
+  el.innerHTML=`Alcance da meta: <strong>${pctv.toFixed(1)}%</strong> (${e} de ${p} postagens) &nbsp;${badge(n)}`;
 };
 
 // ── META CLIENTES: lista cliente + tipo de meta ────────────────
@@ -1330,7 +1341,7 @@ function limparFormLancar() {
     });
   } else if(setorAtual==='marketing') {
     ['l-mkt-story-plan','l-mkt-story-exec','l-mkt-feed-plan','l-mkt-feed-exec','l-mkt-vis-postagens','l-mkt-vis-entregou','l-mkt-tempo-qtd','l-mkt-tempo-desc','l-mkt-ocor-qtd','l-mkt-ocor-desc'].forEach(id=>setVal(id));
-    window.destaqueFotos={}; setDestaqueFotos('mktarte',[]);
+    window.destaqueFotos={}; setDestaqueFotos('mktarte',[]); atualizarVisLive();
   } else {
     setVal('l-com-ocorrencias'); setIndicItens('com-indic-itens',[]);
     ['l-com-venda_consultoria','l-com-venda_consultoria_desc','l-com-venda_palestras','l-com-venda_palestras_desc','l-com-cursos_inscritos','l-com-cursos_valor','l-com-cursos_desc','l-com-cafes','l-com-cafes_desc'].forEach(id=>setVal(id));
@@ -1367,7 +1378,7 @@ function preencherFormLancar(d) {
   } else if(setorAtual==='marketing') {
     setVal('l-mkt-story-plan',d.mkt_story_plan); setVal('l-mkt-story-exec',d.mkt_story_exec);
     setVal('l-mkt-feed-plan',d.mkt_feed_plan);   setVal('l-mkt-feed-exec',d.mkt_feed_exec);
-    setVal('l-mkt-vis-postagens',d.mkt_vis_postagens); setVal('l-mkt-vis-entregou', d.mkt_vis_entregou ?? d.mkt_vis_2500);
+    setVal('l-mkt-vis-postagens',d.mkt_vis_postagens); setVal('l-mkt-vis-entregou', d.mkt_vis_entregou ?? d.mkt_vis_2500); atualizarVisLive();
     setVal('l-mkt-tempo-qtd',d.mkt_tempo_qtd); setVal('l-mkt-tempo-desc',d.mkt_tempo_desc);
     setVal('l-mkt-ocor-qtd',d.mkt_ocor_qtd);   setVal('l-mkt-ocor-desc',d.mkt_ocor_desc);
     window.destaqueFotos={}; setDestaqueFotos('mktarte', d.mkt_artes||[]);
