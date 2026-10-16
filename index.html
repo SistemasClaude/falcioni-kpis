@@ -520,11 +520,12 @@
       <div class="lanc-section open">
         <div class="lanc-section-header" onclick="toggleSection(this)"><span class="lsh-title">👁️ Visualizações</span><span class="lsh-chev">▼</span></div>
         <div class="lanc-section-body">
-          <div class="form-row" style="margin-top:12px">
-            <div class="form-group"><label>Qtd de postagens</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 11" min="0" oninput="atualizarVisLive()"></div>
-            <div class="form-group"><label>Postagens que atingiram a meta (≥ 1.500 views)</label><input type="number" id="l-mkt-vis-entregou" placeholder="Ex: 3" min="0" oninput="atualizarVisLive()"></div>
+          <div class="form-row-3" style="margin-top:12px">
+            <div class="form-group"><label>Total de postagens no mês</label><input type="number" id="l-mkt-vis-postagens" placeholder="Ex: 11" min="0" oninput="atualizarVisLive()"></div>
+            <div class="form-group"><label>Meta (70% do total)</label><input type="number" id="l-mkt-vis-meta" placeholder="auto" readonly tabindex="-1" style="background:var(--card2);opacity:.9"></div>
+            <div class="form-group"><label>Entregue (bateram 1.500 views)</label><input type="number" id="l-mkt-vis-entregou" placeholder="Ex: 3" min="0" oninput="atualizarVisLive()"></div>
           </div>
-          <div class="sat-media-live" id="mkt-vis-live" style="margin-top:4px">Preencha as postagens para ver o % de alcance da meta</div>
+          <div class="sat-media-live" id="mkt-vis-live" style="margin-top:4px">Preencha o total de postagens para ver a meta e o %</div>
           <div class="form-group">
             <label>🎨 Artes / imagens do mês (pode adicionar várias)</label>
             <input type="file" accept="image/*" multiple id="dt-foto-mktarte" onchange="onDestaquePhoto('mktarte',this)" style="font-size:.8rem;width:100%;margin-top:6px">
@@ -863,6 +864,14 @@ const INDICADORES_COMERCIAL = [
   { key:'ocorrencias',       label:'Ocorrências',             getValor:d=>d.com_ocorrencias, getNomes:null },
 ];
 const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(plan)*100).toFixed(1)) : null);
+// Visualizações (Marketing): Meta = X% do total de postagens (arredonda p/ cima); valor = entregue ÷ meta.
+function visMetaPct(){ try{ return Number(METAS_EQ?.visualizacoes?.bronze) || 70; }catch(e){ return 70; } }
+function visMeta(postagens){ const p=Number(postagens)||0; return p>0 ? Math.ceil(p*visMetaPct()/100) : 0; }
+function visValor(d){
+  const meta=(d.mkt_vis_meta!=null && d.mkt_vis_meta!=='') ? Number(d.mkt_vis_meta) : visMeta(d.mkt_vis_postagens);
+  const e=Number(d.mkt_vis_entregou ?? d.mkt_vis_2500)||0;
+  return meta>0 ? Number((e/meta*100).toFixed(1)) : null;
+}
 // Indicações que fecharam: conta os itens marcados como "fechou"; cai pro campo antigo (qtd) em meses legados.
 function indicFechadas(d){
   if(Array.isArray(d.indicacoes_itens) && d.indicacoes_itens.length) return d.indicacoes_itens.filter(x=>x&&x.fechou).length;
@@ -871,7 +880,7 @@ function indicFechadas(d){
 const INDICADORES_MARKETING = [
   { key:'plan_story',    label:'Planejamento Story', getValor:d=>pctExec(d.mkt_story_plan,d.mkt_story_exec), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
   { key:'plan_feed',     label:'Planejamento Feed',  getValor:d=>pctExec(d.mkt_feed_plan,d.mkt_feed_exec),  getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
-  { key:'visualizacoes', label:'Visualizações',      getValor:d=>pctExec(d.mkt_vis_postagens, d.mkt_vis_entregou ?? d.mkt_vis_2500), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
+  { key:'visualizacoes', label:'Visualizações',      getValor:d=>visValor(d), getNomes:null, fmt:v=>`${Number(v).toFixed(1)}%` },
   { key:'tempo_resposta',label:'Tempo de Resposta',  getValor:d=>d.mkt_tempo_qtd, getNomes:null },
   { key:'ocorrencias',   label:'Ocorrências',        getValor:d=>d.mkt_ocor_qtd, getNomes:null },
 ];
@@ -910,13 +919,16 @@ window.aplicarDataQuando=(txtId,dtId)=>{
 };
 // Mostra ao vivo o % de alcance da meta de visualizações (entregou / postagens).
 window.atualizarVisLive=()=>{
-  const el=document.getElementById('mkt-vis-live'); if(!el) return;
-  const pEl=document.getElementById('l-mkt-vis-postagens'), eEl=document.getElementById('l-mkt-vis-entregou');
+  const el=document.getElementById('mkt-vis-live');
+  const pEl=document.getElementById('l-mkt-vis-postagens'), eEl=document.getElementById('l-mkt-vis-entregou'), mEl=document.getElementById('l-mkt-vis-meta');
   const p=Number(pEl?.value||0), e=Number(eEl?.value||0);
-  if(!p){ el.innerHTML='Preencha as postagens para ver o % de alcance da meta'; return; }
-  const pctv=Number((e/p*100).toFixed(1));
+  const meta=visMeta(p);
+  if(mEl) mEl.value = p>0 ? meta : '';
+  if(!el) return;
+  if(!p){ el.innerHTML='Preencha o total de postagens para ver a meta e o %'; return; }
+  const pctv = meta>0 ? Number((e/meta*100).toFixed(1)) : 0;
   const n=avaliar(pctv, METAS_EQ.visualizacoes);
-  el.innerHTML=`Alcance da meta: <strong>${pctv.toFixed(1)}%</strong> (${e} de ${p} postagens) &nbsp;${badge(n)}`;
+  el.innerHTML=`Meta: <strong>${meta}</strong> postagens &nbsp;·&nbsp; Alcance: <strong>${pctv.toFixed(1)}%</strong> (${e} de ${meta}) &nbsp;${badge(n)}`;
 };
 
 // ── META CLIENTES: lista cliente + tipo de meta ────────────────
@@ -1480,8 +1492,10 @@ function detalheIndicador(ind,d) {
   if(k==='plan_feed'){ rows.push(detRow('Planejado', (d.mkt_feed_plan??'—')+' postagens')); rows.push(detRow('Executado', (d.mkt_feed_exec??'—')+' postagens')); return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:''; }
   if(k==='visualizacoes'){
     const ent=d.mkt_vis_entregou ?? d.mkt_vis_2500;
-    rows.push(detRow('Postagens', d.mkt_vis_postagens??'—'));
-    rows.push(detRow('Atingiram a meta (≥ 1.500 views)', (ent??'—')+(d.mkt_vis_postagens?` de ${d.mkt_vis_postagens}`:'')));
+    const meta=(d.mkt_vis_meta!=null&&d.mkt_vis_meta!=='')?d.mkt_vis_meta:visMeta(d.mkt_vis_postagens);
+    rows.push(detRow('Total de postagens', d.mkt_vis_postagens??'—'));
+    rows.push(detRow('Meta (70% do total)', meta||'—'));
+    rows.push(detRow('Entregue (≥ 1.500 views)', (ent??'—')+(meta?` de ${meta}`:'')));
     if(Array.isArray(d.mkt_artes)&&d.mkt_artes.length){
       rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Artes do mês</span><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${d.mkt_artes.map(f=>`<img src="${f}" alt="Arte do mês" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque(this.src)">`).join('')}</div></div>`);
     }
@@ -1698,7 +1712,7 @@ window.salvarLancamento=()=>{
       mes,ano,data:new Date().toISOString().slice(0,10),criadoEm:new Date().toISOString(),
       mkt_story_plan: numOuNull('l-mkt-story-plan'), mkt_story_exec: numOuNull('l-mkt-story-exec'),
       mkt_feed_plan:  numOuNull('l-mkt-feed-plan'),  mkt_feed_exec:  numOuNull('l-mkt-feed-exec'),
-      mkt_vis_postagens: numOuNull('l-mkt-vis-postagens'), mkt_vis_entregou: numOuNull('l-mkt-vis-entregou'),
+      mkt_vis_postagens: numOuNull('l-mkt-vis-postagens'), mkt_vis_entregou: numOuNull('l-mkt-vis-entregou'), mkt_vis_meta: visMeta(numOuNull('l-mkt-vis-postagens'))||null,
       mkt_tempo_qtd: numOuNull('l-mkt-tempo-qtd'), mkt_tempo_desc: strOuNull('l-mkt-tempo-desc'),
       mkt_ocor_qtd:  numOuNull('l-mkt-ocor-qtd'),  mkt_ocor_desc:  strOuNull('l-mkt-ocor-desc'),
       mkt_artes: (window.destaqueFotos&&window.destaqueFotos.mktarte)||[],
@@ -1897,7 +1911,7 @@ function detalhePPT(ind,d) {
   const k=ind.key, out=[], nomes=s=>splitNomes(s).join(', ');
   if(k==='plan_story'){ out.push(['Planejado', String(d.mkt_story_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_story_exec??'—')+' postagens']); return out; }
   if(k==='plan_feed'){ out.push(['Planejado', String(d.mkt_feed_plan??'—')+' postagens']); out.push(['Executado', String(d.mkt_feed_exec??'—')+' postagens']); return out; }
-  if(k==='visualizacoes'){ const ent=d.mkt_vis_entregou ?? d.mkt_vis_2500; out.push(['Postagens', String(d.mkt_vis_postagens??'—')]); out.push(['Atingiram a meta (≥ 1.500 views)', String(ent??'—')]); return out; }
+  if(k==='visualizacoes'){ const ent=d.mkt_vis_entregou ?? d.mkt_vis_2500; const meta=(d.mkt_vis_meta!=null&&d.mkt_vis_meta!=='')?d.mkt_vis_meta:visMeta(d.mkt_vis_postagens); out.push(['Total de postagens', String(d.mkt_vis_postagens??'—')]); out.push(['Meta (70%)', String(meta||'—')]); out.push(['Entregue (≥ 1.500 views)', String(ent??'—')]); return out; }
   if(k==='tempo_resposta' && setorAtual==='marketing'){ if(d.mkt_tempo_desc)out.push(['Descrição', d.mkt_tempo_desc]); return out; }
   if(k==='ocorrencias' && setorAtual==='marketing'){ if(d.mkt_ocor_desc)out.push(['Descrição', d.mkt_ocor_desc]); return out; }
   if(k==='controle_horas'){ if(d.horas_previstas)out.push(['Horas Previstas',d.horas_previstas]); if(d.horas_executadas)out.push(['Horas Executadas',d.horas_executadas]); if(d.controle_horas_pct!=null)out.push(['Aproveitamento',Number(d.controle_horas_pct).toFixed(1)+'%']); }
@@ -2259,12 +2273,12 @@ window.renderLancamentos=async()=>{
     let resumo, cols, rows;
     if(setorAtual==='marketing'){
       const pct=(p,e)=> (Number(p)>0? (Number(e||0)/Number(p)*100).toFixed(1)+'%':'—');
-      resumo=`Story: <strong>${pct(r.mkt_story_plan,r.mkt_story_exec)}</strong> · Feed: <strong>${pct(r.mkt_feed_plan,r.mkt_feed_exec)}</strong> · Visualizações: <strong>${pct(r.mkt_vis_postagens, r.mkt_vis_entregou ?? r.mkt_vis_2500)}</strong><br>Tempo de Resposta: <strong>${r.mkt_tempo_qtd??'—'}</strong> · Ocorrências: <strong>${r.mkt_ocor_qtd??'—'}</strong>`;
+      resumo=`Story: <strong>${pct(r.mkt_story_plan,r.mkt_story_exec)}</strong> · Feed: <strong>${pct(r.mkt_feed_plan,r.mkt_feed_exec)}</strong> · Visualizações: <strong>${visValor(r)!=null?visValor(r).toFixed(1)+'%':'—'}</strong><br>Tempo de Resposta: <strong>${r.mkt_tempo_qtd??'—'}</strong> · Ocorrências: <strong>${r.mkt_ocor_qtd??'—'}</strong>`;
       cols=th('Indicador')+th('Valor');
       const linhasM=[
         ['Planejamento Story', pct(r.mkt_story_plan,r.mkt_story_exec)+` (${r.mkt_story_exec??'—'}/${r.mkt_story_plan??'—'})`],
         ['Planejamento Feed', pct(r.mkt_feed_plan,r.mkt_feed_exec)+` (${r.mkt_feed_exec??'—'}/${r.mkt_feed_plan??'—'})`],
-        ['Visualizações', pct(r.mkt_vis_postagens, r.mkt_vis_entregou ?? r.mkt_vis_2500)+` (${(r.mkt_vis_entregou ?? r.mkt_vis_2500)??'—'}/${r.mkt_vis_postagens??'—'})`],
+        ['Visualizações', (visValor(r)!=null?visValor(r).toFixed(1)+'%':'—')+` (${(r.mkt_vis_entregou ?? r.mkt_vis_2500)??'—'}/${(r.mkt_vis_meta!=null&&r.mkt_vis_meta!=='')?r.mkt_vis_meta:(visMeta(r.mkt_vis_postagens)||'—')} · ${r.mkt_vis_postagens??'—'} post.)`],
         ['Tempo de Resposta', (r.mkt_tempo_qtd??'—')+(r.mkt_tempo_desc?' — '+r.mkt_tempo_desc:'')],
         ['Ocorrências', (r.mkt_ocor_qtd??'—')+(r.mkt_ocor_desc?' — '+r.mkt_ocor_desc:'')],
       ];
