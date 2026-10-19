@@ -1,4 +1,4 @@
-const CACHE = 'falcioni-kpis-v40';
+const CACHE = 'falcioni-kpis-v41';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
@@ -12,6 +12,24 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('firebasejs') || e.request.url.includes('firestore') || e.request.url.includes('googleapis')) return;
+  const url = e.request.url;
+  if (url.includes('firebasejs') || url.includes('firestore') || url.includes('googleapis')) return;
+
+  // HTML / navegação: REDE PRIMEIRO (sempre pega a versão nova quando online),
+  // caindo para o cache só quando estiver offline. Evita ficar preso em versão antiga.
+  const ehPagina = e.request.mode === 'navigate' || e.request.destination === 'document'
+    || url.endsWith('/') || url.endsWith('/index.html');
+  if (ehPagina) {
+    e.respondWith(
+      fetch(e.request).then(r => {
+        const copy = r.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+        return r;
+      }).catch(() => caches.match(e.request).then(r => r || caches.match('/index.html')))
+    );
+    return;
+  }
+
+  // Demais recursos: cache primeiro (rápido), buscando na rede se não tiver.
   e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
