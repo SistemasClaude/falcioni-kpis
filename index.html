@@ -307,7 +307,14 @@
 <div id="screen-app">
   <div class="app-header">
     <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
-    <div class="info"><h2>IndiFal</h2><span id="app-setor-label">Consultoria</span></div>
+    <div class="info"><h2>IndiFal</h2>
+      <span id="app-setor-label">Consultoria</span>
+      <select id="diretoria-setor-sel" onchange="trocarSetorDiretoria(this.value)" style="display:none;margin-top:4px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;font-weight:600">
+        <option value="consultoria">Consultoria</option>
+        <option value="comercial">Comercial</option>
+        <option value="marketing">Marketing</option>
+      </select>
+    </div>
     <div class="mes-sel">
       <select id="sel-mes" onchange="carregarDados()">
         <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
@@ -770,6 +777,9 @@ const METAS_EQ_PAD_MARKETING = {
 
 const SETOR_LABEL = { consultoria:'Consultoria', comercial:'Comercial', marketing:'Marketing' };
 const SETOR_SENHA_PADRAO = { consultoria:'falcioni2026', comercial:'comercial2026', marketing:'marketing2026' };
+// Senha master da Diretoria: acessa os 3 setores sem deslogar (alternável no cabeçalho).
+const SENHA_DIRETORIA_PADRAO = 'diretoria2026';
+let isDiretoria = false;
 
 // ── EQUIPE POR MÊS (data de corte) ─────────────────────────────
 // Equipe histórica da Consultoria até julho/2026 (jan–jul já preenchidos com a Paloma).
@@ -1041,16 +1051,30 @@ window.login=async()=>{
   try {
     const snap=await getDoc(doc(db,'config','senhas'));
     const senhas=snap.exists()?snap.data():{};
-    if(senha===(senhas[setorAtual]||SETOR_SENHA_PADRAO[setorAtual])){err.textContent='';await entrarApp();}
+    const senhaDir = senhas.diretoria || SENHA_DIRETORIA_PADRAO;
+    if(senha===senhaDir){ isDiretoria=true; err.textContent=''; await entrarApp(); }
+    else if(senha===(senhas[setorAtual]||SETOR_SENHA_PADRAO[setorAtual])){ isDiretoria=false; err.textContent=''; await entrarApp(); }
     else err.textContent='Senha incorreta';
   } catch(e){err.textContent='Erro de conexão';}
 };
-window.logout=()=>{document.getElementById('inp-senha').value='';document.getElementById('login-err').textContent='';show('screen-login');};
+window.logout=()=>{isDiretoria=false;document.getElementById('inp-senha').value='';document.getElementById('login-err').textContent='';show('screen-login');};
+// Diretoria troca de setor sem deslogar (mantém o mês/ano que estava sendo visto).
+window.trocarSetorDiretoria=async(setor)=>{
+  if(!isDiretoria) return;
+  const m=document.getElementById('sel-mes')?.value, a=document.getElementById('sel-ano')?.value;
+  setorAtual=setor;
+  await entrarApp();
+  const sm=document.getElementById('sel-mes'); if(sm&&m) sm.value=m;
+  const sa=document.getElementById('sel-ano'); if(sa&&a) sa.value=a;
+  if(m||a) await carregarDados();
+};
 
 async function entrarApp() {
   show('screen-app');
   aplicarSetor(setorAtual);
-  document.getElementById('app-setor-label').textContent = SETOR_LABEL[setorAtual];
+  const dsel=document.getElementById('diretoria-setor-sel');
+  if(dsel){ dsel.style.display = isDiretoria?'':'none'; dsel.value=setorAtual; }
+  document.getElementById('app-setor-label').textContent = (isDiretoria?'Diretoria · ':'') + SETOR_LABEL[setorAtual];
   document.getElementById('indicadores-titulo').textContent = `Indicadores da ${SETOR_LABEL[setorAtual]}`;
   const ehConsultoria = setorAtual==='consultoria';
   const ehComercial   = setorAtual==='comercial';
