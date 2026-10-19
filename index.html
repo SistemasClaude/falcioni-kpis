@@ -969,6 +969,38 @@ function setMetaCliItens(itens){
   (itens||[]).forEach(x=>addMetaCliItem(x.cliente,x.tipo));
 }
 
+// ── CAFÉS POR ORIGEM (Comercial): origem + quantidade ──────────
+window.addCafeOrigem=(origem='',qtd='')=>{
+  const wrap=document.getElementById('cafe-origens'); if(!wrap) return;
+  const esc=s=>String(s??'').replace(/"/g,'&quot;');
+  const st='padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;outline:none';
+  const row=document.createElement('div');
+  row.className='cafe-origem-row';
+  row.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';
+  row.innerHTML=`<input type="text" class="co-origem" list="cafe-origens-sug" placeholder="Origem (ex: Instagram)" value="${esc(origem)}" style="flex:1;${st}">
+    <input type="number" class="co-qtd" min="0" placeholder="Qtd" value="${esc(qtd)}" oninput="atualizarCafeSoma()" style="width:84px;${st}">
+    <button type="button" class="btn-del-plano" onclick="this.closest('.cafe-origem-row').remove();atualizarCafeSoma()">🗑️</button>`;
+  wrap.appendChild(row);
+  atualizarCafeSoma();
+};
+function lerCafeOrigens(){
+  return [...document.querySelectorAll('#cafe-origens .cafe-origem-row')]
+    .map(r=>({origem:r.querySelector('.co-origem').value.trim(), qtd:Number(r.querySelector('.co-qtd').value)||0}))
+    .filter(x=>x.origem||x.qtd);
+}
+function setCafeOrigens(itens){
+  const wrap=document.getElementById('cafe-origens'); if(!wrap) return;
+  wrap.innerHTML='';
+  (itens||[]).forEach(x=>addCafeOrigem(x.origem,x.qtd));
+  atualizarCafeSoma();
+}
+window.atualizarCafeSoma=()=>{
+  const el=document.getElementById('cafe-origens-soma'); if(!el) return;
+  const itens=lerCafeOrigens();
+  const soma=itens.reduce((s,x)=>s+(Number(x.qtd)||0),0);
+  el.textContent = itens.length ? `Soma das origens: ${soma}` : '';
+};
+
 // ── INDICAÇÕES: cliente indicou → cliente indicado → fechou? ───
 window.addIndicItem=(wrapId,indicou='',indicado='',fechou=false)=>{
   const wrap=document.getElementById(wrapId); if(!wrap) return;
@@ -1313,6 +1345,13 @@ function buildComercialVendSections() {
           <div class="form-group"><label>Acompanhamento de Cafés (qtd)</label><input type="number" id="l-com-cafes" placeholder="Ex: 4" min="0"></div>
           <div class="form-group"><label>Descrição</label><input type="text" id="l-com-cafes_desc" placeholder="Ex: Café com cliente Y"></div>
         </div>
+        <div class="form-group">
+          <label>Cafés por origem (de onde vieram)</label>
+          <div id="cafe-origens"></div>
+          <button type="button" class="btn-add-plano" onclick="addCafeOrigem()" style="margin-top:4px">+ Adicionar origem</button>
+          <datalist id="cafe-origens-sug"><option value="Comercial"></option><option value="Instagram"></option><option value="Prospecção"></option><option value="Indicação"></option></datalist>
+          <div id="cafe-origens-soma" style="font-size:.78rem;color:var(--muted);margin-top:4px"></div>
+        </div>
       </div>
     </div>`;
 }
@@ -1390,6 +1429,7 @@ function limparFormLancar() {
   } else {
     setVal('l-com-ocorrencias'); setIndicItens('com-indic-itens',[]);
     ['l-com-venda_consultoria','l-com-venda_consultoria_desc','l-com-venda_palestras','l-com-venda_palestras_desc','l-com-cursos_inscritos','l-com-cursos_valor','l-com-cursos_desc','l-com-cafes','l-com-cafes_desc'].forEach(id=>setVal(id));
+    setCafeOrigens([]);
   }
   satNotas=[]; satIdCounter=0;
   document.getElementById('sat-lista').innerHTML='';
@@ -1445,6 +1485,7 @@ function preencherFormLancar(d) {
     setVal('l-com-cursos_desc', getDsc('com_cursos_desc','cursos_desc'));
     setVal('l-com-cafes', getTot('com_cafes','cafes'));
     setVal('l-com-cafes_desc', getDsc('com_cafes_desc','cafes_desc'));
+    setCafeOrigens(d.com_cafes_origens||[]);
   }
   // Reconstrói a lista de notas de satisfação (nomeadas + anônimas, a partir do que foi salvo)
   const clientes=(d.satisfacao_clientes||[]).map(c=>({nota:c.nota,cliente:c.cliente}));
@@ -1580,7 +1621,12 @@ function detalheIndicador(ind,d) {
       if(equipe.length) rows.push(detRow('Por vendedora', linhas));
     }
     if(k==='venda_cursos'){ const val=(d.com_cursos_valor!=null&&d.com_cursos_valor!=='')?Number(d.com_cursos_valor):equipeDoDoc(d).reduce((s,c)=>s+Number(d[c.key]?.cursos_valor||0),0); if(val) rows.push(detRow('Valor em cursos', `R$ ${Number(val).toLocaleString('pt-BR')}`)); }
-    if(k==='cafes'){ const lk=cafeLinkDoDoc(d); if(lk) rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Planilha de Cafés</span>${chipLink(lk)}</div>`); }
+    if(k==='cafes'){
+      if(Array.isArray(d.com_cafes_origens)&&d.com_cafes_origens.length){
+        rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Por origem</span><div class="ind-chips">${d.com_cafes_origens.map(x=>`<span class="ind-chip">${x.origem||'—'}: <strong>${x.qtd??0}</strong></span>`).join('')}</div></div>`);
+      }
+      const lk=cafeLinkDoDoc(d); if(lk) rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Planilha de Cafés</span>${chipLink(lk)}</div>`);
+    }
   }
   return rows.length?`<div class="ind-detalhe">${rows.join('')}</div>`:'';
 }
@@ -1771,6 +1817,7 @@ window.salvarLancamento=()=>{
       com_cursos_desc:            strOuNull('l-com-cursos_desc'),
       com_cafes:                  numOuNull('l-com-cafes'),
       com_cafes_desc:             strOuNull('l-com-cafes_desc'),
+      com_cafes_origens:          lerCafeOrigens(),
     });
   } else {
     const metaQtd=numOuNull('l-meta-qtd');
