@@ -49,6 +49,9 @@
     .setor-btn .icon { font-size:1.5rem; display:block; margin-bottom:4px; }
     .setor-btn.active { border-color:var(--primary); color:var(--primary); background:#EFF6FF; }
     .setor-btn.disabled { opacity:.35; cursor:default; }
+    #diretoria-switch { display:flex; }
+    .dir-sw-btn { padding:4px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.12); color:#fff; font-size:.78rem; font-weight:700; cursor:pointer; }
+    .dir-sw-btn.active { background:#fff; color:var(--primary); border-color:#fff; }
     .login-box { width:100%; max-width:380px; display:flex; flex-direction:column; gap:12px; }
     .login-box input { padding:14px 16px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-size:1rem; outline:none; box-shadow:0 1px 4px rgba(0,0,0,.06); }
     .login-box input:focus { border-color:var(--primary); }
@@ -310,11 +313,11 @@
     <img class="logo-h" src="Falcioni.jpg" alt="F" onerror="this.style.display='none'">
     <div class="info"><h2>IndiFal</h2>
       <span id="app-setor-label">Consultoria</span>
-      <select id="diretoria-setor-sel" onchange="trocarSetorDiretoria(this.value)" style="display:none;margin-top:4px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.15);color:#fff;font-size:.8rem;font-weight:600">
-        <option value="consultoria">Consultoria</option>
-        <option value="comercial">Comercial</option>
-        <option value="marketing">Marketing</option>
-      </select>
+      <div id="diretoria-switch" style="display:none;gap:6px;margin-top:5px;flex-wrap:wrap">
+        <button type="button" data-setor="consultoria" onclick="trocarSetorDiretoria('consultoria')" class="dir-sw-btn">Consultoria</button>
+        <button type="button" data-setor="comercial" onclick="trocarSetorDiretoria('comercial')" class="dir-sw-btn">Comercial</button>
+        <button type="button" data-setor="marketing" onclick="trocarSetorDiretoria('marketing')" class="dir-sw-btn">Marketing</button>
+      </div>
     </div>
     <div class="mes-sel">
       <select id="sel-mes" onchange="carregarDados()">
@@ -1078,8 +1081,8 @@ window.trocarSetorDiretoria=async(setor)=>{
 async function entrarApp() {
   show('screen-app');
   aplicarSetor(setorAtual);
-  const dsel=document.getElementById('diretoria-setor-sel');
-  if(dsel){ dsel.style.display = isDiretoria?'':'none'; dsel.value=setorAtual; }
+  const dsw=document.getElementById('diretoria-switch');
+  if(dsw){ dsw.style.display = isDiretoria?'flex':'none'; dsw.querySelectorAll('.dir-sw-btn').forEach(b=>b.classList.toggle('active', b.dataset.setor===setorAtual)); }
   document.getElementById('app-setor-label').textContent = (isDiretoria?'Diretoria · ':'') + SETOR_LABEL[setorAtual];
   document.getElementById('indicadores-titulo').textContent = `Indicadores da ${SETOR_LABEL[setorAtual]}`;
   const ehConsultoria = setorAtual==='consultoria';
