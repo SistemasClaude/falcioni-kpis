@@ -44,7 +44,7 @@
     #screen-login img.logo-login { width:140px; border-radius:10px; background:#fff; padding:10px 14px; box-shadow:0 4px 20px rgba(26,47,74,.15); margin-bottom:20px; }
     #screen-login h1 { font-size:1.5rem; color:var(--primary); letter-spacing:2px; text-transform:uppercase; font-weight:800; }
     #screen-login .sub { color:var(--muted); font-size:.9rem; margin:4px 0 28px; }
-    .setor-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; max-width:380px; margin-bottom:20px; }
+    .setor-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:380px; margin-bottom:20px; }
     .setor-btn { padding:14px 8px; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--muted); font-size:.85rem; font-weight:700; cursor:pointer; text-align:center; transition:all .2s; box-shadow:0 2px 8px rgba(26,47,74,.06); }
     .setor-btn .icon { font-size:1.5rem; display:block; margin-bottom:4px; }
     .setor-btn.active { border-color:var(--primary); color:var(--primary); background:#EFF6FF; }
@@ -294,6 +294,7 @@
     <button class="setor-btn active" onclick="selSetor('consultoria',this)"><span class="icon">📊</span>Consultoria</button>
     <button class="setor-btn" onclick="selSetor('comercial',this)"><span class="icon">💼</span>Comercial</button>
     <button class="setor-btn" onclick="selSetor('marketing',this)"><span class="icon">📣</span>Marketing</button>
+    <button class="setor-btn" onclick="selSetor('diretoria',this)"><span class="icon">👑</span>Diretoria</button>
   </div>
   <div class="login-box">
     <input type="password" id="inp-senha" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')login()">
@@ -1052,6 +1053,11 @@ window.login=async()=>{
     const snap=await getDoc(doc(db,'config','senhas'));
     const senhas=snap.exists()?snap.data():{};
     const senhaDir = senhas.diretoria || SENHA_DIRETORIA_PADRAO;
+    if(setorAtual==='diretoria'){
+      if(senha===senhaDir){ isDiretoria=true; setorAtual='consultoria'; err.textContent=''; await entrarApp(); }
+      else err.textContent='Senha incorreta';
+      return;
+    }
     if(senha===senhaDir){ isDiretoria=true; err.textContent=''; await entrarApp(); }
     else if(senha===(senhas[setorAtual]||SETOR_SENHA_PADRAO[setorAtual])){ isDiretoria=false; err.textContent=''; await entrarApp(); }
     else err.textContent='Senha incorreta';
