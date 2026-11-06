@@ -2533,7 +2533,21 @@ window.copiarApi=()=>navigator.clipboard.writeText(document.getElementById('api-
 </script>
 
 <script>
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+// Registra o service worker e recarrega sozinho quando sai uma versão nova (evita cache preso).
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      if(!nw) return;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed' && navigator.serviceWorker.controller){ location.reload(); }
+      });
+    });
+    setInterval(()=>{ reg.update().catch(()=>{}); }, 60000); // checa atualização a cada 1 min
+  }).catch(()=>{});
+  let recarregando=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(recarregando) return; recarregando=true; location.reload(); });
+}
 setTimeout(()=>document.getElementById('splash-bar').style.width='100%',100);
 setTimeout(()=>{const s=document.getElementById('splash');s.style.opacity='0';setTimeout(()=>{s.style.display='none';document.getElementById('screen-login').style.display='flex';},600);},2500);
 </script>
