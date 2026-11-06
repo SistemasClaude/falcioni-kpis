@@ -882,9 +882,10 @@ const pctExec=(plan,exec)=> (Number(plan)>0 ? Number((Number(exec||0)/Number(pla
 function visMetaPct(){ try{ return Number(METAS_EQ?.visualizacoes?.bronze) || 70; }catch(e){ return 70; } }
 function visMeta(postagens){ const p=Number(postagens)||0; return p>0 ? Math.ceil(p*visMetaPct()/100) : 0; }
 function visValor(d){
-  const meta=(d.mkt_vis_meta!=null && d.mkt_vis_meta!=='') ? Number(d.mkt_vis_meta) : visMeta(d.mkt_vis_postagens);
+  // Alcance = postagens que entregaram ÷ total de postagens (a Meta é só referência).
+  const total=Number(d.mkt_vis_postagens)||0;
   const e=Number(d.mkt_vis_entregou ?? d.mkt_vis_2500)||0;
-  return meta>0 ? Number((e/meta*100).toFixed(1)) : null;
+  return total>0 ? Number((e/total*100).toFixed(1)) : null;
 }
 // Indicações que fecharam: conta os itens marcados como "fechou"; cai pro campo antigo (qtd) em meses legados.
 function indicFechadas(d){
@@ -940,9 +941,9 @@ window.atualizarVisLive=()=>{
   if(mEl) mEl.value = p>0 ? meta : '';
   if(!el) return;
   if(!p){ el.innerHTML='Preencha o total de postagens para ver a meta e o %'; return; }
-  const pctv = meta>0 ? Number((e/meta*100).toFixed(1)) : 0;
+  const pctv = p>0 ? Number((e/p*100).toFixed(1)) : 0;
   const n=avaliar(pctv, METAS_EQ.visualizacoes);
-  el.innerHTML=`Meta: <strong>${meta}</strong> postagens &nbsp;·&nbsp; Alcance: <strong>${pctv.toFixed(1)}%</strong> (${e} de ${meta}) &nbsp;${badge(n)}`;
+  el.innerHTML=`Meta: <strong>${meta}</strong> postagens (ref.) &nbsp;·&nbsp; Alcance: <strong>${pctv.toFixed(1)}%</strong> (${e} de ${p}) &nbsp;${badge(n)}`;
 };
 
 // ── META CLIENTES: lista cliente + tipo de meta ────────────────
@@ -1568,8 +1569,8 @@ function detalheIndicador(ind,d) {
     const ent=d.mkt_vis_entregou ?? d.mkt_vis_2500;
     const meta=(d.mkt_vis_meta!=null&&d.mkt_vis_meta!=='')?d.mkt_vis_meta:visMeta(d.mkt_vis_postagens);
     rows.push(detRow('Total de postagens', d.mkt_vis_postagens??'—'));
-    rows.push(detRow('Meta (70% do total)', meta||'—'));
-    rows.push(detRow('Entregue (≥ 1.500 views)', (ent??'—')+(meta?` de ${meta}`:'')));
+    rows.push(detRow('Meta (70% do total)', (meta||'—')+' (referência)'));
+    rows.push(detRow('Entregue (≥ 1.500 views)', (ent??'—')+(d.mkt_vis_postagens?` de ${d.mkt_vis_postagens}`:'')));
     if(Array.isArray(d.mkt_artes)&&d.mkt_artes.length){
       rows.push(`<div class="ind-det-row"><span class="ind-det-lbl">Artes do mês</span><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">${d.mkt_artes.map(f=>`<img src="${f}" alt="Arte do mês" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="abrirFotoDestaque(this.src)">`).join('')}</div></div>`);
     }
